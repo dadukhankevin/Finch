@@ -59,17 +59,17 @@ Here is our best individual:
 (70.0, 'zxyvzayoaabaaaaatajavawavaihaaaaaaatrxaaabaaawraaaaaaaaaajaaaaaaafazaaaaawaaaaavavalaaaaasaaaaaaauaa')
 It was 70% the letter "a". There are lots of ways to improve this. 
 Here is the plot of how well our population became more fit over time:
-[ag](https://user-images.githubusercontent.com/61605641/198392970-3f6be40f-5bc7-4e05-a598-84b018859c5c.png)
+[Click Here](https://user-images.githubusercontent.com/61605641/198392970-3f6be40f-5bc7-4e05-a598-84b018859c5c.png)
 And for those of you who want to copy the whole thing:
 ```
 from FinchGA.finchstring import *
 
 max = 100
-def fit(generation):  # A basic function that insensitive generations with the most occurrences of the letter a.
-    points = generation.count("a")
-    if max:
+def fit(individual):  # A basic function that insensitive generations with the most occurrences of the letter a.
+    points = individual.count("a")
+    if max: #the mximum number of points, if give, allows the function to return a %. This is simply more readable.
         points = (points/max)*100
-    return points, generation
+    return points, individual
 
 
 environment = Environment()  # Similar to keras.Sequential
@@ -77,7 +77,7 @@ environment.add(
     Kill(.2)  # Kills the bottom 90% of the population
 )
 environment.add(
-    String(100, 100, fit, letters="qwertyuiopasdfghjklzxcvbnm")  # Creates a new generation of
+    String(100, 100, fit, letters="qwertyuiopasdfghjklzxcvbnm")  # Creates a new generation of individuals
 )
 environment.add(
     StringMutate(percentage=99, small_percent=1, letters="qwertyuiopasdfghjklzxcvbnm")  #mutates 99 percent of the generation and within those it mutates it changes 1% of the letters.
