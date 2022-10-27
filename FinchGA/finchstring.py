@@ -11,6 +11,7 @@ from textblob import TextBlob
 allowed = "1234567890qwertyuiopasd=fghjklzxcvbnm()\t '"
 allowed = string.printable
 
+
 class String:
     def __init__(self, arrlen, length, fittnessfunc, genfunc=None, letters=allowed):
         self.arrlen = arrlen
@@ -36,18 +37,19 @@ class String:
 
 
 class StringMutate:
-    def __init__(self, mutation_function="change", percentage=5, letters=allowed, small_percent=30):
+    def __init__(self, mutation_function="change", letters=allowed, small_percent=30, big_function=None,
+                 small_function=None):
         """Percentage is the percent of 'children' that will be mutated. small_percent is the percent of letters
         within the child that will be changed. Not this is all chance."""
         self.mutation_function = mutation_function
-        self.percentage = percentage
         self.letters = letters
-        self.small_percent = small_percent
+        self.small_function = small_function
+        self.big_function = big_function
 
     def mix(self, data):
         ret = []
         for i in data:
-            if r.randint(1, 100) <= self.percentage:
+            if r.randint(1, 100) <= self.small_function():
                 l = list(i)
                 r.shuffle(l)
                 ret.append("".join(l))
@@ -57,7 +59,8 @@ class StringMutate:
 
     def mutate_one(self, element):  # TODO: make this lots better
         for i in range(len(element)):
-            if r.randint(1, 100) <= self.small_percent:
+            m = self.small_function()
+            if r.randint(1, 100) <= m:
                 ind = r.randint(0, len(element) - 1)
                 thing = random.choice(self.letters)
                 element = list(element)
@@ -67,9 +70,11 @@ class StringMutate:
         return element
 
     def change(self, data):
-        return [self.mutate_one(i) if r.randint(1, 100) <= self.percentage else i for i in data]
+        return [self.mutate_one(i) if r.randint(1, 100) <= self.big_function() else i for i in data]
 
     def run(self, data, func):
+        if data == []:
+            return []
         if self.mutation_function == "mix":
             return self.mix(data)
         if self.mutation_function == "change":
@@ -113,6 +118,7 @@ class Environment:
         history = []
         for n in range(epochs):
             for i in self.classes:
+
                 data = i.run(data=data, func=func)
                 data = [func(i) for i in data]
                 data = sorted(data)
@@ -133,10 +139,21 @@ class Environment:
 
 class Kill:
     def __init__(self, percent):
+        self.name = "kill"
         self.percent = percent
 
     def run(self, data, func):
-        return data[int(len(data) * self.percent):-1]
+        return data[int(len(data) * self.percent()):-1]
+
+
+class Duplicate:
+    def __init__(self, num):
+        self.num = num
+
+    def run(self, data, func):
+        del data[0:self.num]
+        data += [data[-1]] * self.num
+        return data
 
 
 class RemoveTwins:
@@ -145,7 +162,12 @@ class RemoveTwins:
 
     def run(self, data, func):
         return np.unique(data).tolist()
+class KeepLength:
+    def __init__(self, num):
+        self.num = num
 
+    def run(self, data, func):
+        return reversed(list(reversed(data))[0:self.num])
 
 class NarrowPool:
     def __init__(self):
@@ -165,5 +187,3 @@ def ifin(ls, str1):
             return True
         else:
             return False
-
-
