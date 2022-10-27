@@ -1,4 +1,4 @@
-from Finch.finchstring import *
+from Finch.FinchGA.finchstring import *
 
 max = 100
 def fit(generation):  # A basic function that insensitive generations with the most occurrences of the letter a.
