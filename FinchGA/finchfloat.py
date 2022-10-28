@@ -115,12 +115,13 @@ class Environment:
                 data = [func(i) for i in data]
                 data = sorted(data)
                 try:
+                    input(data[-1])
                     top = data[-1]
                     history.append(data[-1][0])
                 except:
                     top = []
                 data = [i[1] for i in data]
-                print(int((n / epochs) * 100), top)
+                #print(int((n / epochs) * 100), top)
 
 
         return data, history
@@ -170,8 +171,7 @@ def fit(data):
     points = 0
     if data != []:
         for i in data[0]:
-            if i % 2 == 0:
-                points += 1
+            points += i
 
     return (points, data)
 
@@ -184,7 +184,7 @@ environment.add(
     String(100, 10, fit)
 )
 environment.add(
-    StringMutate(percentage=50, small_percent=5)
+    StringMutate(percentage=90, small_percent=1)
 )
 
 environment.add(

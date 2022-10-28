@@ -62,7 +62,7 @@ class StringMutate:
             m = self.small_function()
             if r.randint(1, 100) <= m:
                 ind = r.randint(0, len(element) - 1)
-                thing = random.choice(self.letters)
+                thing = random.choice("".join(self.letters))
                 element = list(element)
                 element.pop(ind)
                 element.insert(ind, thing)
