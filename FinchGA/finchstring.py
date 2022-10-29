@@ -56,11 +56,11 @@ class String(Layer):
 
 class StringMutate(Layer):
     def __init__(self, mutation_function="change", big_function=None,
-                 small_function=None):
+                 small_function=None, delay=0):
         global allowed
         """Percentage is the percent of 'children' that will be mutated. small_percent is the percent of letters
         within the child that will be changed. Not this is all chance."""
-        super().__init__()
+        super().__init__(delay)
         self.mutation_function = mutation_function
         self.small_function = small_function
         self.big_function = big_function
@@ -105,11 +105,11 @@ class StringMutate(Layer):
 
 
 class Parent(Layer):
-    def __init__(self, num, gene_size=3, family_size=2):
+    def __init__(self, num, gene_size=3, family_size=2, delay=0):
         self.num = num
         self.gene_size = gene_size
         self.fs = family_size
-        super().__init__()
+        super().__init__(delay=delay)
 
     def parent(self, data, mom, dad):
         mom = np.asarray(list(mom))
@@ -125,7 +125,8 @@ class Parent(Layer):
         for i in range(self.fs):
             r.shuffle(both)
             children.append("".join(both)[0: lengthmom])
-            data.pop(0)
+            if data:
+                data.pop(0)
         data = data + children + mom + dad
         return data
 
@@ -135,10 +136,13 @@ class Parent(Layer):
             return data
         return self.parent(data, data[-1], data[-2])
 
+    def prun(self, data, func):
+        self.run(data, func)
+
 
 class Environment:
-    def __init__(self, *args):
-        self.classes = list(args)
+    def __init__(self, classes=[]):
+        self.classes = classes
 
     def compile(self, epochs, func, verbose=True, every=10, lettrs=None):
         global allowed
@@ -155,12 +159,14 @@ class Environment:
 
                 data = i.run(data=data,
                              func=func)
+
                 # transform data in such a way as defined in the run func of the class
                 data = [func(i) for i in data]  # apply the fitness function to each
                 data = sorted(data)  # sort the data based on fitness
                 try:
-                    top = data[-1]
                     history.append(data[-1][0])
+
+                    top = data[-1]
                 except IndexError:
                     top = []
                 data = [i[1] for i in
@@ -168,7 +174,14 @@ class Environment:
             if verbose:
                 if n % every == 0:
                     print(int((n / epochs) * 100), top)
+
         return data, history
+
+    def summary(self):
+        sum = ""
+        for i in self.classes:
+            sum += str(type(i)) + str(vars(i)) + "\n\n"
+        return sum
 
     def add(self, layer):
         self.classes.append(layer)
@@ -203,6 +216,25 @@ class Kill(Layer):
             return data
 
 
+class Parents(Parent):
+    def __init__(self, delay, num_children, gene_size=3, family_size=2, percent=50, kill_parents=False):
+        self.percent = percent
+        self.kill_parents = kill_parents
+        super().__init__(delay=delay, num=num_children, gene_size=gene_size, family_size=family_size)
+
+    def run(self, data, func):
+        ret = []
+        for i in data:
+            if random.randint(0, 100) < self.percent:
+                ret = ret + self.parent([], i, random.choice(data))
+
+                if self.kill_parents == False:
+                    ret = ret + [i]
+            else:
+                ret = ret + [i]
+        return ret
+
+
 class Duplicate(Layer):
     def __init__(self, amt, delay=0):
         super().__init__(delay=delay)
@@ -217,6 +249,28 @@ class Duplicate(Layer):
             self.num += 1
             return data
 
+
+class TopPercent(Layer):
+    def __init__(self, percent, delay=0):
+        super().__init__(delay=delay)
+        self.percent = percent
+    def run(self, data, func):
+        if self.num >= self.delay:
+            return data[int(len(data)*self.percent):]
+        else:
+            self.num += 1
+            return data
+class TopN(Layer):
+    def __init__(self, number, delay=0):
+        super().__init__(delay=delay)
+        self.number = number
+    def run(self, data, func):
+        if self.num >= self.delay:
+
+            return data[-self.number:]
+        else:
+            self.num += 1
+            return data
 
 class RemoveTwins(Layer):
     def __init__(self, delay=0):
