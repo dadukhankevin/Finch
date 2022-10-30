@@ -19,7 +19,7 @@ class Layer:
         self.delay = delay
 
 
-class String(Layer):
+class Data(Layer):
     def __init__(self, arrlen, length, genfunc=None):
         self.arrlen = arrlen
         self.length = length
@@ -41,8 +41,8 @@ class String(Layer):
         # choose from all lowercase letter
         ret = []
         for i in range(num):
-            result_str = ''.join(r.choice(allowed) for _ in range(length))
-            ret.append(result_str)
+            result_str = [r.choice(allowed) for _ in range(length)]
+            ret += [result_str]
         return ret
 
     def run(self, data, func):
@@ -54,7 +54,7 @@ class String(Layer):
         return data
 
 
-class StringMutate(Layer):
+class DataMutate(Layer):
     def __init__(self, mutation_function="change", big_function=None,
                  small_function=None, delay=0):
         global allowed
@@ -69,9 +69,8 @@ class StringMutate(Layer):
         ret = []
         for i in data:
             if r.randint(1, 100) <= self.small_function():
-                lis = list(i)
-                r.shuffle(lis)
-                ret.append("".join(lis))
+                r.shuffle(i)
+                ret.append(i)
             else:
                 ret.append(i)
         return ret
@@ -82,11 +81,10 @@ class StringMutate(Layer):
             m = self.small_function()
             if r.randint(1, 100) <= m:
                 ind = r.randint(0, len(element) - 1)
-                thing = random.choice("".join(allowed))
-                element = list(element)
+                thing = random.choice(allowed)
                 element.pop(ind)
                 element.insert(ind, thing)
-                element = "".join(element)
+                element = element
         return element
 
     def change(self, data):
@@ -111,30 +109,35 @@ class Parent(Layer):
         self.fs = family_size
         super().__init__(delay=delay)
 
-    def parent(self, data, mom, dad):
-        mom = np.asarray(list(mom))
-        dad = np.asarray(list(dad))
-        lengthmom = len(mom)
-        mom = np.array_split(mom, self.gene_size)
-        dad = np.array_split(dad, self.gene_size)
-        mom = ["".join(i.tolist()) for i in mom]
-        dad = ["".join(i.tolist()) for i in dad]
-        children = []
-        dad = dad + mom
-        both = dad
+    def parent(self, X, Y):
+        ret = []
+        X = np.asarray(X)
+        Y = np.asarray(Y)
+        for i in range(self.fs):
+            choice = np.random.randint(self.gene_size, size=X.size).reshape(X.shape).astype(bool)
+            ret.append(np.where(choice, X, Y).tolist()[0:X.size])
+        return ret
+
+    def deprecated_parent(self, mom, dad):
+        ret = []
+        length = len(mom)
+
+        mom = [list(i) for i in np.array_split(mom, self.gene_size)]
+        dad = [list(i) for i in np.array_split(dad, self.gene_size)]
+        both = mom + dad
+        both = [item for sublist in both for item in sublist]
+        r.shuffle(both)
         for i in range(self.fs):
             r.shuffle(both)
-            children.append("".join(both)[0: lengthmom])
-            if data:
-                data.pop(0)
-        data = data + children + mom + dad
-        return data
+
+            ret.append(both[0:length])
+        return ret
 
     def run(self, data, func):
         if self.num <= self.delay:
             self.num += 1
             return data
-        return self.parent(data, data[-1], data[-2])
+        return data + self.parent(data, data[-1], data[-2])
 
     def prun(self, data, func):
         self.run(data, func)
@@ -162,6 +165,7 @@ class Environment:
 
                 # transform data in such a way as defined in the run func of the class
                 data = [func(i) for i in data]  # apply the fitness function to each
+
                 data = sorted(data)  # sort the data based on fitness
                 try:
                     history.append(data[-1][0])
@@ -174,6 +178,7 @@ class Environment:
             if verbose:
                 if n % every == 0:
                     print(int((n / epochs) * 100), top)
+                    pass
 
         return data, history
 
@@ -194,7 +199,7 @@ class Narrow(Layer):
     def run(self, data, func):
         global allowed
         if self.num >= self.delay:
-            allowed = np.unique(list(data[-1]))
+            allowed = np.unique(data[-1])
         else:
             self.num += 1
         return data
@@ -225,11 +230,13 @@ class Parents(Parent):
     def run(self, data, func):
         ret = []
         for i in data:
-            if random.randint(0, 100) < self.percent:
-                ret = ret + self.parent([], i, random.choice(data))
-
-                if self.kill_parents == False:
-                    ret = ret + [i]
+            if random.randint(0,100) <= self.percent:
+                mom = random.choice(data)
+                dad = i
+                if self.kill_parents:
+                    ret = ret + self.parent(dad, mom)  # .parent() is from the super class Parent.
+                else:
+                    ret = ret + self.parent(dad, mom) + [mom] + [dad]  # keeps the parents
             else:
                 ret = ret + [i]
         return ret
@@ -254,23 +261,29 @@ class TopPercent(Layer):
     def __init__(self, percent, delay=0):
         super().__init__(delay=delay)
         self.percent = percent
+
     def run(self, data, func):
         if self.num >= self.delay:
-            return data[int(len(data)*self.percent):]
+            return data[int(len(data) * self.percent):]
         else:
             self.num += 1
             return data
+
+
 class TopN(Layer):
     def __init__(self, number, delay=0):
         super().__init__(delay=delay)
         self.number = number
+
     def run(self, data, func):
         if self.num >= self.delay:
 
             return data[-self.number:]
         else:
+
             self.num += 1
             return data
+
 
 class RemoveTwins(Layer):
     def __init__(self, delay=0):
@@ -283,7 +296,28 @@ class RemoveTwins(Layer):
             self.num += 1
             return data
 
+class ParentOpposites(Parent):
+    def __init__(self, amount, num_children, gene_size=3, family_size=2, percent=50, kill_parents=False, delay=0):
+        self.percent = percent
+        self.amount = amount
+        self.kill_parents = kill_parents
+        super().__init__(delay=delay, num=num_children, gene_size=gene_size, family_size=family_size)
 
+    def run(self, data, func):
+        ret = []
+        lnd = len(data)-self.amount
+
+        for i in range(self.amount):
+            if random.randint(0, 100) <= self.percent:
+                mom = data[lnd+i]
+                dad = data[-lnd-i]
+                if self.kill_parents:
+                    ret = ret + self.parent(dad, mom)  # .parent() is from the super class Parent.
+                else:
+                    ret = ret + self.parent(dad, mom) + [mom] + [dad]  # keeps the parents
+            else:
+                ret = ret + [i]
+        return ret
 class KeepLength(Layer):
     def __init__(self, amt, delay=0):
         super().__init__(delay=delay)

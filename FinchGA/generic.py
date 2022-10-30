@@ -17,3 +17,6 @@ class Fittness:
 class Equation:
     def __init__(self, equation, *args):
         self.equation = equation
+
+class Genes:
+    def __init__(self, data, weights):
