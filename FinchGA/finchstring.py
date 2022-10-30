@@ -15,7 +15,7 @@ allowed = list(string.printable)
 
 class Layer:
     def __init__(self, delay=0):
-        self.num = 0
+        self.num = .0
         self.delay = delay
 
 
@@ -325,7 +325,7 @@ class KeepLength(Layer):
 
     def run(self, data, func):
         if self.num >= self.delay:
-            return reversed(list(reversed(data))[0:self.amt])
+            return data[-self.amt:]
         else:
             self.num += 1
             return data
