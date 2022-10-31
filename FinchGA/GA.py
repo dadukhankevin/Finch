@@ -1,7 +1,7 @@
 import random
 import random as r
 import string
-from EvolveRates import *
+from Finch.FinchGA.EvolveRates import *
 import numpy as np
 from difflib import SequenceMatcher
 
@@ -64,7 +64,7 @@ class DataMutate(Layer):
         if type(percent_mutate) == int or type(percent_mutate) == float:
             percent_mutate = Rates(percent_mutate, 0).constant
         if type(select_percent) == int or type(select_percent) == float:
-            percent_mutate = Rates(select_percent, 0).constant
+            select_percent = Rates(select_percent, 0).constant
 
         self.mutation_function = mutation_function
         self.small_function = percent_mutate
