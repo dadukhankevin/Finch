@@ -1,10 +1,11 @@
+import os
 import random
 import random as r
 import string
 from Finch.FinchGA.EvolveRates import *
 import numpy as np
 from difflib import SequenceMatcher
-
+import json
 # TODO: Where i left off
 """
 Add delay arg to each init and then call super().__init__(delay=delay)
@@ -151,45 +152,51 @@ class Parent(Layer):
 class Environment:
     def __init__(self, classes=[]):
         self.classes = classes
-
-    def compile(self, epochs, func, verbose=True, every=10, lettrs=None):
+        self.data = []
+    def save(self, env_name):
+        os.mkdir("model")
+        input([vars(i) for i in self.classes])
+        with open("model/"+env_name+".json", "w+") as f:
+            json.dump({"classes": [str(i) for i in self.classes], "data": self.data}, f)
+    def compile(self, epochs, func, verbose=True, every=10, lettrs=None, data=[]):
         global allowed
         top = []
         if lettrs is None:
             lettrs = allowed
         allowed = lettrs
+        self.data = data
         """Epochs = number of repititions, func is the fitness function, verbose is wheather or not to pring
         every is 'print data every x epochs' """
-        data = []
         history = []
         for n in range(epochs):
             for i in self.classes:
 
-                data = i.run(data=data,
+                self.data = i.run(data=self.data,
                              func=func)
 
                 # transform data in such a way as defined in the run func of the class
-                data = [func(i) for i in data]  # apply the fitness function to each
+                self.data = [func(i) for i in self.data]  # apply the fitness function to each
 
-                data = sorted(data)  # sort the data based on fitness
+                self.data = sorted(self.data)  # sort the data based on fitness
                 try:
-                    history.append(data[-1][0])
+                    history.append(self.data[-1][0])
 
-                    top = data[-1]
+                    top = self.data[-1]
                 except IndexError:
                     top = []
-                data = [i[1] for i in
-                        data]  # get rid of fitness data #TODO: make this better performance or get rid of it.
+                self.data = [i[1] for i in
+                        self.data]  # get rid of fitness data #TODO: make this better performance or get rid of it.
             if verbose:
                 if n % every == 0:
                     print(int((n / epochs) * 100), top)
                     pass
 
-        return data, history
+        return self.data, history
 
     def summary(self):
         sum = ""
         for i in self.classes:
+
             sum += str(type(i)) + str(vars(i)) + "\n\n"
         return sum
 
