@@ -20,4 +20,5 @@ class Equation:
 
 class Genes:
     def __init__(self, data, weights):
-        pass
+        self.data = data
+        self.weights = weights

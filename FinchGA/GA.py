@@ -1,7 +1,7 @@
 import random
 import random as r
 import string
-
+from EvolveRates import *
 import numpy as np
 from difflib import SequenceMatcher
 
@@ -55,15 +55,20 @@ class Data(Layer):
 
 
 class DataMutate(Layer):
-    def __init__(self, mutation_function="change", big_function=None,
-                 small_function=None, delay=0):
+    def __init__(self, mutation_function="change", select_percent=None,
+                 percent_mutate=None, delay=0):
         global allowed
         """Percentage is the percent of 'children' that will be mutated. small_percent is the percent of letters
         within the child that will be changed. Not this is all chance."""
         super().__init__(delay)
+        if type(percent_mutate) == int or type(percent_mutate) == float:
+            percent_mutate = Rates(percent_mutate, 0).constant
+        if type(select_percent) == int or type(select_percent) == float:
+            percent_mutate = Rates(select_percent, 0).constant
+
         self.mutation_function = mutation_function
-        self.small_function = small_function
-        self.big_function = big_function
+        self.small_function = percent_mutate
+        self.big_function = select_percent
 
     def mix(self, data):
         ret = []
@@ -209,6 +214,8 @@ class Kill(Layer):
     def __init__(self, percent, delay=0):
         super().__init__(delay=delay)
         self.name = "kill"
+        if type(percent) == int or type(percent) == float:
+            percent = Rates(percent, 0).constant()
         self.percent = percent
         self.now = 0
 
