@@ -62,9 +62,9 @@ class DataMutate(Layer):
         """Percentage is the percent of 'children' that will be mutated. small_percent is the percent of letters
         within the child that will be changed. Not this is all chance."""
         super().__init__(delay)
-        if type(percent_mutate) == int or type(percent_mutate) == float:
+        if not callable(percent_mutate):
             percent_mutate = Rates(percent_mutate, 0).constant
-        if type(select_percent) == int or type(select_percent) == float:
+        if not callable(select_percent):
             select_percent = Rates(select_percent, 0).constant
 
         self.mutation_function = mutation_function
@@ -72,13 +72,14 @@ class DataMutate(Layer):
         self.big_function = select_percent
 
     def mix(self, data):
+        """Shuffles each individual, rarely helpful but who knows"""
         ret = []
-        for i in data:
+        for individual in data:
             if r.randint(1, 100) <= self.small_function():
-                r.shuffle(i)
-                ret.append(i)
+                r.shuffle(individual)
+                ret.append(individual)
             else:
-                ret.append(i)
+                ret.append(individual) #Don't shuffle
         return ret
 
     def mutate_one(self, element):  # TODO: make this lots better
@@ -272,6 +273,7 @@ class Duplicate(Layer):
 
 
 class TopPercent(Layer):
+    """Kill all but top percent"""
     def __init__(self, percent, delay=0):
         super().__init__(delay=delay)
         self.percent = percent
@@ -285,6 +287,7 @@ class TopPercent(Layer):
 
 
 class TopN(Layer):
+    """Kill all but top n"""
     def __init__(self, number, delay=0):
         super().__init__(delay=delay)
         self.number = number

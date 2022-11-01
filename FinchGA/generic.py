@@ -1,3 +1,11 @@
+import numpy as np
+from Finch.FinchGA.EvolveRates import *
+
+
+def to_genes(data):
+    return np.array([Gene(i) for i in data])
+
+
 class Fittness:
     def __init__(self, funcs, thresh=[]):
         self.funcs = iter(funcs)
@@ -14,11 +22,63 @@ class Fittness:
             except StopIteration:
                 pass
         return points, individual
+
+
 class Equation:
     def __init__(self, equation, *args):
         self.equation = equation
 
-class Genes:
-    def __init__(self, data, weights):
+
+class GenePool:
+    def __init__(self, data):
         self.data = data
-        self.weights = weights
+        self.genes = to_genes(data)
+        self.weights = np.asarray([gene.weight for gene in self.genes])
+
+    def gen_data(self, length):
+        data = np.random.choice(self.genes, length, p=self.weights / self.weights.sum())
+        return data
+
+    def update(self):
+        self.weights = np.asarray([gene.weight for gene in self.genes])
+
+
+class Chromosome:
+    def __init__(self, genes):
+        self.genes = genes
+        self.data = np.asarray([gene.gene for gene in genes])
+
+
+class Gene:
+    def __init__(self, gene, weight=1):
+        self.gene = gene  # the actual value: int str tuple list object function...
+        self.weight = weight
+
+    def penalize(self, percent=.1):
+        # decreases likelihood of this gene being chosen
+        if not callable(percent):
+            percent = Rates(percent, 0).constant  # will always return percent
+        self.weight = self.weight * (1 - percent())  # modify weight
+
+    def reward(self, percent):
+        # increases likelihood of this gene being chosen
+        if not callable(percent):
+            percent = Rates(percent, 0).constant  # will always return percent
+        self.weight = self.weight * (1 + percent())  # modify weight
+
+
+# returns numpy array of genes
+class Fuzzy:
+    def __init__(self, w):
+        pass
+
+
+class Individual:
+    def __init__(self, data, fitness_func):
+        pass
+
+
+pool = GenePool([1,2,3,4,5])
+pool.genes[1].reward(.1)
+pool.update()
+print(Chromosome(pool.gen_data(20)).data)
