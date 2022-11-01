@@ -74,8 +74,19 @@ class Fuzzy:
 
 
 class Individual:
-    def __init__(self, data, fitness_func):
-        pass
+    def __init__(self, data, fitness_func, fitness=0):
+        self.age = 0
+        self.genes = Chromosome(data)
+        self.fitness = fitness
+        self.fitness_func = fitness_func
+
+    def fit(self, factor=1):
+        """Factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness """
+        self.fitness = ((1-factor)*self.fitness_func) + (factor*self.fitness_func(self.genes.data))
+    def set_genes(self, data):
+        self.genes = Chromosome(data)
+
+
 
 
 pool = GenePool([1,2,3,4,5])
