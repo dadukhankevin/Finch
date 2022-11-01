@@ -48,13 +48,75 @@ class GenerateData(Layer):
 
 
 class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (not individuals).
-    def __init__(self, gene_pool, method="outer", amount=1):
+    def __init__(self, gene_pool, method="outer", amount=1, delay=0, reward=0.01, penalty=0.01):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
-        all of them, "outer" will penalize the lowest fitness ones and reward the highest fitness.
+        all of them, "outer" will penalize the lowest fitness ones and reward the highest fitness. "best" will reward
+        the best. "worst" will penalize the worst genes.
         :param amount: The amount of individuals to look at. Only relevant when the method is not "all".
+        :param delay: The delay
+        :param reward: The percentage to increase the weight of a gene
+        :param penalty: Like reward
         """
+        super().__init__(delay, self.native_run)
         self.amount = amount
+        self.reward = reward
+        self.penalty = penalty
+        if not callable(reward):
+            self.reward = Rates(reward, 0).constant  # the reward will remain the same
+        if not callable(penalty):
+            self.penalty = Rates(penalty, 0).constant  # the penalty will remain the same
+
+        if not callable(amount):
+            self.amount = Rates(amount, 0).constant  # the amount will remain the same
         self.gene_pool = gene_pool
         self.method = method
+
+    def best(self, data):
+        """
+        :param data: The data
+        :return: data
+        """
+        best = data[-int(self.amount()):]  # Most fit
+        for gene in best:
+            gene.reward(self.reward())
+
+    def worst(self, data):
+        worst = data[0: int(self.amount())]  # Least fit
+        for gene in worst:
+            gene.penalize(self.penalty())
+
+    def outer(self, data):
+        """
+        :param data: The data
+        :return: data
+        """
+        self.best(data)
+        self.worst(data)
+
+    def alld(self, data):
+        n = 0
+        for gene in data:
+            pass  # TODO: implement this
+
+    def native_run(self, data, func):
+        """
+        :param data: T
+        :param func: this does nothing
+        :return:
+        """
+        if self.method == "all":
+            self.alld(data)
+        if self.method == "worst":
+            self.worst(data)
+        if self.method == "best":
+            self.best(data)
+        if self.method == "outer":
+            self.outer(data)
+        return data
+class Duplicate(Layer):
+    def __init__(self,clones=1, delay=0):
+        super().__init__(delay, self.native_run)
+
+
