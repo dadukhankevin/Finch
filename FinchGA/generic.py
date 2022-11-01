@@ -74,6 +74,7 @@ class Fuzzy:
 
 
 class Individual:
+<<<<<<< HEAD
     def __init__(self, data, fitness_func, fitness=0):
         self.age = 0
         self.genes = Chromosome(data)
@@ -87,6 +88,10 @@ class Individual:
         self.genes = Chromosome(data)
 
 
+=======
+    def __init__(self, data, fitness_func):
+        pass
+>>>>>>> 36f00b7bca9889a6058820dc23a7e50e15119e3c
 
 
 pool = GenePool([1,2,3,4,5])

@@ -1,7 +1,11 @@
+import matplotlib.pyplot as plt
+import math
+
 class Rates:
-    def __init__(self, rate, arg):
+    def __init__(self, rate, arg):  #, epochs, max_population):
         self.rate = rate
         self.arg = arg
+        self.first = rate #the first rate
 
     def slow(self):
         """Decreases rate by percent"""
@@ -28,3 +32,14 @@ class Rates:
     def add(self):
         self.rate += self.arg
         return self.rate
+    def sigmoid(self):
+        exp = math.pow(math.e, self.rate)
+        self.rate = 1/(1+exp) #the sigmoid function?
+        return self.rate
+    def graph(self, func, itrations):
+        hist = []
+        for i in range(itrations):
+            hist.append(func())
+        input(hist)
+        plt.plot(hist)
+        plt.show()
