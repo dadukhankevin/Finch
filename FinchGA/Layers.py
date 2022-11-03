@@ -1,19 +1,19 @@
-import random
-import random as r
-from Finch.FinchGA.EvolveRates import *
-from Finch.FinchGA.generic import *
 import numpy as np
-from difflib import SequenceMatcher
+import Finch.FinchGA.EvolveRates as er
 
 
 class Layer:
-    def __init__(self, delay, native_run):
+    def __init__(self, every=1,  delay=0, native_run=None):
         """
         :param delay: Delay until used, until then it will simply return what it is given
         :param native_run: The run function to be used from other classes
         """
         self.delay = delay
         self.native_run = native_run
+        self.every = every
+        if not callable(every):
+            self.every = er.Rates(every, 0).constant
+        self.iterations = 1
 
     def run(self, data, func):
         """
@@ -22,23 +22,29 @@ class Layer:
         :param func: Any relevant function that is needed in the native_run
         :return: Whatever native_function returns
         """
-        if self.delay <= 0:
-            new = self.native_run(data, func)
-            data = new
-            return data
+
+        if self.iterations % self.every() == 0:
+            self.iterations = 1
+            if self.delay <= 0:
+                new = self.native_run(data, func)
+                data = new
+                return data
+            else:
+                self.delay -= 1
+                return data
         else:
-            self.delay -= 1
+            self.iterations += 1
             return data
 
 
 class GenerateData(Layer):
-    def __init__(self, gene_pool, population, array_length, delay):
+    def __init__(self,  gene_pool, population, array_length, delay=0, every=1):
         """
         :param gene_pool: The gene pool to be used
         :param population: The population to be generated
         :param array_length:
         """
-        super().__init__(delay=delay, native_run=self.native_run)  # the Layer class
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)  # the Layer class
         self.gene_pool = gene_pool
         self.population = population
         self.array_len = array_length
@@ -49,7 +55,7 @@ class GenerateData(Layer):
 
 
 class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromosome (not individuals).
-    def __init__(self, gene_pool, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01):
+    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
@@ -60,17 +66,17 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         :param reward: The percentage to increase the weight of a gene
         :param penalty: Like reward
         """
-        super().__init__(delay, self.native_run)
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.amount = amount
         self.reward = reward
         self.penalty = penalty
         if not callable(reward):
-            self.reward = Rates(reward, 0).constant  # the reward will remain the same
+            self.reward = er.Rates(reward, 0).constant  # the reward will remain the same
         if not callable(penalty):
-            self.penalty = Rates(penalty, 0).constant  # the penalty will remain the same
+            self.penalty = er.Rates(penalty, 0).constant  # the penalty will remain the same
 
         if not callable(amount):
-            self.amount = Rates(amount, 0).constant  # the amount will remain the same
+            self.amount = er.Rates(amount, 0).constant  # the amount will remain the same
         self.gene_pool = gene_pool
         self.method = method
 
@@ -133,8 +139,8 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
 
 
 class CalcFitness(Layer):
-    def __init__(self, delay=0):
-        super().__init__(delay=delay, native_run=self.native_run)
+    def __init__(self, every=1,  delay=0):
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
 
     @staticmethod
     def native_run(data, func):
@@ -144,9 +150,9 @@ class CalcFitness(Layer):
 
 
 class Duplicate(Layer):
-    def __init__(self, clones=1, delay=0):
-        super().__init__(delay, self.native_run)
-        self.clones = 1
+    def __init__(self, every=1,  clones=1, delay=0):
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
+        self.clones = clones
 
     def native_run(self, data, func):
         for i in range(self.clones):
@@ -155,39 +161,29 @@ class Duplicate(Layer):
 
 
 class Mutate(Layer):
-    def __init__(self, pool, delay=0):
-        super().__init__(delay, self.native_run)
+    def __init__(self, pool, every=1, delay=0, percent=100):
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.pool = pool
-
+        self.percent = er.make_constant_rate(percent)
     def native_run(self, data, func):
         for i in data.individuals:
             i.mfunction(self.pool)
         return data
 
 
-class SequentialEnvironment():
-    def __init__(self, layers=[]):
-        self.layers = layers
-        self.data = Generation([])
-
-    def simulate_env(self, epochs, fitness=None, every=1):
-        history= []
-        for i in range(epochs):
-            for d in self.layers:
-                d.run(self.data, fitness)
-            if i % every == 0:
-                print(self.data.individuals[-1].fitness, self.data.individuals[-1].chromosome.get_raw())
-            history.append(self.data.individuals[-1].fitness)
-        return history
-
 class Kill(Layer):
-    def __init__(self, percent, delay=0):
-        super().__init__(delay=delay, native_run=self.native_run)
+    def __init__(self, percent, every=1, delay=0):
+        """
+        :param percent: The percent to kill (picks from the worst)
+        :param every: Do this every n epochs
+        :param delay: Do this after n epochs
+        """
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.name = "kill"
         self.percent = percent
 
         if not callable(percent):
-            self.percent = Rates(percent, 0).constant
+            self.percent = er.Rates(percent, 0).constant
         self.now = 0
 
     def native_run(self, data, func):
@@ -196,8 +192,13 @@ class Kill(Layer):
 
 
 class UpdateWeights(Layer):
-    def __init__(self, pool, delay=0):
-        super().__init__(delay=delay, native_run=self.native_run)
+    def __init__(self, pool, every=1, delay=0):
+        """
+        :param pool: The gene pool to update
+        :param every: Do this every n epochs
+        :param delay: Do this after n epochs
+        """
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.pool = pool
 
     def native_run(self, data, func):
@@ -206,9 +207,70 @@ class UpdateWeights(Layer):
 
 
 class Function(Layer):
-    def __init__(self, fun, delay=0):
-        super().__init__(delay=delay, native_run=self.native_run)
+    def __init__(self, fun, every=1, delay=0):
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.func = fun
 
     def native_run(self, data, func):
         self.func(data=data)
+class Parent(Layer):
+    def __init__(self, every=1,  gene_size=3, family_size=2, delay=0, native_run=None):
+        """
+        :param every: Do this every n epochs
+        :param gene_size: The gene size will determine how to mux parents
+        :param family_size: The amount of children to generate
+        :param delay: The delay in epochs until this takes effect
+        :param native_run: Ignore this
+        """
+        self.gene_size = gene_size
+        self.fs = family_size
+        self.func = self.native_run
+        if native_run is not None:
+            self.func = native_run
+
+        if not callable(gene_size):
+            self.gene_size = er.Rates(gene_size, 0).constant
+        if not callable(family_size):
+            self.fs = er.Rates(family_size, 0).constant
+        
+        super().__init__(every=er.make_constant_rate(every), delay=delay, native_run=self.func)
+
+    def parent(self, X, Y):
+        ret = np.array([])
+        X = np.asarray(X)
+        Y = np.asarray(Y)
+        for i in range(self.fs()):
+            choice = np.random.randint(self.gene_size(), size=X.size).reshape(X.shape).astype(bool)
+            ret = np.append(ret, np.where(choice, X, Y).tolist()[0:X.size])
+        return ret
+    def native_run(self, data, func):
+        data.add(self.parent(data.individuals[-1], data.individuals[-2]))
+        return data
+
+
+class Parents(Parent):
+    def __init__(self, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random"):
+        """
+        :param delay: The delay in epochs until this will come into affect
+        :param every: Do this ever n epochs
+        :param gene_size: The gene size will determine how to mux parents
+        :param family_size: The amount of children to generate
+        :param percent: The percent to select when method=random
+        :param method: Right now only "random" TODO: add more methods
+        """
+        super().__init__(every=er.make_constant_rate(every), delay=delay, gene_size=gene_size, family_size=family_size, native_run=self.native_run)
+        self.percent = percent
+        self.method = method
+        if not callable(percent):
+            self.percent = er.Rates(percent, 0).constant
+    def random(self, data, func):
+        these_ones = np.random.choice(data.individuals, data.individuals.size*self.percent())
+        for i in these_ones:
+            parent1 = i
+            parent2 = np.random.choice(these_ones, 1)
+            data.add(self.parent(parent1, parent2))
+        return data
+    def native_run(self, data, func):
+        if self.method == "random":
+            return self.random(data, func)
+        return data

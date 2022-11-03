@@ -42,6 +42,10 @@ class GenePool:
         self.weights = np.asarray([gene.weight for gene in self.genes])  # calculates initial weights
         self.mx = mx
         self.mn = mn
+
+    def to_gene(self, i):
+        return self.date[np.where(self.genes.gene == i)][0]
+
     def gen_data(self, gen, population, length):
         """
         :param data: The already existing data
@@ -50,14 +54,17 @@ class GenePool:
         :return: New data with old data
         """
         while len(gen.individuals) < population:
-            ind = Individual(ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(),replace=True),
-                                fitness_func=self.fitnes_func)# TODO: verify this logic is best
+            ind = Individual(self,ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(), replace=True),
+                             fitness_func=self.fitnes_func)  # TODO: verify this logic is best
             gen.add(ind)
+
     def update(self):
         self.weights = np.asarray([min(max(gene.weight, self.mn), self.mx) for gene in self.genes])  # updates weights
+
     def rand(self):
-        r = random.choice(np.random.choice(self.genes,1, p=self.weights / self.weights.sum()))
+        r = random.choice(np.random.choice(self.genes, 1, p=self.weights / self.weights.sum()))
         return r
+
 
 class Chromosome:
     def __init__(self, genes):
@@ -101,7 +108,7 @@ class Fuzzy:
 
 class Individual:
 
-    def __init__(self, ar, fitness_func, fitness=0, mutation_function=None):
+    def __init__(self, pool, ar, fitness_func, fitness=0, mutation_function=None):
         """
         :param data: The raw data to turn into Individual of Chromosome of List Gene
         :param fitness_func: The fitness function
@@ -110,32 +117,37 @@ class Individual:
         """
         self.age = 0  # age of the Individual in epochs?
         if type(ar) == list:
-            ar = numpy.asarray([Gene(i) for i in ar])  # format data into a list of Genes
+            ar = numpy.asarray([pool.to_gene(i) for i in ar])  # format data into a list of Genes
         self.fitness = fitness
         if mutation_function == None:
             self.mfunction = self.default_mutate
         self.chromosome = Chromosome(ar)  # just a list of chromosome really, for now
         self.fitness_func = fitness_func
+
     def default_mutate(self, pool):
-        #gene = np.random.choice(self.chromosome.genes)
-        #gene = self.chromosome.genes
-        #input(self.chromosome.genes)
+        # gene = np.random.choice(self.chromosome.genes)
+        # gene = self.chromosome.genes
+        # input(self.chromosome.genes)
         for i in range(len(self.chromosome.genes)):
-            #input(gene.gene)
+            # input(gene.gene)
             newgene = pool.rand()
 
-            self.chromosome.genes[i-1] = newgene
+            self.chromosome.genes[i - 1] = newgene
+
     def mutate(self, pool):
-        if r.randint(0, 10) == 1:
+        if r.randint(0, 20) == 1:
             self.mfunction(pool)
+
     def fit(self, factor=1):
         """
         :param factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness
         """
         self.fitness = ((1 - factor) * self.fitness) + (factor * self.fitness_func(self.chromosome.get_raw()))
         return self.fitness
+
     def get_genes(self):
         return np.array([i.gene for i in self.chromosome.genes])
+
     def set_genes(self, data):
         """:param data: new data"""
         self.chromosome = Chromosome(data)
@@ -160,6 +172,7 @@ class Generation:
         sort = np.argsort([i.fitness for i in self.individuals])
         self.individuals = self.individuals[sort]
         return self.individuals
+
     def fit_all(self, factor):
         for i in self.individuals:
             i.fit(factor=factor)
@@ -167,10 +180,10 @@ class Generation:
     def add(self, lst):
         self.individuals = np.append(self.individuals, lst)
 
+
 # pool = GenePool([1, 2, 3, 4, 5])
 # pool.chromosome[1].reward(.1)
 # pool.update()
 # print(Chromosome(pool.gen_data(20)).data)
 def to_genes(data):
     return np.array([Gene(i) for i in data])
-
