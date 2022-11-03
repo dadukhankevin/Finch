@@ -100,22 +100,7 @@ class Fuzzy:
 
 
 class Individual:
-<<<<<<< HEAD
-    def __init__(self, data, fitness_func, fitness=0):
-        self.age = 0
-        self.genes = Chromosome(data)
-        self.fitness = fitness
-        self.fitness_func = fitness_func
 
-    def fit(self, factor=1):
-        """Factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness """
-        self.fitness = ((1-factor)*self.fitness_func) + (factor*self.fitness_func(self.genes.data))
-    def set_genes(self, data):
-        self.genes = Chromosome(data)
-
-
-
-=======
     def __init__(self, ar, fitness_func, fitness=0, mutation_function=None):
         """
         :param data: The raw data to turn into Individual of Chromosome of List Gene
@@ -188,5 +173,4 @@ class Generation:
 # print(Chromosome(pool.gen_data(20)).data)
 def to_genes(data):
     return np.array([Gene(i) for i in data])
->>>>>>> e4a0329664471d198ae3aeb7b7d6c29fdc2251a9
 
