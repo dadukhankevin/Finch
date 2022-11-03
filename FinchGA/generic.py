@@ -28,44 +28,6 @@ class Fittness:
 class Equation:
     def __init__(self, equation, *args):
         self.equation = equation
-
-
-class GenePool:
-    def __init__(self, data, fitness_func, mx=math.inf, mn=-math.inf):
-        """
-        :param data: The raw data to be turned into GenePool of list * Gene
-        TODO:
-        """
-        self.data = data
-        self.fitnes_func = fitness_func
-        self.genes = to_genes(data)  # converts data to chromosome
-        self.weights = np.asarray([gene.weight for gene in self.genes])  # calculates initial weights
-        self.mx = mx
-        self.mn = mn
-
-    def to_gene(self, i):
-        return self.date[np.where(self.genes.gene == i)][0]
-
-    def gen_data(self, gen, population, length):
-        """
-        :param data: The already existing data
-        :param population: The wanted population
-        :param length: The amount of chromosome within each individual.
-        :return: New data with old data
-        """
-        while len(gen.individuals) < population:
-            ind = Individual(self,ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(), replace=True),
-                             fitness_func=self.fitnes_func)  # TODO: verify this logic is best
-            gen.add(ind)
-
-    def update(self):
-        self.weights = np.asarray([min(max(gene.weight, self.mn), self.mx) for gene in self.genes])  # updates weights
-
-    def rand(self):
-        r = random.choice(np.random.choice(self.genes, 1, p=self.weights / self.weights.sum()))
-        return r
-
-
 class Chromosome:
     def __init__(self, genes):
         self.genes = genes
@@ -185,5 +147,4 @@ class Generation:
 # pool.chromosome[1].reward(.1)
 # pool.update()
 # print(Chromosome(pool.gen_data(20)).data)
-def to_genes(data):
-    return np.array([Gene(i) for i in data])
+

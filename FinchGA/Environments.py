@@ -1,5 +1,4 @@
 import math
-
 import Finch.FinchGA.generic as generic
 import logging
 import sys
