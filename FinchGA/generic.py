@@ -41,25 +41,7 @@ class Gene:
         self.gene = gene  # the actual value: int str tuple list object function...
         self.weight = weight
 
-    def reward(self, percent=.1):
-        """
-        :param percent: Percent to decrease the weight
-        :return: None
-        """
-        # decreases likelihood of this gene being chosen
-        if not callable(percent):
-            percent = Rates(percent, 0).constant  # will always return percent
-        self.weight = self.weight * (1 - percent())  # modify weight
 
-    def penalize(self, percent):
-        """
-        :param percent: The percent to increase the weight
-        :return: none
-        """
-        # increases likelihood of this gene being chosen
-        if not callable(percent):
-            percent = Rates(percent, 0).constant  # will always return percent
-        self.weight = self.weight * (1 + percent())  # modify weight
 
 
 # returns numpy array of chromosome
@@ -78,7 +60,7 @@ class Individual:
         :param calculate_on_start: Should the fitness be calculated on start? If so, fitness=0 is ignored
         """
         self.age = 0  # age of the Individual in epochs?
-        if type(ar) == list:
+        if type(ar) == list or type(ar) == numpy.array:
             ar = numpy.asarray([pool.to_gene(i) for i in ar])  # format data into a list of Genes
         self.fitness = fitness
         if mutation_function == None:
@@ -86,25 +68,32 @@ class Individual:
         self.chromosome = Chromosome(ar)  # just a list of chromosome really, for now
         self.fitness_func = fitness_func
 
-    def default_mutate(self, pool):
+    def default_mutate(self, pool, percent):
         # gene = np.random.choice(self.chromosome.genes)
         # gene = self.chromosome.genes
         # input(self.chromosome.genes)
         for i in range(len(self.chromosome.genes)):
             # input(gene.gene)
-            newgene = pool.rand()
+            if r.randint(0, 100) < percent():
+                newgene = pool.rand(index=i)
+                if newgene.gene != self.chromosome.genes[i-1].gene or pool.replacement:
+                    self.chromosome.genes[i - 1] = newgene
 
-            self.chromosome.genes[i - 1] = newgene
-
-    def mutate(self, pool):
-        if r.randint(0, 20) == 1:
-            self.mfunction(pool)
+    def mutate(self, pool, select, percent):
+        """
+        :param pool: The gene pool
+        :param select: The Ods of selecting this individual
+        :param percent: The percent of genes within this individual to mutate (if selected)
+        :return:
+        """
+        if r.randint(0, 100) < select():
+            self.mfunction(pool, percent)
 
     def fit(self, factor=1):
         """
         :param factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness
         """
-        self.fitness = ((1 - factor) * self.fitness) + (factor * self.fitness_func(self.chromosome.get_raw()))
+        self.fitness = ((1 - factor) * self.fitness) + (factor * self.fitness_func(self.chromosome.get_raw())) #to prevent division by zero
         return self.fitness
 
     def get_genes(self):

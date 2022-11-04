@@ -55,13 +55,15 @@ class SequentialEnvironment:
         for i in range(self.epochs):
             for d in self.layers:
                 d.run(self.data, self.fitness)
+            cfit = self.data.individuals[-1].fitness  # when you run out of variable names
+            history.append(self.data.individuals[-1].fitness)
+            if cfit > last:
+                last = cfit  # the most fit
+            if cfit >= self.stop:
+                print("\033[92m Stopping: ", cfit, self.data.individuals[-1].chromosome.get_raw())
+
+                return self.data, history
             if i % self.every == 0:
-                cfit = self.data.individuals[-1].fitness # when you run out of variable names
-                history.append(self.data.individuals[-1].fitness)
-                if cfit > last:
-                    last = cfit  # the most fit
-                if cfit >= self.stop:
-                    return self.data, history
                 print("\033[92m", cfit, self.data.individuals[-1].chromosome.get_raw())
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
