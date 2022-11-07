@@ -34,7 +34,8 @@ class Chromosome:
 
     def get_raw(self):
         return numpy.array([i.gene for i in self.genes])
-
+    def set_raw(self, data):
+        self.genes = [Gene(i) for i in data]
 
 class Gene:
     def __init__(self, gene, weight=1):
@@ -75,9 +76,10 @@ class Individual:
         for i in range(len(self.chromosome.genes)):
             # input(gene.gene)
             if r.randint(0, 100) < percent():
-                newgene = pool.rand(index=i)
-                if newgene.gene != self.chromosome.genes[i-1].gene or pool.replacement:
+                newgene = pool.rand(index=i-1)
+                if np.all(self.chromosome.get_raw() != newgene.gene) or pool.replacement:
                     self.chromosome.genes[i - 1] = newgene
+
 
     def mutate(self, pool, select, percent):
         """
@@ -88,6 +90,7 @@ class Individual:
         """
         if r.randint(0, 100) < select():
             self.mfunction(pool, percent)
+            self.fit(1)
 
     def fit(self, factor=1):
         """
@@ -110,7 +113,7 @@ class Individual:
 
 
 class Generation:
-    def __init__(self, individuals):
+    def __init__(self, individuals, fitnessfunc=None):
         """
         :param individuals: List of individuals
         """

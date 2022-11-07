@@ -1,8 +1,9 @@
+import copy
 import math
 
 import numpy as np
 import Finch.FinchGA.EvolveRates as er
-
+from Finch.FinchGA.generic import Chromosome, Individual
 
 class Layer:
     def __init__(self, every=1, delay=0, native_run=None, end=math.inf):
@@ -146,13 +147,12 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         return data
 
 
-class CalcFitness(Layer):
+class SortFitness(Layer):
     def __init__(self, every=1, delay=0, end=math.inf):
         super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
 
     @staticmethod
     def native_run(data, func):
-        data.fit_all(1)
         data.individuals = np.array(data.sort())
         return data
 
@@ -253,7 +253,7 @@ class Function(Layer):
 
 
 class Parent(Layer):
-    def __init__(self, every=1, gene_size=3, family_size=2, delay=0, native_run=None, end=math.inf):
+    def __init__(self,pool, every=1, gene_size=3, family_size=2, delay=0, native_run=None, end=math.inf):
         """
         :param every: Do this every n epochs
         :param gene_size: The gene size will determine how to mux parents
@@ -264,6 +264,7 @@ class Parent(Layer):
         self.gene_size = gene_size
         self.fs = family_size
         self.func = self.native_run
+        self.pool = pool
         if native_run is not None:
             self.func = native_run
 
@@ -276,11 +277,26 @@ class Parent(Layer):
 
     def parent(self, X, Y):
         ret = np.array([])
-        X = np.asarray(X)
-        Y = np.asarray(Y)
+        x = np.asarray(X.chromosome.get_raw())
+        y = np.asarray(Y.chromosome.get_raw())
+
         for i in range(self.fs()):
-            choice = np.random.randint(self.gene_size(), size=X.size).reshape(X.shape).astype(bool)
-            ret = np.append(ret, np.where(choice, X, Y).tolist()[0:X.size])
+            choice = np.random.choice([1, 0], size=min(x.shape[0], y.shape[0]))
+            both = []
+            combined = list(zip(x, y))
+
+            n = 0
+            for i in choice:
+                if np.all(both != combined[n][i]) or self.pool.replacement:
+                    both.append(combined[n][i])
+
+
+                n += 1
+            X.chromosome.set_raw(both)
+            new = copy.deepcopy(X)
+            new.fit(1)
+            ret = np.append(ret, new)
+
         return ret
 
     def native_run(self, data, func):
@@ -289,7 +305,7 @@ class Parent(Layer):
 
 
 class Parents(Parent):
-    def __init__(self, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random", end = math.inf):
+    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random", end = math.inf):
         """
         :param delay: The delay in epochs until this will come into affect
         :param every: Do this ever n epochs
@@ -298,7 +314,7 @@ class Parents(Parent):
         :param percent: The percent to select when method=random
         :param method: Right now only "random" TODO: add more methods
         """
-        super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size, family_size=family_size,
+        super().__init__(pool=pool, end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size, family_size=family_size,
                          native_run=self.native_run)
         self.percent = percent
         self.method = method
@@ -309,27 +325,14 @@ class Parents(Parent):
         these_ones = np.random.choice(data.individuals, data.individuals.size * self.percent())
         for i in these_ones:
             parent1 = i
-            parent2 = np.random.choice(these_ones, 1)
+            parent2 = np.random.choice(these_ones, 1)[0]
             data.add(self.parent(parent1, parent2))
         return data
-    def typed(self, data, func):
-        these_ones = np.random.choice(data.individuals, data.individuals.size * self.percent())
-        for i in these_ones:
-            parent1 = i
-            parent2 = np.random.choice(these_ones, 1)
-            for i in range(self.fs()):
-                mix_mast = np.random.choice([True, False], len(parent1.chromosome.genes))
-                input(mix_mast)
-                input(type(parent1))
-                input(type(parent2))
-                child = parent1[np.where(mix_mast, parent1.chromosome.genes, parent2)]
-                data.add(child)
+
 
     def native_run(self, data, func):
         if self.method == "random":
             return self.random(data, func)
-        if self.method == "rtyped":
-            return self.typed(data, func)
         return data
 
 

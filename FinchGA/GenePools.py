@@ -37,7 +37,8 @@ class GenePool:
         while len(gen.individuals) < population:
             ind = Individual(self,
                              ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(), replace=self.replacement),
-                             fitness_func=self.fitnes_func)  # TODO: verify this logic is best
+                             fitness_func=self.fitnes_func)
+            ind.fit(1)
             gen.add(ind)
 
 

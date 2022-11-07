@@ -79,18 +79,20 @@ class Adversarial:
         self.environments = environments
         self.data = None
 
-    def compete(self, epochs):
+    def compete(self, epochs): # TODO: compute which environment performs best!
         """
         :param epochs: Number of competitions
         """
         best = 0
-        history = []
+        fullhist = []
         new_data = self.data
         for i in range(epochs):
             self.data = new_data
             for env in self.environments:
-                data, history = env.run(self.data)
+                data, history = env.simulate_env(self.data)
+                fullhist.append(history)
+
                 if history[-1] > best:
                     best = history[-1]
-                    new_data = data
-        return self.data, history
+                    new_data = data # Sets the best new data
+        return self.data, fullhist
