@@ -25,7 +25,7 @@ backpack = np.array(
 pool = GenePool(backpack, fit, replacement=False)  # TO avoid duplicates "replacement" must be false
 
 env = SequentialEnvironment(layers=[
-    Layers.GenerateData(pool, population=10, array_length=4, delay=0), # Generates data
+    Layers.GenerateData(pool, population=10, array_length=2, delay=0), # Generates data
     Layers.SortFitness(), # Sorts individuals by fitness
     Layers.NarrowGRN(pool, delay=1, method="best", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
     Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific
