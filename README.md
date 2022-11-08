@@ -30,13 +30,13 @@ To solve this we must:
 2. Create a fitness function that returns the added up "importance" of each item in your backpack or, if the backpack weighs too much, returns 0.
 3. Create many backpacks (individuals)
 4. Determine the most "fit"
-5. Parent the best ones together (or all of them or randomly)
+5. Parent the best ones together. In 
 6. Mutate some of them
 7. Determine fitness
 8. Repeat x amount of times, also known as epochs.
 9. Print the best result
 
-Viola! This is intimidating but once you get this process down you'll be able to solve more interesting problems like find the best 100 variables to make 1 equation equal 7 (and other interesting things).
+Voilà! This is intimidating but once you get this process down you'll be able to solve more interesting problems like find the best 100 variables to make 1 equation equal 7 (and other interesting things).
 
 ### The code (finally!)
 First lets import the relevant modules
