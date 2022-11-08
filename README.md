@@ -107,5 +107,10 @@ plt.show() # Graph our progress
 If you want to help out just submit a PR! It would be much appreciated.
 
 # Roadmap
-### 1. Game engine integration with Unity!
-### 2. 
+#### 1. Game engine integration with Unity!
+#### 2. Create example Google Colab notebooks.
+#### 3. Allow for more types of evolutionary algorithms.
+#### 4. Predefined fitness functions.
+#### 5. AutoGA principles inspired by AutoML where there are many predefined environments.
+#### 6. Potential integration with OpenAI Gym.
+#### 7. Continue to work on scalability.
