@@ -40,7 +40,7 @@ Voilà! This is intimidating but once you get this process down you'll be able t
 
 ### The code (finally!)
 First lets import the relevant modules
-```
+```python
 A Keras style GA genetic algorithm library
 from Finch.FinchGA.GenePools import GenePool
 from Finch.FinchGA import Layers
@@ -53,7 +53,7 @@ Layers make up "environments" that help evolve your individuals. GenePools help 
 
 #### The fitness function
 This function determines the fitness of an individual, in our case, a backpack.
-```
+```python
 
 def fit(backpack):
     weight = 0 
@@ -68,19 +68,19 @@ def fit(backpack):
     
 ```
 That wasn't so bad! Now lets define the items that _can_ be in our backpack.
-```
+```python
 # In the format [name, weight, value] all of these have little bearing on reality.
 backpack = np.array(
     [["apple", 1, .1], ["phone", 8, 6], ["lighter", 1, .1], ["Book", .1, 2], ["compass", 2, .4], ["flashlight", 1, 6],
      ["water", 5, 9], ["passport", 7, .5]])
 ```
 Now we need to put all these items into a GenePool class:
-```
+```python
 pool = GenePool(backpack, fit, replacement=False)  # TO avoid duplicates "replacement" must be false
 ```
 The gene pool helps produce better genes as the environment learns what genes perform best in individuals. 
 Now we can create our environment. Tinker around with it to see how each thing effects the performance.
-```
+```python
 env = SequentialEnvironment(layers=[
     Layers.GenerateData(pool, population=10, array_length=4, delay=0), # Generates data
     Layers.SortFitness(), # Sorts individuals by fitness
@@ -96,7 +96,7 @@ env = SequentialEnvironment(layers=[
 As you may be able to tell, this looks a lot like the AI library Keras's Sequential class.
 
 now lets run our environment.
-```
+```python
 env.compile(epochs=40, fitness=fit, every=1, stop_threshold=18) #stop when value > 18
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
