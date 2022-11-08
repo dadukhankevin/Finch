@@ -60,11 +60,11 @@ class SequentialEnvironment:
             for d in self.layers: # call the run function of each layer
                 d.run(self.data, self.fitness)
             ind = self.data.individuals[-1]
+            self.best_ind = ind
             self.best = self.data.individuals[-1].fitness  # when you run out of variable names
             history.append(ind.fitness)
             if self.best > last:
                 last = self.best  # the most fit
-                self.best_ind = ind
             if self.best >= self.stop:
                 print("\033[92m Stopping: ", self.best, ind.chromosome.get_raw())
                 self.history = history

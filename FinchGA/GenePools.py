@@ -41,8 +41,9 @@ class GenePool:
                              fitness_func=self.fitnes_func) #Creates the new individual
             ind.fit(1) # completely recalculates the fitness
             gen.add(ind)
-
-
+    def set_all_weights(self, value):
+        for i in range(len(self.weights)-1):
+            self.weights[i] = value
     def update(self):
         """
         Updates model weights

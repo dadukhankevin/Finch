@@ -79,6 +79,9 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         self.amount = er.make_constant_rate(amount)
         self.reward = er.make_constant_rate(reward)
         self.penalty = er.make_constant_rate(penalty)
+        if method == "worst":
+            gene_pool.set_all_weights(mx)
+
         self.gene_pool = gene_pool
         self.method = method
         self.mx = mx
@@ -109,7 +112,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
             return data
         for individual in worst:
             for gene in individual.chromosome.genes:
-                gene.weight -= self.penalty()
+                gene.weight *= self.penalty()
                 gene.weight = max(gene.weight, self.mn)
         return data
 

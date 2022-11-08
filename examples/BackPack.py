@@ -1,7 +1,6 @@
 # A Keras style GA genetic algorithm library
 from Finch.FinchGA.GenePools import GenePool
 from Finch.FinchGA import Layers
-import matplotlib.pyplot as plt
 from Finch.FinchGA.Environments import *
 import numpy as np
 
@@ -27,7 +26,7 @@ pool = GenePool(backpack, fit, replacement=False)  # TO avoid duplicates "replac
 env = SequentialEnvironment(layers=[
     Layers.GenerateData(pool, population=10, array_length=2, delay=0), # Generates data
     Layers.SortFitness(), # Sorts individuals by fitness
-    Layers.NarrowGRN(pool, delay=1, method="best", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
+    Layers.NarrowGRN(pool, delay=1, method="outer", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
     Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific
     Layers.Parents(pool, gene_size=1, family_size=1, delay=0, every=4, method="best"), #Parents random individuals together
     Layers.Mutate(pool, delay=0, select_percent=100, likelihood=40), #mutates 40% ish of all of the individuals

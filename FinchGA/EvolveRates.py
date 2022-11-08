@@ -41,13 +41,7 @@ class Rates:
         self.rate = 1 / (1 + exp)  # the sigmoid function?
         return self.rate
 
-    def graph(self, func, itrations):
-        hist = []
-        for i in range(itrations):
-            hist.append(func())
-        input(hist)
-        plt.plot(hist)
-        plt.show()
+
 
 
 def make_constant_rate(n):
@@ -55,3 +49,9 @@ def make_constant_rate(n):
         return Rates(n, 0).constant
     else:
         return n
+def graph(func, itrations):
+    hist = []
+    for i in range(itrations):
+        hist.append(func())
+    plt.plot(hist)
+    plt.show()
