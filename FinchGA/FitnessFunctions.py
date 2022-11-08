@@ -12,3 +12,23 @@ class ValueWeightFunction:
             return 0
         else:
             return value
+class EquationFitness:
+    def __init__(self, desired_result, equation):
+        """
+        :param desired_result: What you want it to equal
+        :param equation: The Equation object
+        """
+        self.desired = desired_result
+        self.equation = equation
+    def func(self, individual):
+        result = self.equation.evaluate(individual)
+        if result > self.desired:
+            try:
+                return self.desired/result
+            except ZeroDivisionError or OverflowError:
+                return 0
+        else:
+            try:
+                return result/self.desired
+            except ZeroDivisionError or OverflowError:
+                return 0

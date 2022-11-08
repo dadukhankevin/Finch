@@ -320,8 +320,8 @@ class Parent(Layer):
                     both.append(combined[n][i]) # Choose which ones
 
                 n += 1
-            X.chromosome.set_raw(both)
             new = copy.deepcopy(X)
+            new.chromosome.set_raw(both)
             new.fit(1)
             ret = np.append(ret, new)
 
@@ -333,7 +333,7 @@ class Parent(Layer):
 
 
 class Parents(Parent):
-    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random", end=math.inf):
+    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=100, method="random",amount=10, end=math.inf):
         """
         :param delay: The delay in epochs until this will come into affect
         :param every: Do this ever n epochs
@@ -341,26 +341,36 @@ class Parents(Parent):
         :param family_size: The amount of children to generate
         :param percent: The percent to select when method=random
         :param method: Right now only "random" TODO: add more methods
+        :param amount: if method is "best" then parents only the best ones
         """
         super().__init__(pool=pool, end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size,
                          family_size=family_size,
                          native_run=self.native_run)
-        self.percent = percent
+        self.percent = percent/100
         self.method = method
+        self.amount = er.make_constant_rate(amount)
         if not callable(percent):
-            self.percent = er.Rates(percent, 0).constant
+            self.percent = er.Rates(percent/100, 0).constant
 
     def random(self, data, func): # completely random method
-        these_ones = np.random.choice(data.individuals, data.individuals.size * self.percent())
+        these_ones = np.random.choice(data.individuals, int(data.individuals.size * self.percent()))
         for i in these_ones:
             parent1 = i
             parent2 = np.random.choice(these_ones, 1)[0]
             data.add(self.parent(parent1, parent2))
         return data
-
+    def best(self, data, func):
+        these_ones = data.individuals[-int(self.amount()*self.percent()):]
+        for i in these_ones:
+            parent1 = i
+            parent2 = np.random.choice(these_ones, 1)[0]
+            data.add(self.parent(parent1, parent2))
+        return data
     def native_run(self, data, func):
         if self.method == "random":
             return self.random(data, func)
+        if self.method == "best":
+            return self.best(data, func)
         return data
 
 

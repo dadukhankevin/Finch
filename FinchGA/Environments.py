@@ -2,7 +2,7 @@ import math
 import Finch.FinchGA.generic as generic
 import logging
 import sys
-
+import matplotlib.pyplot as plt
 handler = logging.StreamHandler(sys.stdout)
 
 
@@ -39,7 +39,10 @@ class SequentialEnvironment:
         self.fitness = fitness
         self.every = every
         self.data = data
+        self.history = []
         self.stop = stop_threshold
+        self.best = 0
+        self.best_ind = []
         self.keep_going = keep_going
         if self.data is None:
             self.data = generic.Generation([])  # ensures data is of correct type
@@ -48,6 +51,7 @@ class SequentialEnvironment:
         """
         :param data: If you want to use data from previous environment
         """
+
         last = 0
         if data is not None:
             self.data = data
@@ -55,20 +59,27 @@ class SequentialEnvironment:
         for i in range(self.epochs):
             for d in self.layers: # call the run function of each layer
                 d.run(self.data, self.fitness)
-            cfit = self.data.individuals[-1].fitness  # when you run out of variable names
-            history.append(self.data.individuals[-1].fitness)
-            if cfit > last:
-                last = cfit  # the most fit
-            if cfit >= self.stop:
-                print("\033[92m Stopping: ", cfit, self.data.individuals[-1].chromosome.get_raw())
-
+            ind = self.data.individuals[-1]
+            self.best = self.data.individuals[-1].fitness  # when you run out of variable names
+            history.append(ind.fitness)
+            if self.best > last:
+                last = self.best  # the most fit
+                self.best_ind = ind
+            if self.best >= self.stop:
+                print("\033[92m Stopping: ", self.best, ind.chromosome.get_raw())
+                self.history = history
                 return self.data, history
             if i % self.every == 0:
-                print("\033[92m", cfit, self.data.individuals[-1].chromosome.get_raw())
+                print("\033[92m", self.best, ind.chromosome.get_raw())
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
+        self.history = history
         return self.data, history
-
+    def plot(self):
+        plt.plot(self.history)
+        plt.show()
+    def display_history(self):
+        return "environment took {} epochs".format(len(self.history))
 
 class Adversarial: # TODO: re name this
     def __init__(self, environments):

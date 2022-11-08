@@ -27,6 +27,7 @@ class GenePool:
         """
         return self.date[np.where(self.genes.gene == i)][0]
 
+
     def gen_data(self, gen, population, length):
         """
         :param data: The already existing data
