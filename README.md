@@ -9,7 +9,7 @@ function to determine how fit each individual is. After this mutation, parenting
 optimal solutions. GAs can do many of the same things that reinforcement learning algorithms can do but 
 are more efficient because they entirely avoid the computationally expensive process of "backpropagation"
 to learn more about this check out this excellent paper by OpenAI: https://openai.com/blog/evolution-strategies/
-### Disclaimer!
+##  Disclaimer!
 This framework is very new and many of the features are only "half baked". It is also very suseptable to change so use at your own risk.
 ## Installation 
 ```git clone https://github.com/dadukhankevin/Finch.git```
