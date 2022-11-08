@@ -41,7 +41,7 @@ Voilà! This is intimidating but once you get this process down you'll be able t
 ### The code (finally!)
 First lets import the relevant modules
 ```python
-A Keras style GA genetic algorithm library
+# A Keras style GA genetic algorithm library
 from Finch.FinchGA.GenePools import GenePool
 from Finch.FinchGA import Layers
 import matplotlib.pyplot as plt
