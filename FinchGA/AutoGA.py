@@ -8,7 +8,7 @@ import math
 class ValueWeight:
     def __init__(self, items, max_weight, stop_thresh=math.inf, epochs=40):
         """
-        :param items: A list of items that, for example could go into a backpack, each item is fomated as such ["item name", value, weight]
+        :param items: A list of items that, for example could go into a backpack, each item is formatted as such ["item name", value, weight]
         where "value" is how much you "want" the item and "weight" is how much the item weighs. Both of these concepts can be applied to things
         outside of backpacks.
         :param max_weight: The max amount of weight allowed in a backpack
