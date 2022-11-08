@@ -5,6 +5,7 @@ import numpy as np
 import Finch.FinchGA.EvolveRates as er
 from Finch.FinchGA.generic import Chromosome, Individual
 
+
 class Layer:
     def __init__(self, every=1, delay=0, native_run=None, end=math.inf):
         """
@@ -50,7 +51,8 @@ class GenerateData(Layer):
         :param population: The population to be generated
         :param array_length:
         """
-        super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)  # the Layer class
+        super().__init__(end=end, every=er.make_constant_rate(every), delay=delay,
+                         native_run=self.native_run)  # the Layer class
         self.gene_pool = gene_pool
         self.population = population
         self.array_len = array_length
@@ -61,7 +63,8 @@ class GenerateData(Layer):
 
 
 class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromosome (not individuals).
-    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, mx=1, mn=1, end=math.inf):
+    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, mx=1, mn=1,
+                 end=math.inf):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
@@ -98,8 +101,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
 
         return data
 
-
-    def worst(self, data): # Not working yet
+    def worst(self, data):  # Not working yet
 
         worst = data.individuals[0: int(self.amount())]  # Least fit
         best = data.individuals[-1].fitness
@@ -111,7 +113,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
                 gene.weight = max(gene.weight, self.mn)
         return data
 
-    def outer(self, data): # not working yet
+    def outer(self, data):  # not working yet
         """
         :param data: The data
         :return: data
@@ -121,7 +123,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         data = self.worst(data)
         return data
 
-    def alld(self, data): # not working yet
+    def alld(self, data):  # not working yet
         n = 0
         best = data.individuals[-1].fitness
         if best == 0:
@@ -141,7 +143,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
             self.alld(data)
         if self.method == "worst":
             self.worst(data)
-        if self.method == "best": # only working one right now
+        if self.method == "best":  # only working one right now
             self.best(data)
         if self.method == "outer":
             self.outer(data)
@@ -170,7 +172,13 @@ class SortFitness(Layer):
 
 
 class Duplicate(Layer):
-    def __init__(self, every=1, clones=1, delay=0, end= math.inf):
+    def __init__(self, every=1, clones=1, delay=0, end=math.inf):
+        """
+        :param every: See Layer
+        :param clones: Amount of clones
+        :param delay: See Layer
+        :param end: same
+        """
         super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.clones = clones
 
@@ -181,7 +189,7 @@ class Duplicate(Layer):
 
 
 class Mutate(Layer):
-    def __init__(self, pool, every=1, delay=0, select_percent=100, likelihood=10, end = math.inf):
+    def __init__(self, pool, every=1, delay=0, select_percent=100, likelihood=10, end=math.inf):
         """
         :param pool: The gene pool to look through
         :param every: Do this every n
@@ -202,7 +210,7 @@ class Mutate(Layer):
 
 
 class Kill(Layer):
-    def __init__(self, percent, every=1, delay=0, end = math.inf):
+    def __init__(self, percent, every=1, delay=0, end=math.inf):
         """
         :param percent: The percent to kill (picks from the worst)
         :param every: Do this every n epochs
@@ -222,7 +230,7 @@ class Kill(Layer):
 
 
 class KillByAge(Layer):
-    def __init__(self, age, every=1, delay=0, end = math.inf):
+    def __init__(self, age, every=1, delay=0, end=math.inf):
         """
         :param percent: The percent to kill (picks from the worst)
         :param every: Do this every n epochs
@@ -241,7 +249,7 @@ class KillByAge(Layer):
 
 
 class UpdateWeights(Layer):
-    def __init__(self, pool, every=1, delay=0, end = math.inf):
+    def __init__(self, pool, every=1, delay=0, end=math.inf):
         """
         :param pool: The gene pool to update
         :param every: Do this every n epochs
@@ -257,6 +265,12 @@ class UpdateWeights(Layer):
 
 class Function(Layer):
     def __init__(self, fun, every=1, delay=0, end=math.inf):
+        """
+        :param fun: The function you want to apply
+        :param every: See Layer
+        :param delay: See Layer
+        :param end: See Layer
+        """
         super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
         self.func = fun
 
@@ -265,13 +279,15 @@ class Function(Layer):
 
 
 class Parent(Layer):
-    def __init__(self,pool, every=1, gene_size=3, family_size=2, delay=0, native_run=None, end=math.inf):
+    def __init__(self, pool, every=1, gene_size=3, family_size=2, delay=0, native_run=None, end=math.inf):
         """
+        :param pool: The gene pool to use
         :param every: Do this every n epochs
         :param gene_size: The gene size will determine how to mux parents
         :param family_size: The amount of children to generate
         :param delay: The delay in epochs until this takes effect
         :param native_run: Ignore this
+        :param end: When to stop in epochs
         """
         self.gene_size = gene_size
         self.fs = family_size
@@ -289,19 +305,19 @@ class Parent(Layer):
 
     def parent(self, X, Y):
         ret = np.array([])
+        # get their raw data
         x = np.asarray(X.chromosome.get_raw())
         y = np.asarray(Y.chromosome.get_raw())
 
-        for i in range(self.fs()):
-            choice = np.random.choice([1, 0], size=min(x.shape[0], y.shape[0]))
+        for i in range(self.fs()): # create fs() amount of children
+            choice = np.random.choice([1, 0], size=min(x.shape[0], y.shape[0])) # Basically creates a mask
             both = []
             combined = list(zip(x, y))
 
             n = 0
             for i in choice:
                 if np.all(both != combined[n][i]) or self.pool.replacement:
-                    both.append(combined[n][i])
-
+                    both.append(combined[n][i]) # Choose which ones
 
                 n += 1
             X.chromosome.set_raw(both)
@@ -317,7 +333,7 @@ class Parent(Layer):
 
 
 class Parents(Parent):
-    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random", end = math.inf):
+    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=1, method="random", end=math.inf):
         """
         :param delay: The delay in epochs until this will come into affect
         :param every: Do this ever n epochs
@@ -326,21 +342,21 @@ class Parents(Parent):
         :param percent: The percent to select when method=random
         :param method: Right now only "random" TODO: add more methods
         """
-        super().__init__(pool=pool, end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size, family_size=family_size,
+        super().__init__(pool=pool, end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size,
+                         family_size=family_size,
                          native_run=self.native_run)
         self.percent = percent
         self.method = method
         if not callable(percent):
             self.percent = er.Rates(percent, 0).constant
 
-    def random(self, data, func):
+    def random(self, data, func): # completely random method
         these_ones = np.random.choice(data.individuals, data.individuals.size * self.percent())
         for i in these_ones:
             parent1 = i
             parent2 = np.random.choice(these_ones, 1)[0]
             data.add(self.parent(parent1, parent2))
         return data
-
 
     def native_run(self, data, func):
         if self.method == "random":
@@ -349,7 +365,7 @@ class Parents(Parent):
 
 
 class Age(Layer):
-    def __init__(self, delay=0, every=1, years=1, end = math.inf):
+    def __init__(self, delay=0, every=1, years=1, end=math.inf):
         """
         :param delay:
         :param every:
@@ -365,7 +381,7 @@ class Age(Layer):
 
 
 class KeepLength(Layer):
-    def __init__(self,amount, delay=0, every=1, end=math.inf):
+    def __init__(self, amount, delay=0, every=1, end=math.inf):
         """
         :param delay:
         :param every:

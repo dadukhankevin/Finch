@@ -53,7 +53,7 @@ class SequentialEnvironment:
             self.data = data
         history = []
         for i in range(self.epochs):
-            for d in self.layers:
+            for d in self.layers: # call the run function of each layer
                 d.run(self.data, self.fitness)
             cfit = self.data.individuals[-1].fitness  # when you run out of variable names
             history.append(self.data.individuals[-1].fitness)
@@ -70,7 +70,7 @@ class SequentialEnvironment:
         return self.data, history
 
 
-class Adversarial:
+class Adversarial: # TODO: re name this
     def __init__(self, environments):
         """
         Competes environments against each other
@@ -88,7 +88,7 @@ class Adversarial:
         new_data = self.data
         for i in range(epochs):
             self.data = new_data
-            for env in self.environments:
+            for env in self.environments: # simulate each environment
                 data, history = env.simulate_env(self.data)
                 fullhist.append(history)
 
