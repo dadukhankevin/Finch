@@ -86,7 +86,7 @@ env = SequentialEnvironment(layers=[
     Layers.SortFitness(), # Sorts individuals by fitness
     Layers.NarrowGRN(pool, delay=1, method="best", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
     Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific 
-    Layers.Parents(pool, gene_size=1, family_size=1, delay=0, every=4, method="random"), #Parents random individuals together
+    Layers.Parents(pool, gene_size=1, family_size=1, delay=0, every=4, method="best"), #Parents random individuals together
     Layers.Mutate(pool, delay=0, select_percent=100, likelihood=40), #mutates 40% ish of all of the individuals 
     Layers.SortFitness(), # Sorts individuals by fitness
     Layers.KeepLength(100), # Keeps the population under 100
@@ -97,7 +97,7 @@ As you may be able to tell, this looks a lot like the AI library Keras's Sequent
 
 now lets run our environment.
 ```python
-env.compile(epochs=40, fitness=fit, every=1, stop_threshold=18) #stop when value > 18
+env.compile(epochs=40, fitness=fit, every=1, stop_threshold=20) #stop when value > 18
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
 plt.plot(hist)

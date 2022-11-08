@@ -28,7 +28,7 @@ class ValueWeight: # for problems like the backpack problem
             Layers.NarrowGRN(self.pool, delay=1, method="best", amount=2, reward=.05, penalty=.05, mn=.1, mx=100,
                              every=1),  # promotes the best genes
             Layers.UpdateWeights(self.pool, every=1, end=200),  # updates the likelihood if each gene being generated
-            Layers.Parents(self.pool, gene_size=1, family_size=3, delay=0, every=4, method="random"),
+            Layers.Parents(self.pool, gene_size=1, family_size=3, delay=0, every=4, method="best", percent=100, amount=2),
             # parents them together
             Layers.Mutate(self.pool, delay=0, select_percent=100, likelihood=40),  # mutate it then determines fitness on mutated individuals
             Layers.SortFitness(),  # re sorts it
