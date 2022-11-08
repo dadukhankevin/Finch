@@ -30,7 +30,7 @@ To solve this we must:
 2. Create a fitness function that returns the added up "importance" of each item in your backpack or, if the backpack weighs too much, returns 0.
 3. Create many backpacks (individuals)
 4. Determine the most "fit"
-5. Parent the best ones together. In 
+5. Parent the best ones together.
 6. Mutate some of them
 7. Determine fitness
 8. Repeat x amount of times, also known as epochs.
@@ -104,8 +104,8 @@ plt.plot(hist)
 plt.show() # Graph our progress
 ```
 
-If you want to help out just submit a PR! It would be much appreciated. Until then all of this framework was written by Daniel Losey.
+If you want to help out just submit a PR! It would be much appreciated.
 
 # Roadmap
-### 1. Unity integration!!! 
-### 2. TODO: make the road map (haha)
+### 1. Game engine integration with Unity!
+### 2. 
