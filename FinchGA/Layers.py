@@ -8,8 +8,10 @@ from Finch.FinchGA.generic import Chromosome, Individual
 class Layer:
     def __init__(self, every=1, delay=0, native_run=None, end=math.inf):
         """
+        :param every: do this every x times
         :param delay: Delay until used, until then it will simply return what it is given
         :param native_run: The run function to be used from other classes
+        :param end: stop after n epochs
         """
         self.delay = delay
         self.native_run = native_run
@@ -97,7 +99,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         return data
 
 
-    def worst(self, data):
+    def worst(self, data): # Not working yet
 
         worst = data.individuals[0: int(self.amount())]  # Least fit
         best = data.individuals[-1].fitness
@@ -109,7 +111,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
                 gene.weight = max(gene.weight, self.mn)
         return data
 
-    def outer(self, data):
+    def outer(self, data): # not working yet
         """
         :param data: The data
         :return: data
@@ -119,7 +121,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         data = self.worst(data)
         return data
 
-    def alld(self, data):
+    def alld(self, data): # not working yet
         n = 0
         best = data.individuals[-1].fitness
         if best == 0:
@@ -139,7 +141,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
             self.alld(data)
         if self.method == "worst":
             self.worst(data)
-        if self.method == "best":
+        if self.method == "best": # only working one right now
             self.best(data)
         if self.method == "outer":
             self.outer(data)
@@ -149,10 +151,20 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
 
 class SortFitness(Layer):
     def __init__(self, every=1, delay=0, end=math.inf):
+        """
+        :param every: same in Layer
+        :param delay: same
+        :param end: same
+        """
         super().__init__(end=end, every=er.make_constant_rate(every), delay=delay, native_run=self.native_run)
 
     @staticmethod
     def native_run(data, func):
+        """
+        :param data: The generation to be sorted
+        :param func:
+        :return:
+        """
         data.individuals = np.array(data.sort())
         return data
 

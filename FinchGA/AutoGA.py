@@ -4,8 +4,8 @@ from Finch.FinchGA.Environments import *
 import Finch.FinchGA.FitnessFunctions as ff
 import math
 
-
-class ValueWeight:
+# TODO: add a bunch more auto classes
+class ValueWeight: # for problems like the backpack problem
     def __init__(self, items, max_weight, stop_thresh=math.inf, epochs=40):
         """
         :param items: A list of items that, for example could go into a backpack, each item is formatted as such ["item name", value, weight]
@@ -30,7 +30,7 @@ class ValueWeight:
             Layers.UpdateWeights(self.pool, every=1, end=200),  # updates the likelihood if each gene being generated
             Layers.Parents(self.pool, gene_size=1, family_size=3, delay=0, every=4, method="random"),
             # parents them together
-            Layers.Mutate(self.pool, delay=0, select_percent=100, likelihood=40),  # mutate it
+            Layers.Mutate(self.pool, delay=0, select_percent=100, likelihood=40),  # mutate it then determines fitness on mutated individuals
             Layers.SortFitness(),  # re sorts it
             Layers.KeepLength(100),  # keeps population low
         ])

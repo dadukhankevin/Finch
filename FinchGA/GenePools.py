@@ -37,8 +37,8 @@ class GenePool:
         while len(gen.individuals) < population:
             ind = Individual(self,
                              ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(), replace=self.replacement),
-                             fitness_func=self.fitnes_func)
-            ind.fit(1)
+                             fitness_func=self.fitnes_func) #Creates the new individual
+            ind.fit(1) # completely recalculates the fitness
             gen.add(ind)
 
 
@@ -50,7 +50,7 @@ class GenePool:
 
         self.weights = np.asarray([gene.weight for gene in self.genes])  # updates weights
 
-        self.weights = np.nan_to_num(self.weights,nan = 0) # normalize
+        self.weights = np.nan_to_num(self.weights,nan = 0) # get rid of nan values
 
     def rand(self, index=None):
         """
@@ -62,12 +62,22 @@ class GenePool:
 
 class TypedGenePool:
     def __init__(self, pools=[]):
+        """
+        :param pools: The pools to be included in the mega gene pool
+        """
         self.pools = pools
         self.replacement = None
     def rand(self, index):
+        """
+        :param index: The pool to edit
+        :return: Random token from that pool
+        """
         return self.pools[index].rand()
 
     def update(self):
+        """
+        :return: Updates the weights in all the gene pools
+        """
         for i in self.pools:
             i.update()
 
@@ -93,4 +103,8 @@ class TypedGenePool:
 
 
 def to_genes(data):
+    """
+    :param data: Raw vocabulary
+    :return:
+    """
     return np.array([Gene(i) for i in data])
