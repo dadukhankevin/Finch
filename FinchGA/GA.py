@@ -1,3 +1,21 @@
+"""
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+This code is now deprecated!
+"""
 import os
 import random
 import random as r
