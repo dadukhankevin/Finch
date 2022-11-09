@@ -15,8 +15,13 @@ This framework is very new and many of the features are only "half baked". It is
 ```git clone https://github.com/dadukhankevin/Finch.git```
 
 I hope to add it to PyPi (pip) soon.
-# Usage:
-Wow, lets move on to the interesting stuff already!
+## Colab notebooks
+#### [Sentiment based fitness function, for word generation GA:](https://colab.research.google.com/drive/1iknzsYyYYH66AOucfWznLlSTXFcDXP2P#scrollTo=LuYrxVC0N7kD)
+#### [Solve for all the missing variables, math based fitness function GA:](https://colab.research.google.com/drive/1MH5W08Jp4yUAv3Fx2qTO5Ds17XPfPFw4?usp=sharing)
+#### [Make the best backpack, value based fitness function GA:](https://colab.research.google.com/drive/1vpKZgWXK8fDN1xfm1x_cR8kJu1xbIiU1?usp=sharing)
+
+# Usage: 
+Wow, lets move on to the interesting stuff already! (or check the notebooks)
 ### The "backpack" problem
 The backpack problem is sort the "hello world" of genetic algorithms.
 The problem is as such:
@@ -68,11 +73,16 @@ def fit(backpack):
     
 ```
 That wasn't so bad! Now lets define the items that _can_ be in our backpack.
+This fitness function can be used with:
+```python
+from Finch.FinchGA.FitnessFunctions import ValueWeightFunction
+```
+but defining it here helps the concept of fitness functions be easily grasped.
 ```python
 # In the format [name, weight, value] all of these have little bearing on reality.
 backpack = np.array(
-    [["apple", 1, .1], ["phone", 8, 6], ["lighter", 1, .1], ["Book", .1, 2], ["compass", 2, .4], ["flashlight", 1, 6],
-     ["water", 5, 9], ["passport", 7, .5]])
+    [["apple", .1, 1], ["phone", 6, 2], ["lighter", .5, .1], ["Book", 3, 33], ["compass", .5, .01], ["flashlight", 1, 4],
+     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["cloths", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1]])
 ```
 Now we need to put all these items into a GenePool class:
 ```python
@@ -82,14 +92,15 @@ The gene pool helps produce better genes as the environment learns what genes pe
 Now we can create our environment. Tinker around with it to see how each thing effects the performance.
 ```python
 env = SequentialEnvironment(layers=[
-    Layers.GenerateData(pool, population=10, array_length=2, delay=0), # Generates data
+    Layers.GenerateData(pool, population=20, array_length=4, delay=0), # Generates 20 individuals and then at least 10
     Layers.SortFitness(), # Sorts individuals by fitness
-    Layers.NarrowGRN(pool, delay=1, method="best", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
-    Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific 
-    Layers.Parents(pool, gene_size=1, family_size=1, delay=0, every=4, method="best"), #Parents random individuals together
-    Layers.Mutate(pool, delay=0, select_percent=100, likelihood=40), #mutates 40% ish of all of the individuals 
+    Layers.NarrowGRN(pool, delay=1, method="outer", amount=1, reward=.6, penalty=.99, mn=.1, mx=5, every=1), # Calculates new weights
+    Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific
+    Layers.Parents(pool, gene_size=1, family_size=4, delay=0, every=4, method="best", amount=4), #Parents random individuals together
+    Layers.Mutate(pool, delay=0, select_percent=100, likelihood=20), #mutates 40% ish of all of the individuals
     Layers.SortFitness(), # Sorts individuals by fitness
-    Layers.KeepLength(100), # Keeps the population under 100
+    Layers.RemoveDuplicatesFromTop(amount=2),
+    Layers.KeepLength(10), # Keeps the population under 10, allows the GenerateData layer to generate 10 new individuals
 
 ])
 ```
@@ -97,7 +108,7 @@ As you may be able to tell, this looks a lot like the AI library Keras's Sequent
 
 now lets run our environment.
 ```python
-env.compile(epochs=40, fitness=fit, every=1, stop_threshold=20) #stop when value > 18
+env.compile(epochs=100, fitness=fit, every=1, stop_threshold=33) #stop when value > 32
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
 plt.plot(hist)

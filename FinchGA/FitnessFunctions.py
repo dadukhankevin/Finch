@@ -8,7 +8,7 @@ class ValueWeightFunction:
         for i in individual:
             weight += float(i[2])
             value += float(i[1])
-        if weight > self.valthresh:
+        if weight > self.maxweight:
             return 0
         else:
             return value

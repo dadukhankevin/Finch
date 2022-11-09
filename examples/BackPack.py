@@ -2,41 +2,34 @@
 from Finch.FinchGA.GenePools import GenePool
 from Finch.FinchGA import Layers
 from Finch.FinchGA.Environments import *
+from Finch.FinchGA.FitnessFunctions import ValueWeightFunction
 import numpy as np
 
-
-def fit(backpack):
-    weight = 0
-    value = 0
-    for item in backpack:
-        weight += float(item[2])  # Adds to the weight of the backpack
-        value += float(item[1])  # Adds to the overall value of the backpack
-    if weight > 15:  # If weight is above 15 fitness is 0
-        return 0
-    else:
-        return value  # otherwise return the sum of the importance of each item in teh backpack
-
-# In the format [name, weight, value] all of these have little bearing on reality.
+fitness = ValueWeightFunction(maxweight=15) #max wieght of our backpack is 15 weight units. Feel free to make your own fitness function whenever.
+# In the format [name, value, weight] all of these have little bearing on reality.
 backpack = np.array(
-    [["apple", 1, .1], ["phone", 8, 6], ["lighter", 1, .1], ["Book", .1, 2], ["compass", 2, .4], ["flashlight", 1, 6],
-     ["water", 5, 9], ["passport", 7, .5]])
+    [["apple", .1, 1], ["phone", 6, 2], ["lighter", .5, .1], ["Book", 3, 33], ["compass", .5, .01], ["flashlight", 1, 4],
+     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["cloths", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1]])
 
-pool = GenePool(backpack, fit, replacement=False)  # TO avoid duplicates "replacement" must be false
+pool = GenePool(backpack, fitness.func, replacement=False)  # TO avoid duplicates "replacement" must be false
 
 env = SequentialEnvironment(layers=[
-    Layers.GenerateData(pool, population=10, array_length=2, delay=0), # Generates data
+    Layers.GenerateData(pool, population=20, array_length=4, delay=0), # Generates 20 individuals and then at least 10
     Layers.SortFitness(), # Sorts individuals by fitness
-    Layers.NarrowGRN(pool, delay=1, method="outer", amount=1, reward=.05, penalty=.05, mn=.1, mx=100, every=1), # Calculates new weights
+    Layers.NarrowGRN(pool, delay=1, method="outer", amount=1, reward=.6, penalty=.99, mn=.1, mx=5, every=1), # Calculates new weights
     Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific
-    Layers.Parents(pool, gene_size=1, family_size=1, delay=0, every=4, method="best"), #Parents random individuals together
-    Layers.Mutate(pool, delay=0, select_percent=100, likelihood=40), #mutates 40% ish of all of the individuals
+    Layers.Parents(pool, gene_size=1, family_size=4, delay=0, every=4, method="best", amount=4), #Parents random individuals together
+    Layers.Mutate(pool, delay=0, select_percent=100, likelihood=20), #mutates 40% ish of all of the individuals
     Layers.SortFitness(), # Sorts individuals by fitness
-    Layers.KeepLength(100), # Keeps the population under 100
+    Layers.RemoveDuplicatesFromTop(amount=2),
+
+    Layers.KeepLength(10), # Keeps the population under 10, allows the GenerateData layer to generate 10 new individuals
 
 ])
 
-env.compile(epochs=40, fitness=fit, every=1, stop_threshold=20) #stop when value > 18
+env.compile(epochs=100, fitness=fitness.func, every=1, stop_threshold=33) #stop when value > 18
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
+print("best: ", env.best_ind.chromosome.get_raw())
 plt.plot(hist)
 plt.show() # Graph our progress
