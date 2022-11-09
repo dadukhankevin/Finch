@@ -405,3 +405,13 @@ class KeepLength(Layer):
 
     def native_run(self, data, func):
         data.individuals = data.individuals[-int(self.amount()):]
+
+class RemoveDuplicatesFromTop(Layer):
+    def __init__(self, delay=0, every=1, end=math.inf, amount=2):
+        self.amount = amount
+        super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
+    def native_run(self, data, func):
+        for i in range(self.amount):
+            if data.individuals[-i].chromosome.get_raw() == data.individuals[-(i+1)].chromosome.get_raw():
+                del data.individuals[-i]
+        return data
