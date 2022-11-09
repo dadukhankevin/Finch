@@ -1,3 +1,4 @@
+import copy
 import math
 import random
 
@@ -106,8 +107,10 @@ class Individual:
         # gene = np.random.choice(self.chromosome.genes)
         # gene = self.chromosome.genes
         # input(self.chromosome.genes)
+
         for i in range(len(self.chromosome.genes)):
             # input(gene.gene)
+
             if r.randint(0, 100) < percent():
                 newgene = pool.rand(index=i - 1)  # Use this pool if the pool is actually a typed gene pool
                 if np.all(self.chromosome.get_raw() != newgene.gene) or pool.replacement: # Keeps only unique genes

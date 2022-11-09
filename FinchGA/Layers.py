@@ -412,6 +412,6 @@ class RemoveDuplicatesFromTop(Layer):
         super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
     def native_run(self, data, func):
         for i in range(self.amount):
-            if data.individuals[-i].chromosome.get_raw() == data.individuals[-(i+1)].chromosome.get_raw():
-                del data.individuals[-i]
+            if np.all(data.individuals[-i].chromosome.get_raw() == data.individuals[-(i+1)].chromosome.get_raw()):
+                data.individuals = data.individuals[0:-2] #deletes last element
         return data
