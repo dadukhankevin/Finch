@@ -82,7 +82,7 @@ but defining it here helps the concept of fitness functions be easily grasped.
 # In the format [name, weight, value] all of these have little bearing on reality.
 backpack = np.array(
     [["apple", .1, 1], ["phone", 6, 2], ["lighter", .5, .1], ["Book", 3, 33], ["compass", .5, .01], ["flashlight", 1, 4],
-     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["cloths", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1]])
+     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["clothes", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1]])
 ```
 Now we need to put all these items into a GenePool class:
 ```python
