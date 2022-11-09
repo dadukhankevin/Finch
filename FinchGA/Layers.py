@@ -315,18 +315,25 @@ class Parent(Layer):
         for i in range(self.fs()): # create fs() amount of children
             choice = np.random.choice([1, 0], size=min(x.shape[0], y.shape[0])) # Basically creates a mask
             both = []
-            combined = list(zip(x, y))
+            if self.pool.replacement:
+                both = np.where(choice, x, y)
+                new = copy.deepcopy(X)
+                new.chromosome.set_raw(both)
+                new.fit(1)
+                ret = np.append(ret, new)
+            else:
+                combined = list(zip(x, y))
 
-            n = 0
-            for i in choice:
-                if np.all(both != combined[n][i]) or self.pool.replacement:
-                    both.append(combined[n][i]) # Choose which ones
+                n = 0
+                for i in choice:
+                    if np.all(both != combined[n][i]):
+                        both.append(combined[n][i]) # Choose which ones
 
-                n += 1
-            new = copy.deepcopy(X)
-            new.chromosome.set_raw(both)
-            new.fit(1)
-            ret = np.append(ret, new)
+                    n += 1
+                new = copy.deepcopy(X)
+                new.chromosome.set_raw(both)
+                new.fit(1)
+                ret = np.append(ret, new)
 
         return ret
 
