@@ -1,6 +1,6 @@
 import copy
 import math
-
+import random
 import numpy as np
 import Finch.FinchGA.EvolveRates as er
 from Finch.FinchGA.generic import Chromosome, Individual
@@ -356,17 +356,17 @@ class Parents(Parent):
             self.percent = er.Rates(percent/100, 0).constant
 
     def random(self, data, func): # completely random method
-        these_ones = np.random.choice(data.individuals, int(data.individuals.size * self.percent()))
+        these_ones = random.choices(data.individuals, k=int(data.individuals.size * self.percent()))
         for i in these_ones:
             parent1 = i
-            parent2 = np.random.choice(these_ones, 1)[0]
+            parent2 = random.choice(these_ones)
             data.add(self.parent(parent1, parent2))
         return data
     def best(self, data, func):
         these_ones = data.individuals[-int(self.amount()*self.percent()):]
         for i in these_ones:
             parent1 = i
-            parent2 = np.random.choice(these_ones, 1)[0]
+            parent2 = random.choice(these_ones)
             data.add(self.parent(parent1, parent2))
         return data
     def native_run(self, data, func):
@@ -417,4 +417,17 @@ class RemoveDuplicatesFromTop(Layer):
                     data.individuals = data.individuals[0:-2] #deletes last element
             except ValueError:
                 pass
+        return data
+class FastMutateTop(Layer):
+    def __init__(self,pool,delay=0, every=1, end=math.inf,amount=3, individual_mutation_amount=.3):
+        self.individual_select = er.make_constant_rate(individual_mutation_amount)
+        self.amount = er.make_constant_rate(amount)
+        super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
+    def native_run(self, data, func):
+        these_ones = data.individuals[-self.amount():]
+        for i in range(len(these_ones)-1):
+            this = these_ones[i]
+            k = int(self.individual_select())
+            choices = random.choices(list(range(0, len(this)-1)), k=k)
+            these_ones[i][choices] = self.pool.rand_many(index=1, amount=k)
         return data
