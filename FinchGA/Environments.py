@@ -61,16 +61,16 @@ class SequentialEnvironment:
                 d.run(self.data, self.fitness)
             ind = self.data.individuals[-1]
             self.best_ind = ind
-            self.best = self.data.individuals[-1].fitness  # when you run out of variable names
+            self.last = self.data.individuals[-1].fitness  # when you run out of variable names
             history.append(ind.fitness)
             if self.best > last:
-                last = self.best  # the most fit
+                self.best = self.last  # the most fit
             if self.best >= self.stop:
                 print("\033[92m Stopping: ", self.best, ind.genes)
                 self.history = history
                 return self.data, history
             if i % self.every == 0:
-                print("\033[92m", self.best, ind.genes)
+                print("\033[92m" + str(int((i/self.epochs)*100)) + "%: (. ❛ ᴗ ❛.)", ind.fitness, ind.genes)
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
         self.history = history
