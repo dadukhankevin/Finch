@@ -116,6 +116,16 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
                     Gene.weight = max(Gene.weight, self.gene_pool.mn())
 
         return data
+    def Fast(self, data):
+        individuals = data.individuals
+        for i, individual in enumerate(individuals):
+            ind = individual.genes
+            freq= np.flip(np.argsort(np.bincount(ind))[-(np.unique(ind).size):]) #sorts by frequency
+            l = individual.size
+            for i, gene in enumerate(ind):
+                Gene = self.gene_pool.get_weight(gene)[0]
+                Gene.weight = (i-l)/l
+        return data
 
     def outer(self, data):  # not working yet
         """
@@ -143,6 +153,8 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
         :param func: this does nothing
         :return:
         """
+        if self.method == "fast":
+            self.Fast(data)
         if self.method == "all":
             self.alld(data)
         if self.method == "worst":
