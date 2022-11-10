@@ -12,10 +12,10 @@ class GenePool:
         :param mx: The minimum weight
         :param mn: The maximum weight
         """
-        self.data = data
         self.fitnes_func = fitness_func
+        self.raw = np.array(data)
         self.genes = to_genes(data)  # converts data to chromosome
-        self.weights = np.asarray([gene.weight for gene in self.genes])  # calculates initial weights
+        self.weights = np.asarray([gene.weight for gene in self.genes])
         self.mx = er.make_constant_rate(mx)
         self.mn = er.make_constant_rate(mn)
         self.replacement = replacement
@@ -37,7 +37,7 @@ class GenePool:
         """
         while len(gen.individuals) < population:
             ind = Individual(self,
-                             ar=np.random.choice(self.genes, length, p=self.weights / self.weights.sum(), replace=self.replacement),
+                             ar=self.raw[np.random.choice(len(self.raw), p=self.weights / self.weights.sum(), replace=self.replacement, size=length)],
                              fitness_func=self.fitnes_func) #Creates the new individual
             ind.fit(1) # completely recalculates the fitness
             gen.add(ind)
@@ -59,8 +59,10 @@ class GenePool:
         Generates a new random gene
         :return: New Gene
         """
-        r = random.choices(self.genes, weights=self.weights/sum(self.weights), k=1)[0]
+        r = random.choices(self.raw, weights=self.weights/sum(self.weights), k=1)[0]
         return r
+    def get_weight(self, raw):
+        return self.genes[np.where(self.raw == raw)[0]]
 
 class TypedGenePool:
     def __init__(self, pools=[]):

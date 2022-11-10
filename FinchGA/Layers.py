@@ -1,9 +1,10 @@
 import copy
 import math
+import random
 
 import numpy as np
 import Finch.FinchGA.EvolveRates as er
-from Finch.FinchGA.generic import Chromosome, Individual
+from Finch.FinchGA.generic import Individual
 
 
 class Layer:
@@ -62,14 +63,14 @@ class GenerateData(Layer):
         return data.individuals
 
 
-class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromosome (not individuals).
+class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (not individuals).
     def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, mx=1, mn=1,
                  end=math.inf):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
         all of them, "outer" will penalize the lowest fitness ones and reward the highest fitness. "best" will reward
-        the best. "worst" will penalize the worst chromosome.
+        the best. "worst" will penalize the worst genes.
         :param amount: The amount of individuals to look at. Only relevant when the method is not "all".
         :param delay: The delay
         :param reward: The percentage to increase the weight of a gene
@@ -98,10 +99,10 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         if fitest == 0:
             return data
         for individual in best:
-            for gene in individual.chromosome.genes:
-                gene.weight *= 1 + self.reward()
-                gene.weight = min(gene.weight, self.mx)
-
+            for gene in individual.genes:
+                Gene = self.gene_pool.get_weight(gene)[0]
+                Gene.weight += self.reward()
+                Gene.weight = min(Gene.weight, self.mx)
         return data
 
     def worst(self, data):  # Not working yet
@@ -111,7 +112,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         if best == 0:
             return data
         for individual in worst:
-            for gene in individual.chromosome.genes:
+            for gene in individual.genes:
                 gene.weight *= self.penalty()
                 gene.weight = max(gene.weight, self.mn)
         return data
@@ -132,7 +133,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good chromos
         if best == 0:
             return None
         for individual in data.individuals:
-            for gene in individual.chromosome.genes:
+            for gene in individual.genes:
                 gene.weight += (individual.fitness / best)
 
     def native_run(self, data, func):
@@ -309,31 +310,23 @@ class Parent(Layer):
     def parent(self, X, Y):
         ret = np.array([])
         # get their raw data
-        x = np.asarray(X.chromosome.get_raw())
-        y = np.asarray(Y.chromosome.get_raw())
+        x = np.asarray(X.genes)
+        y = np.asarray(Y.genes)
 
-        for i in range(self.fs()): # create fs() amount of children
-            choice = np.random.choice([1, 0], size=min(x.shape[0], y.shape[0])) # Basically creates a mask
-            both = []
-            if self.pool.replacement:
-                both = np.where(choice, x, y)
-                new = copy.deepcopy(X)
-                new.chromosome.set_raw(both)
-                new.fit(1)
-                ret = np.append(ret, new)
-            else:
-                combined = list(zip(x, y))
+        for i in range(self.fs()): # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
+            choice = np.array(random.choices([np.ones((1,)+x.shape[1:] ), np.zeros((1,)+x.shape[1:] )], k=x.size)) # Basically creates a mask
+            choice.resize(x.shape)
+            #print(choice)
 
-                n = 0
-                for i in choice:
-                    if np.all(both != combined[n][i]):
-                        both.append(combined[n][i]) # Choose which ones
+            both = np.where(choice, x, y)
+            new = copy.deepcopy(X)
+            if self.pool.replacement == False:
+                #both = np.unique(both,axis=-1)
+                pass
+            new.genes = both
+            new.fit(1)
+            ret = np.append(ret, new)
 
-                    n += 1
-                new = copy.deepcopy(X)
-                new.chromosome.set_raw(both)
-                new.fit(1)
-                ret = np.append(ret, new)
 
         return ret
 
@@ -420,7 +413,7 @@ class RemoveDuplicatesFromTop(Layer):
     def native_run(self, data, func):
         for i in range(self.amount):
             try:
-                if np.all(data.individuals[-i].chromosome.get_raw() == data.individuals[-(i+1)].chromosome.get_raw()):
+                if np.all(data.individuals[-i].genes == data.individuals[-(i+1)].genes):
                     data.individuals = data.individuals[0:-2] #deletes last element
             except ValueError:
                 pass

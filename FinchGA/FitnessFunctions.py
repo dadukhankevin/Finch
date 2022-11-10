@@ -3,6 +3,7 @@ class ValueWeightFunction:
     def __init__(self, maxweight):
         self.maxweight = maxweight
     def func(self, individual):
+
         weight = 0
         value = 0
         for i in individual:
