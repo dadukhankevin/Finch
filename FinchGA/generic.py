@@ -49,21 +49,6 @@ class Equation:
         except ZeroDivisionError and OverflowError:
             return self.desired*-1
 
-class Chromosome:
-    def __init__(self, genes):
-        """
-        This is currently not useful in any way but it may eventually be utilized.
-        :param genes: the genes in the chromosome
-        """
-        self.genes = genes
-
-    def get_raw(self):  # gets the raw value of each gene
-        return numpy.array([i.gene for i in self.genes])
-
-    def set_raw(self, data):  # converts raw values to genes
-        self.genes = [Gene(i) for i in data]
-
-
 class Gene:
     def __init__(self, gene, weight=1):
         """
@@ -74,7 +59,6 @@ class Gene:
         self.weight = weight
 
 
-# returns numpy array of chromosome
 class Fuzzy:
     def __init__(self, w):
         """
@@ -89,32 +73,36 @@ class Individual:
     def __init__(self, pool, ar, fitness_func, fitness=0, mutation_function=None):
         """
         :param pool: the gene pool we want to use
-        :param ar: The raw data to turn into Individual of Chromosome of List Gene
+        :param ar: The raw data to turn into Individual of List Gene
         :param fitness_func: The fitness function
         :param fitness: The default fitness
         :param calculate_on_start: Should the fitness be calculated on start? If so, fitness=0 is ignored
         """
         self.age = 0  # age of the Individual in epochs?
-        if type(ar) == list or type(ar) == numpy.array:
-            ar = numpy.asarray([pool.to_gene(i) for i in ar])  # format data into a list of Genes
+        # format data into a list of Genes
         self.fitness = fitness
         if mutation_function == None:
             self.mfunction = self.default_mutate
-        self.chromosome = Chromosome(ar)  # just a list of chromosome really, for now
+        self.genes = ar
         self.fitness_func = fitness_func
 
     def default_mutate(self, pool, percent):
-        # gene = np.random.choice(self.chromosome.genes)
-        # gene = self.chromosome.genes
-        # input(self.chromosome.genes)
+        # gene = np.random.choice(self.genes)
+        # gene = self.genes
+        # input(self.genes)
+        these_ones = np.random.choice(len(self.genes), size = int(len(self.genes) * int(percent())))
+        if pool.replacement == True:
+            for i in these_ones:
+                self.genes[i] = pool.rand()
+        else:
 
-        for i in range(len(self.chromosome.genes)):
-            # input(gene.gene)
+            for i in range(len(self.genes)):
+                # input(gene.gene)
 
-            if r.randint(0, 100) < percent():
-                newgene = pool.rand(index=i - 1)  # Use this pool if the pool is actually a typed gene pool
-                if np.all(self.chromosome.get_raw() != newgene.gene) or pool.replacement: # Keeps only unique genes
-                    self.chromosome.genes[i - 1] = newgene # TODO: replace this whole thing with np.unique() which is faster
+                if r.randint(0, 100) < percent():
+                    newgene = pool.rand(index=i - 1)  # Use this pool if the pool is actually a typed gene pool
+                    if np.all(self.genes != newgene) or pool.replacement: # Keeps only unique genes
+                        self.genes[i - 1] = newgene # TODO: replace this whole thing with np.unique() which is faster
 
     def mutate(self, pool, select, percent):
         """
@@ -132,15 +120,15 @@ class Individual:
         :param factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness
         """
         self.fitness = ((1 - factor) * self.fitness) + (
-                    factor * self.fitness_func(self.chromosome.get_raw()))  # to prevent division by zero
+                    factor * self.fitness_func(self.genes))  # to prevent division by zero
         return self.fitness
 
     def get_genes(self): # returns all genes
-        return np.array([i.gene for i in self.chromosome.genes])
+        return self.genes
 
     def set_genes(self, data):
         """:param data: new data"""
-        self.chromosome = Chromosome(data) # sets the chromosome genes
+        self.genes = data # sets the genes
 
     @staticmethod
     def sorting_key(individual):
@@ -171,6 +159,4 @@ class Generation:
         self.individuals = np.append(self.individuals, lst)
 
 # pool = GenePool([1, 2, 3, 4, 5])
-# pool.chromosome[1].reward(.1)
-# pool.update()
-# print(Chromosome(pool.gen_data(20)).data)
+

@@ -66,11 +66,11 @@ class SequentialEnvironment:
             if self.best > last:
                 last = self.best  # the most fit
             if self.best >= self.stop:
-                print("\033[92m Stopping: ", self.best, ind.chromosome.get_raw())
+                print("\033[92m Stopping: ", self.best, ind.genes)
                 self.history = history
                 return self.data, history
             if i % self.every == 0:
-                print("\033[92m", self.best, ind.chromosome.get_raw())
+                print("\033[92m", self.best, ind.genes)
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
         self.history = history
