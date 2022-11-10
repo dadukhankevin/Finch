@@ -16,23 +16,25 @@ def fitness(sentence):
     for word in real:
         points += abs(TextBlob(word).polarity)*len(word)
     return points
-pool = GenePools.GenePool(list("qwertyuiopasdfghjklzxcvbnm     "), fitness, mx=100, mn=0)
+pool = GenePools.GenePool(list("qwertyuiopasdfghjklzxcvbnm  "), fitness, mx=1, mn=.001, max_fitness=10)
 env = Environments.SequentialEnvironment(layers=[
-    l.GenerateData(pool, population=200, array_length=20, end=2),
+    l.GenerateData(pool, population=20, array_length=10, end=2),
     l.SortFitness(),
-    l.Mutate(pool, select_percent=20, likelihood=40),
-    l.NarrowGRN(pool, delay=0, method="outer", amount=1, reward=.7, penalty=.99, mn=.1, mx=10, every=1, end = 20),
+    #l.Mutate(pool, select_percent=20, likelihood=40),
+    l.FastMutateTop(pool, amount=1, individual_mutation_amount=5),
+    l.NarrowGRN(pool, delay=0, method="outer", amount=1, reward=.0001, penalty=.001, every=1),
     l.UpdateWeights(pool, every=1, end = 20),
     l.SortFitness(),
-    l.RemoveDuplicatesFromTop(amount=2),
-    l.Parents(pool, gene_size=5, family_size=2, percent=50, every=1, method="best", amount=20), # parents the best ones
-    l.KeepLength(100), #keeps a low population
+    #l.RemoveDuplicatesFromTop(amount=2),
+    l.Duplicate(3),
+    l.Parents(pool, gene_size=3, family_size=2, percent=50, every=1, method="best", amount=4), # parents the best ones
+    l.KeepLength(10), #keeps a low population
 ])
-env.compile(epochs=160,every=10, fitness=fitness, stop_threshold=50)
+env.compile(epochs=1000,every=500, fitness=fitness, stop_threshold=50)
 hist, data = env.simulate_env()
 info = env.display_history()
 print("best percent: "+str(env.best))
-print("best individual: "+str(env.best_ind.chromosome.get_raw()))
+print("best individual: "+str(env.best_ind.genes))
 print(info)
 print(pool.weights)
 env.plot()

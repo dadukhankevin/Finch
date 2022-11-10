@@ -63,8 +63,7 @@ class GenerateData(Layer):
 
 
 class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (not individuals).
-    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, mx=1, mn=1,
-                 end=math.inf):
+    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, end=math.inf):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
@@ -80,13 +79,11 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
         self.reward = er.make_constant_rate(reward)
         self.penalty = er.make_constant_rate(penalty)
         if method == "worst":
-            gene_pool.set_all_weights(mx)
-
+            gene_pool.set_all_weights(gene_pool.mx())
+        if method == "outer":
+            gene_pool.set_all_weights((gene_pool.mx()+gene_pool.mn())/2)
         self.gene_pool = gene_pool
         self.method = method
-        self.mx = mx
-        self.mn = mn
-
     def best(self, data):
         """
         :param data: The data
@@ -100,20 +97,24 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
         for individual in best:
             for gene in individual.genes:
                 Gene = self.gene_pool.get_weight(gene)[0]
-                Gene.weight += self.reward()
-                Gene.weight = min(Gene.weight, self.mx)
+                if individual.fitness > fitest:
+                    Gene.weight += (self.reward())
+                    Gene.weight = min(Gene.weight, self.gene_pool.mx())
         return data
 
     def worst(self, data):  # Not working yet
 
         worst = data.individuals[0: int(self.amount())]  # Least fit
         best = data.individuals[-1].fitness
-        if best == 0:
+        if worst == 0:
             return data
         for individual in worst:
             for gene in individual.genes:
-                gene.weight *= self.penalty()
-                gene.weight = max(gene.weight, self.mn)
+                Gene = self.gene_pool.get_weight(gene)[0]
+                if best > 0:
+                    Gene.weight -= (self.penalty())
+                    Gene.weight = max(Gene.weight, self.gene_pool.mn())
+
         return data
 
     def outer(self, data):  # not working yet
@@ -418,7 +419,7 @@ class RemoveDuplicatesFromTop(Layer):
                 pass
         return data
 class FastMutateTop(Layer):
-    def __init__(self,pool,delay=0, every=1, end=math.inf,amount=3, individual_mutation_amount=.3, fitness_mix_factor=1):
+    def __init__(self,pool,delay=0, every=1, end=math.inf,amount=3, individual_mutation_amount=.3, fitness_mix_factor=1, adaptive=False):
         self.pool = pool
         self.individual_select = er.make_constant_rate(individual_mutation_amount)
         self.amount = er.make_constant_rate(amount)
@@ -426,7 +427,8 @@ class FastMutateTop(Layer):
         super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
     def native_run(self, data, func):
         these_ones = data.individuals[-self.amount():]
-        for i in range(len(these_ones)-1):
+        l = len(these_ones)
+        for i in range(l-1):
             this = these_ones[i]
             k = int(self.individual_select())
             choices = random.choices(list(range(0, len(this.genes)-1)), k=k)

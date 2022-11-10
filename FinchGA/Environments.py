@@ -60,11 +60,12 @@ class SequentialEnvironment:
             for d in self.layers: # call the run function of each layer
                 d.run(self.data, self.fitness)
             ind = self.data.individuals[-1]
-            self.best_ind = ind
             self.last = self.data.individuals[-1].fitness  # when you run out of variable names
             history.append(ind.fitness)
-            if self.best > last:
+            if self.last > self.best:
                 self.best = self.last  # the most fit
+                self.best_ind = ind
+
             if self.best >= self.stop:
                 print("\033[92m Stopping: ", self.best, ind.genes)
                 self.history = history
@@ -73,7 +74,7 @@ class SequentialEnvironment:
                 print("\033[92m" + str(int((i/self.epochs)*100)) + "%: (. ❛ ᴗ ❛.)", ind.fitness, ind.genes)
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
-        self.history = history
+            self.history = history
         return self.data, history
     def plot(self):
         plt.plot(self.history)

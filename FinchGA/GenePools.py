@@ -5,7 +5,7 @@ from Finch.FinchGA.generic import Gene, Individual
 import Finch.FinchGA.EvolveRates as er
 
 class GenePool:
-    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True):
+    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1):
         """
         :param data: The "vocabulary" to make into genes
         :param fitness_func: The fitness function
@@ -19,6 +19,7 @@ class GenePool:
         self.mx = er.make_constant_rate(mx)
         self.mn = er.make_constant_rate(mn)
         self.replacement = replacement
+        self.max_fitness = max_fitness
 
     def to_gene(self, i):
         """
@@ -36,8 +37,9 @@ class GenePool:
         :return: New data with old data
         """
         while len(gen.individuals) < population:
+            p = np.nan_to_num(self.weights / self.weights.sum(), nan=0)
             ind = Individual(self,
-                             ar=self.raw[np.random.choice(len(self.raw), p=self.weights / self.weights.sum(), replace=self.replacement, size=length)],
+                             ar=self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=length)],
                              fitness_func=self.fitnes_func) #Creates the new individual
             ind.fit(1) # completely recalculates the fitness
             gen.add(ind)
