@@ -1,10 +1,6 @@
 import copy
 import math
 import random
-<<<<<<< HEAD
-=======
-
->>>>>>> 4f42ea84dc97231bbced03f216ec5afb4ec4f5de
 import numpy as np
 import Finch.FinchGA.EvolveRates as er
 from Finch.FinchGA.generic import Individual
@@ -431,6 +427,6 @@ class FastMutateTop(Layer):
         for i in range(len(these_ones)-1):
             this = these_ones[i]
             k = int(self.individual_select())
-            choices = random.choices(list(range(0, len(this)-1)), k=k)
-            these_ones[i][choices] = self.pool.rand_many(index=1, amount=k)
+            choices = random.choices(list(range(0, len(this.genes)-1)), k=k)
+            these_ones[i].genes[choices] = self.pool.rand_many(index=1, amount=k)
         return data
