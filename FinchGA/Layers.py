@@ -419,6 +419,7 @@ class RemoveDuplicatesFromTop(Layer):
         return data
 class FastMutateTop(Layer):
     def __init__(self,pool,delay=0, every=1, end=math.inf,amount=3, individual_mutation_amount=.3):
+        self.pool = pool
         self.individual_select = er.make_constant_rate(individual_mutation_amount)
         self.amount = er.make_constant_rate(amount)
         super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
@@ -429,4 +430,5 @@ class FastMutateTop(Layer):
             k = int(self.individual_select())
             choices = random.choices(list(range(0, len(this.genes)-1)), k=k)
             these_ones[i].genes[choices] = self.pool.rand_many(index=1, amount=k)
+
         return data

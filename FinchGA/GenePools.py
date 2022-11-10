@@ -63,6 +63,9 @@ class GenePool:
         return r
     def get_weight(self, raw):
         return self.genes[np.where(self.raw == raw)[0]]
+    def rand_many(self, index, amount):
+        r = random.choices(self.raw, weights=self.weights/sum(self.weights), k=amount)
+        return r
 
 class TypedGenePool:
     def __init__(self, pools=[]):
@@ -102,6 +105,7 @@ class TypedGenePool:
                              ar=addable,
                              fitness_func=i.fitnes_func)  # TODO: verify this logic is best
             gen.add(ind)
+
 
 
 
