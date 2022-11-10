@@ -316,7 +316,6 @@ class Parent(Layer):
         for i in range(self.fs()): # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
             choice = np.array(random.choices([np.ones((1,)+x.shape[1:] ), np.zeros((1,)+x.shape[1:] )], k=x.size)) # Basically creates a mask
             choice.resize(x.shape)
-            #print(choice)
 
             both = np.where(choice, x, y)
             new = copy.deepcopy(X)
