@@ -23,7 +23,7 @@ env = SequentialEnvironment(layers=[
     Layers.NarrowGRN(pool, delay=1, method="best", amount=1, reward=.6, penalty=.99, mn=.1, mx=5, every=1), # Calculates new weights
     Layers.UpdateWeights(pool, every=1, end=200), # Updates likelihood of specific
     Layers.Parents(pool, gene_size=1, family_size=4, delay=0, every=4, method="best", amount=4), #Parents random individuals together
-    Layers.Mutate(pool, delay=0, select_percent=100, likelihood=20), #mutates 40% ish of all of the individuals
+    Layers.Mutate(pool, delay=0, select_percent=1, likelihood=.1), #mutates 40% ish of all of the individuals
     Layers.SortFitness(), # Sorts individuals by fitness
     Layers.RemoveDuplicatesFromTop(amount=2),
 
@@ -31,7 +31,7 @@ env = SequentialEnvironment(layers=[
     Layers.Function(info)
 ])
 
-env.compile(epochs=100, fitness=fitness.func, every=1, stop_threshold=33) #stop when value > 18
+env.compile(epochs=100, fitness=fitness.func, every=1) #stop when value > 18
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
 print("best: ", env.best_ind.genes)

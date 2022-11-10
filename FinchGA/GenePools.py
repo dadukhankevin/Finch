@@ -61,6 +61,13 @@ class GenePool:
         """
         r = random.choices(self.raw, weights=self.weights/sum(self.weights), k=1)[0]
         return r
+    def rand_many(self, index, amount):
+        """
+        Generates a new random gene
+        :return: New Gene
+        """
+        r = random.choices(self.raw, weights=self.weights/sum(self.weights), k=1)[0]
+        return r
     def get_weight(self, raw):
         return self.genes[np.where(self.raw == raw)[0]]
 
