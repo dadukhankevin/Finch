@@ -22,7 +22,7 @@ env = Environments.SequentialEnvironment(layers=[ # Define the environment
     l.SortFitness(), #Sort individuals by fitness. Fitness is computed when individuals are changed or created.
     #l.Mutate(pool, select_percent=.5, likelihood=10), #Mutates 10% of 50% of the individuals
     l.FastMutateTop(pool, amount=10, every=1, fitness_mix_factor=1, individual_mutation_amount=5),
-    l.NarrowGRN(pool, delay=1, method="fast", amount=1, reward=.01, penalty=.01, every=1), # Add weight to our favorite genes
+    l.NarrowGRN(pool, delay=1, method="fast", amount=20, reward=.01, penalty=.01, every=1), # Add weight to our favorite genes
     l.UpdateWeights(pool),
     l.Parents(pool, gene_size=1, family_size=2, percent=100, every=4, method="best", amount=4), # parents the best ones.
     l.KeepLength(10), #keeps a low population
@@ -38,6 +38,7 @@ print(info)
 #This should be fairly close to 10
 a=eq.evaluate(env.best_ind.genes)
 print(a)
+print(pool.weights)
 #graph the fitness over time (fitness * epochs)
 env.history = [max(0, i) for i in env.history] # Keeps only the valid percents
 env.plot()

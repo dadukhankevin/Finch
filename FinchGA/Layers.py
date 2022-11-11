@@ -123,7 +123,7 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
             l = ind.size
             for i, gene in enumerate(ind):
                 Gene = self.gene_pool.get_weight(gene)[0]
-                Gene.weight = max(self.gene_pool.mn(), counts[i]/l)
+                Gene.weight = (.3 * Gene.weight) + (.7 * max(self.gene_pool.mn(), counts[i]/l))
 
         return data
 
