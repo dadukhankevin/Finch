@@ -108,9 +108,38 @@ class TypedGenePool:
                              fitness_func=i.fitnes_func)  # TODO: verify this logic is best
             gen.add(ind)
 
+class FloatPool:
+    def __init__(self, min, max, fitfunc):
+        self.min = min
+        self.max = max
+        self.fitness_func = fitfunc
+        self.replacement = True
+        self.weights = [1]
+    def rand(self, index):
+        """
+        :param index: The pool to edit
+        :return: Random token from that pool
+        """
+        return np.random.uniform(self.min, self.max, 1)[0]
 
-
-
+    def gen_data(self, gen, population, length):
+        """
+        :param data: The already existing data
+        :param population: The wanted population
+        :param length: The amount of chromosome within each individual.
+        :return: New data with old data
+        """
+        while len(gen.individuals) < population:
+            ind = Individual(self,
+                             ar=np.random.uniform(self.min, self.max, length),
+                             fitness_func=self.fitness_func)  # Creates the new individual
+            ind.fit(1)  # completely recalculates the fitness
+            gen.add(ind)
+    def get_weight(self, raw):
+        return 1 # float pools don't have weights yet
+    def rand_many(self, index, amount):
+        r = np.random.uniform(self.min, self.max, amount)
+        return r
 
 def to_genes(data):
     """

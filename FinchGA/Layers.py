@@ -1,4 +1,5 @@
 import copy
+import logging
 import math
 import random
 import numpy as np
@@ -63,7 +64,7 @@ class GenerateData(Layer):
 
 
 class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (not individuals).
-    def __init__(self, gene_pool, every=1, method="outer", amount=10, delay=0, reward=0.01, penalty=0.01, end=math.inf):
+    def __init__(self, gene_pool, every=1, method="fast", amount=10, delay=0, reward=0.01, penalty=0.01, end=math.inf):
         """
         :param gene_pool: The gene_pool to modify
         :param method: Can also be "all" defines how to calculate new weights. "all" recalculate
@@ -81,9 +82,10 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
         if method == "worst":
             gene_pool.set_all_weights(gene_pool.mx())
         if method == "outer":
-            gene_pool.set_all_weights((gene_pool.mx()+gene_pool.mn())/2)
+            gene_pool.set_all_weights((gene_pool.mx() + gene_pool.mn()) / 2)
         self.gene_pool = gene_pool
         self.method = method
+
     def best(self, data):
         """
         :param data: The data
@@ -116,14 +118,15 @@ class NarrowGRN(Layer):  # Narrow Gene Regulatory Network. Promotes good genes (
                     Gene.weight = max(Gene.weight, self.gene_pool.mn())
 
         return data
+
     def Fast(self, data):
         individuals = data.individuals[int(-self.amount()):]
         for i, individual in enumerate(individuals):
-            ind, counts = np.unique(individual.genes, return_counts=1)
+            ind, counts = np.unique(individual.genes, return_counts=True)
             l = ind.size
             for i, gene in enumerate(ind):
                 Gene = self.gene_pool.get_weight(gene)[0]
-                Gene.weight = (.3 * Gene.weight) + (.7 * max(self.gene_pool.mn(), counts[i]/l))
+                Gene.weight = (.3 * Gene.weight) + (.7 * max(self.gene_pool.mn(), counts[i] / l))
 
         return data
 
@@ -325,20 +328,21 @@ class Parent(Layer):
         x = np.asarray(X.genes)
         y = np.asarray(Y.genes)
 
-        for i in range(self.fs()): # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
-            choice = np.array(random.choices([np.ones((1,)+x.shape[1:] ), np.zeros((1,)+x.shape[1:] )], k=x.size)) # Basically creates a mask
+        for i in range(
+                self.fs()):  # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
+            choice = np.array(random.choices([np.ones((1,) + x.shape[1:]), np.zeros((1,) + x.shape[1:])],
+                                             k=x.size))  # Basically creates a mask
             choice.resize(x.shape)
-            #print(choice)
+            # print(choice)
 
             both = np.where(choice, x, y)
             new = copy.deepcopy(X)
             if self.pool.replacement == False:
-                #both = np.unique(both,axis=-1)
+                # both = np.unique(both,axis=-1)
                 pass
             new.genes = both
             new.fit(1)
             ret = np.append(ret, new)
-
 
         return ret
 
@@ -348,7 +352,8 @@ class Parent(Layer):
 
 
 class Parents(Parent):
-    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=100, method="random",amount=10, end=math.inf):
+    def __init__(self, pool, delay=0, every=1, gene_size=3, family_size=2, percent=100, method="random", amount=10,
+                 end=math.inf):
         """
         :param delay: The delay in epochs until this will come into affect
         :param every: Do this ever n epochs
@@ -361,26 +366,28 @@ class Parents(Parent):
         super().__init__(pool=pool, end=end, every=er.make_constant_rate(every), delay=delay, gene_size=gene_size,
                          family_size=family_size,
                          native_run=self.native_run)
-        self.percent = percent/100
+        self.percent = percent / 100
         self.method = method
         self.amount = er.make_constant_rate(amount)
         if not callable(percent):
-            self.percent = er.Rates(percent/100, 0).constant
+            self.percent = er.Rates(percent / 100, 0).constant
 
-    def random(self, data, func): # completely random method
+    def random(self, data, func):  # completely random method
         these_ones = random.choices(data.individuals, k=int(data.individuals.size * self.percent()))
         for i in these_ones:
             parent1 = i
             parent2 = random.choice(these_ones)
             data.add(self.parent(parent1, parent2))
         return data
+
     def best(self, data, func):
-        these_ones = data.individuals[-int(self.amount()*self.percent()):]
+        these_ones = data.individuals[-int(self.amount() * self.percent()):]
         for i in these_ones:
             parent1 = i
             parent2 = random.choice(these_ones)
             data.add(self.parent(parent1, parent2))
         return data
+
     def native_run(self, data, func):
         if self.method == "random":
             return self.random(data, func)
@@ -418,32 +425,63 @@ class KeepLength(Layer):
     def native_run(self, data, func):
         data.individuals = data.individuals[-int(self.amount()):]
 
+
 class RemoveDuplicatesFromTop(Layer):
     def __init__(self, delay=0, every=1, end=math.inf, amount=2):
         self.amount = amount
-        super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+
     def native_run(self, data, func):
         for i in range(self.amount):
             try:
-                if np.all(data.individuals[-i].genes == data.individuals[-(i+1)].genes):
-                    data.individuals = data.individuals[0:-2] #deletes last element
+                if np.all(data.individuals[-i].genes == data.individuals[-(i + 1)].genes):
+                    data.individuals = data.individuals[0:-2]  # deletes last element
             except ValueError:
                 pass
         return data
+
+
 class FastMutateTop(Layer):
-    def __init__(self,pool,delay=0, every=1, end=math.inf,amount=3, individual_mutation_amount=.3, fitness_mix_factor=1, adaptive=False):
+    def __init__(self, pool, delay=0, every=1, end=math.inf, amount=3, individual_mutation_amount=.3,
+                 fitness_mix_factor=1, adaptive=False):
         self.pool = pool
         self.individual_select = er.make_constant_rate(individual_mutation_amount)
         self.amount = er.make_constant_rate(amount)
         self.fitness_mix_factor = fitness_mix_factor
-        super().__init__(delay=delay, every=every, end=end,native_run=self.native_run)
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+
     def native_run(self, data, func):
         these_ones = data.individuals[-self.amount():]
         l = len(these_ones)
-        for i in range(l-1):
+        for i in range(l - 1):
             this = these_ones[i]
             k = int(self.individual_select())
-            choices = random.choices(list(range(0, len(this.genes)-1)), k=k)
+            choices = random.choices(list(range(0, len(this.genes) - 1)), k=k)
             these_ones[i].genes[choices] = self.pool.rand_many(index=1, amount=k)
             these_ones[i].fit(self.fitness_mix_factor)
+        return data
+
+
+class OverPoweredMutation(Layer):
+    def __init__(self, pool, iterations, index, fitness_function, delay=0, every=1, end=math.inf):
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+        self.pool = pool
+        self.iterations = iterations
+        self.index = index
+        self.fitness_function = fitness_function
+        logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
+                        "index.")
+
+    def native_run(self, data):
+        individual = data[self.index]
+        fitness = individual.fit(1)
+        l = len(individual.genes)
+        for i in range(self.iterations):
+            new = copy.deepcopy(individual)
+            new.genes[random.randint(0, l)] = self.pool.rand(index=1)
+            newf = new.fit(1)
+            if newf > fitness:
+                data[self.index] = new
+                fitness = newf
+                individual = data[self.index]
         return data
