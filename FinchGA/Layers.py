@@ -536,7 +536,7 @@ class MutateByDirectionalWeights(Layer):
     def native_run(self, data, func):
         these_ones = data.individuals[-self.amount():]
         if self.pool.directional_weights is None:
-            self.pool.directional_weights = np.zeros(len(these_ones[0]))
+            self.pool.directional_weights = np.zeros(len(these_ones[0].genes))
         for i, individual in enumerate(these_ones):
             for n, genes in enumerate(individual.genes):
                 genes += self.pool.directional_weights * self.change_constant()
