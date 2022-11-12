@@ -502,20 +502,19 @@ class RecalculateDirectionalMutation(Layer):  # This might be a little overkill
         if self.pool.directional_weights is None:
             self.pool.directional_weights = np.zeros(len(these_ones[0].genes))
         for i, individual in enumerate(these_ones):
-            for n, genes in enumerate(individual.genes):
-                old = genes[n]
-                fake_geneslow = copy.deepcopy(genes)
-                fake_geneshigh = copy.deepcopy(genes)
+            for n, gene in enumerate(individual.genes):
+                fake_geneslow = copy.deepcopy(individual.genes)
+                fake_geneshigh = copy.deepcopy(individual.genes)
                 fake_geneshigh[n] += self.change_constant()
                 fake_geneslow[n] -= self.change_constant()
                 high = self.fitness_function(fake_geneshigh)
                 low = self.fitness_function(fake_geneslow)
                 if high > low:
                     self.pool.directional_weights[n] = 1
-                    genes[n] = fake_geneshigh
+                    individual.genes[n] = fake_geneshigh
                 elif low > high:
                     self.pool.directional_weights[n] = -1
-                    genes[n] = fake_geneslow
+                    individual.genes[n] = fake_geneslow
                 else:
                     self.pool.directional_weights[n] = 0
                     # don't modify genes
@@ -538,8 +537,7 @@ class MutateByDirectionalWeights(Layer):
         if self.pool.directional_weights is None:
             self.pool.directional_weights = np.zeros(len(these_ones[0].genes))
         for i, individual in enumerate(these_ones):
-            for n, genes in enumerate(individual.genes):
-                genes += self.pool.directional_weights * self.change_constant()
+                individual.genes += self.pool.directional_weights * self.change_constant()
                 self.pool.directional_weights /= self.divisor
         return data
 class DetermineFitnessAndSort(Layer):
