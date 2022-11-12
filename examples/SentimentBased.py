@@ -26,6 +26,7 @@ env = Environments.SequentialEnvironment(layers=[
     l.UpdateWeights(pool, every=1, end = 20),
     l.SortFitness(),
     #l.RemoveDuplicatesFromTop(amount=2),
+    l.OverPoweredMutation(pool=pool, iterations=20, index=-1, fitness_function=fitness),
     l.Duplicate(3),
     l.Parents(pool, gene_size=3, family_size=2, percent=50, every=1, method="best", amount=4), # parents the best ones
     l.KeepLength(10), #keeps a low population

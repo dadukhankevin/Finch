@@ -472,16 +472,82 @@ class OverPoweredMutation(Layer):
         logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
                         "index.")
 
-    def native_run(self, data):
-        individual = data[self.index]
+    def native_run(self, data, func):
+        individual = data.individuals[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
         for i in range(self.iterations):
             new = copy.deepcopy(individual)
-            new.genes[random.randint(0, l)] = self.pool.rand(index=1)
+            new.genes[random.randint(0, l - 1)] = self.pool.rand(index=1)
             newf = new.fit(1)
             if newf > fitness:
-                data[self.index] = new
+                data.individuals[self.index] = new
                 fitness = newf
-                individual = data[self.index]
+                individual = data.individuals[self.index]
+        return data
+
+
+class RecalculateDirectionalMutation(Layer):  # This might be a little overkill
+    def __init__(self, pool, fitness_function, amount=1, change_constant=1, delay=0, every=1, end=math.inf):
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+        self.fitness_function = fitness_function
+        self.amount = er.make_constant_rate(amount)
+        self.pool = pool
+        self.change_constant = er.make_constant_rate(change_constant)
+
+        logging.warning("Use this only with float and int type individuals")
+
+    def native_run(self, data, func):
+        these_ones = data.individuals[-self.amount():]
+        if self.pool.directional_weights is None:
+            self.pool.directional_weights = np.zeros(len(these_ones[0]))
+        for i, individual in enumerate(these_ones):
+            for n, genes in enumerate(individual.genes):
+                old = genes[n]
+                fake_geneslow = copy.deepcopy(genes)
+                fake_geneshigh = copy.deepcopy(genes)
+                fake_geneshigh[n] += self.change_constant()
+                fake_geneslow[n] -= self.change_constant()
+                high = self.fitness_function(fake_geneshigh)
+                low = self.fitness_function(fake_geneslow)
+                if high > low:
+                    self.pool.directional_weights[n] = 1
+                    genes[n] = fake_geneshigh
+                elif low > high:
+                    self.pool.directional_weights[n] = -1
+                    genes[n] = fake_geneslow
+                else:
+                    self.pool.directional_weights[n] = 0
+                    # don't modify genes
+        return data
+
+
+class MutateByDirectionalWeights(Layer):
+    def __init__(self, pool, fitness_function, amount=1, change_constant=1, delay=0, every=1, divisor=1.1,
+                 end=math.inf):
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+        self.fitness_function = fitness_function
+        self.amount = er.make_constant_rate(amount)
+        self.pool = pool
+        self.change_constant = er.make_constant_rate(change_constant)
+        self.divisor = divisor
+        logging.warning("Use this only with float and int type individuals")
+
+    def native_run(self, data, func):
+        these_ones = data.individuals[-self.amount():]
+        if self.pool.directional_weights is None:
+            self.pool.directional_weights = np.zeros(len(these_ones[0]))
+        for i, individual in enumerate(these_ones):
+            for n, genes in enumerate(individual.genes):
+                genes += self.pool.directional_weights * self.change_constant()
+                self.pool.directional_weights /= self.divisor
+        return data
+class DetermineFitnessAndSort(Layer):
+    def __init__(self, factor =1 , delay=0, every=0, end=0):
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+        self.factor = factor
+    def native_run(self, data, func):
+        for individual in data.individuals:
+            individual.fit(self.factor)
+        data.sort()
         return data

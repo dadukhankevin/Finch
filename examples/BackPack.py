@@ -9,7 +9,8 @@ fitness = ValueWeightFunction(maxweight=15) #max wieght of our backpack is 15 we
 # In the format [name, value, weight] all of these have little bearing on reality.
 backpack = np.array(
     [["apple", .1, 1], ["phone", 6, 2], ["lighter", .5, .1], ["Book", 3, 33], ["compass", .5, .01], ["flashlight", 1, 4],
-     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["clothes", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1]])
+     ["water", 10, 6], ["passport", 7, .5], ["computer", 11, 15], ["clothes", 10, 2], ["glasses", 3, .1], ["covid", -100, 0], ["pillow", 1.4, 1],
+     ["phone charger", 5, .8]])
 
 pool = GenePool(backpack, fitness.func, replacement=False, mn=.1)  # TO avoid duplicates "replacement" must be false
 n = 0
@@ -31,7 +32,7 @@ env = SequentialEnvironment(layers=[
     Layers.Function(info)
 ])
 
-env.compile(epochs=100, fitness=fitness.func, every=1, stop_threshold=33) #stop when value > 18
+env.compile(epochs=200, fitness=fitness.func, every=1) #stop when value > 18
 _, hist = env.simulate_env()
 print(pool.weights) # relative weights of each gene
 print("best: ", env.best_ind.genes)
