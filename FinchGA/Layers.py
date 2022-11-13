@@ -507,7 +507,7 @@ class OverPoweredMutation(Layer):
         l = len(individual.genes)
         for i in range(self.iterations):
             new = copy.deepcopy(individual)
-            new.genes[random.randint(0, l - 1)] += random.randint(-self.rand_range(), self.rand_range())
+            new.genes[random.randint(0, l - 1)] += random.randint(-int(self.rand_range()), int(self.rand_range()))
             newf = new.fit(1)
             if newf > fitness:
                 data.individuals[self.index] = new
