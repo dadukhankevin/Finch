@@ -1,5 +1,5 @@
 from Finch.FinchGA.generic import img2genes
-from numpy import np
+import numpy as np
 import imageio
 
 
