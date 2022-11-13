@@ -20,7 +20,7 @@ class GenePool:
         self.mn = er.make_constant_rate(mn)
         self.replacement = replacement
         self.max_fitness = max_fitness
-        self.directional_weights = None
+        self.directional_weights = 1
 
     def to_gene(self, i):
         """
@@ -116,7 +116,7 @@ class FloatPool:
         self.fitness_func = fitfunc
         self.replacement = True
         self.weights = [1]
-        self.directional_weights = None
+        self.directional_weights = 1
 
     def rand(self, index):
         """

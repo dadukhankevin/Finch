@@ -21,7 +21,7 @@ class SequentialEnvironment:
         self.stop = None
         self.keep_going = None
 
-    def compile(self, epochs, fitness, every=1, data=None, stop_threshold=math.inf, keep_going=False):
+    def compile(self, epochs, fitness,callbacks=[], every=1, data=None, stop_threshold=math.inf, keep_going=False):
         """
         Prepares environment to be simulated
         :param epochs: Number of loops
@@ -40,6 +40,7 @@ class SequentialEnvironment:
         self.every = every
         self.data = data
         self.history = []
+        self.callbacks = callbacks
         self.stop = stop_threshold
         self.best = 0
         self.best_ind = []
@@ -75,6 +76,8 @@ class SequentialEnvironment:
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
             self.history = history
+            for func in self.callbacks:
+                func()
         return self.data, history
     def plot(self):
         plt.plot(self.history)

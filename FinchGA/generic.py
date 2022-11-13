@@ -156,7 +156,7 @@ class Generation:
             i.fit(factor=factor)
 
     def add(self, lst):
-        self.individuals = np.append(self.individuals, lst)
+        self.individuals = np.append(lst,self.individuals)
 
 # pool = GenePool([1, 2, 3, 4, 5])
 

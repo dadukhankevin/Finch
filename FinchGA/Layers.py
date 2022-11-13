@@ -463,16 +463,18 @@ class FastMutateTop(Layer):
 
 
 class OverPoweredMutation(Layer):
-    def __init__(self, pool, iterations, index, fitness_function, delay=0, every=1, end=math.inf):
+    def __init__(self, pool, iterations, index, fitness_function, range_rate=1,method="smartint", delay=0, every=1, end=math.inf):
         super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
         self.pool = pool
         self.iterations = iterations
         self.index = index
         self.fitness_function = fitness_function
+        self.method = method
+        self.rand_range = er.make_constant_rate(range_rate)
         logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
                         "index.")
 
-    def native_run(self, data, func):
+    def complete_random(self, data, func):
         individual = data.individuals[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
@@ -484,6 +486,42 @@ class OverPoweredMutation(Layer):
                 data.individuals[self.index] = new
                 fitness = newf
                 individual = data.individuals[self.index]
+        return data
+
+    def smart(self, data, func):
+        individual = data.individuals[self.index]
+        fitness = individual.fit(1)
+        l = len(individual.genes)
+        for i in range(self.iterations):
+            new = copy.deepcopy(individual)
+            new.genes[random.randint(0, l - 1)] += random.uniform(-self.rand_range(), self.rand_range())
+            newf = new.fit(1)
+            if newf > fitness:
+                data.individuals[self.index] = new
+                fitness = newf
+                individual = data.individuals[self.index]
+        return data
+    def smartint(self, data, func):
+        individual = data.individuals[self.index]
+        fitness = individual.fit(1)
+        l = len(individual.genes)
+        for i in range(self.iterations):
+            new = copy.deepcopy(individual)
+            new.genes[random.randint(0, l - 1)] += random.randint(-self.rand_range(), self.rand_range())
+            newf = new.fit(1)
+            if newf > fitness:
+                data.individuals[self.index] = new
+                fitness = newf
+                individual = data.individuals[self.index]
+        return data
+
+    def native_run(self, data, func):
+        if self.method == "random":
+            data = self.complete_random(data, func)
+        if self.method == "smart":
+            data = self.smart(data, func)
+        if self.method == "smartint":
+            data = self.smartint(data, func)
         return data
 
 
@@ -500,7 +538,7 @@ class RecalculateDirectionalMutation(Layer):  # This might be a little overkill
     def native_run(self, data, func):
         these_ones = data.individuals[-self.amount():]
         if self.pool.directional_weights is None:
-            self.pool.directional_weights = np.zeros(len(these_ones[0].genes))
+            self.pool.directional_weights = np.ones(len(these_ones[0].genes))
         for i, individual in enumerate(these_ones):
             for n, gene in enumerate(individual.genes):
                 fake_geneslow = copy.deepcopy(individual.genes)
@@ -509,36 +547,38 @@ class RecalculateDirectionalMutation(Layer):  # This might be a little overkill
                 fake_geneslow[n] -= self.change_constant()
                 high = self.fitness_function(fake_geneshigh)
                 low = self.fitness_function(fake_geneslow)
+                rate = self.change_constant()
                 if high > low:
-                    self.pool.directional_weights[n] = 1
-                    individual.genes[n] = fake_geneshigh
+                    self.pool.directional_weights[n] = 1 + rate
+                    individual.genes = fake_geneshigh
                 elif low > high:
-                    self.pool.directional_weights[n] = -1
-                    individual.genes[n] = fake_geneslow
+                    self.pool.directional_weights[n] = 1 - rate
+                    individual.genes = fake_geneslow
                 else:
-                    self.pool.directional_weights[n] = 0
+                    self.pool.directional_weights[n] = 1
                     # don't modify genes
         return data
 
 
 class MutateByDirectionalWeights(Layer):
-    def __init__(self, pool, fitness_function, amount=1, change_constant=1, delay=0, every=1, divisor=1.1,
+    def __init__(self, pool, fitness_function, amount=1, change_constant=1, delay=0, every=1,
                  end=math.inf):
         super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
         self.fitness_function = fitness_function
         self.amount = er.make_constant_rate(amount)
         self.pool = pool
         self.change_constant = er.make_constant_rate(change_constant)
-        self.divisor = divisor
         logging.warning("Use this only with float and int type individuals")
+        self.first = True
 
     def native_run(self, data, func):
         these_ones = data.individuals[-self.amount():]
-        if self.pool.directional_weights is None:
-            self.pool.directional_weights = np.zeros(len(these_ones[0].genes))
+
+        if self.first is True:
+            self.pool.directional_weights = np.ones(len(these_ones[0].genes))
+            self.first = False
         for i, individual in enumerate(these_ones):
-                individual.genes += self.pool.directional_weights * self.change_constant()
-                self.pool.directional_weights /= self.divisor
+                individual.genes = np.multiply(self.pool.directional_weights, individual.genes, out = individual.genes, casting="unsafe")
         return data
 class DetermineFitnessAndSort(Layer):
     def __init__(self, factor =1 , delay=0, every=0, end=0):
