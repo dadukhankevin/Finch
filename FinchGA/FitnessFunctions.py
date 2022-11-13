@@ -47,8 +47,8 @@ class ImageSimilarity:
     def __init__(self, path):
         self.path = path
         target_im = imageio.imread(path)
-        target_im = np.asarray(target_im, dtype=np.float)
-        self.target_genes = img2genes(target_im) / 255
+        self.target_im = np.asarray(target_im, dtype=np.float)
+        self.target_genes = img2genes(self.target_im) / 255
         self.max_fitness = self.fitness_raw(self.target_genes)
 
     def fitness_raw(self, solution):
