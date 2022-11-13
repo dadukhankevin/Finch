@@ -6,7 +6,7 @@ from Finch.FinchGA import FitnessFunctions as ff
 from Finch.FinchGA import Environments, EvolveRates
 from Finch.FinchGA import Layers as l
 
-desired = 1  # what we want our equation to equal
+desired = 21  # what we want our equation to equal
 expression = """x/z + z/y + y/x + y*z*x"""  # the equation with unkown variables
 print("in")
 rate = EvolveRates.Rate(5, .1, 1000)
@@ -20,11 +20,7 @@ pool = GenePools.FloatPool(-200, 200, fitfunc=fitness.func)  # define the gene p
 env = Environments.SequentialEnvironment(layers=[  # Define the environment
     l.GenerateData(pool, population=50, array_length=3),  # Generates data until len(data) == population
     l.SortFitness(),  # Sort individuals by fitness. Fitness is computed when individuals are changed or created.
-    #l.FastMutateTop(pool, amount=10, every=1, fitness_mix_factor=1, individual_mutation_amount=5),
-    l.Parents(pool, gene_size=1, family_size=2, percent=100, every=5, method="best", amount=10),
-    #l.RecalculateDirectionalMutation(pool, fitness.func, amount=1, change_constant=.001, every=10),
-    #l.MutateByDirectionalWeights(pool, fitness.func, amount=1),
-    l.OverPoweredMutation(pool=pool, iterations=1, index=-1, fitness_function=fitness, range_rate=rate.get, method="smart"),
+    l.OverPoweredMutation(pool=pool, iterations=1, index=-1, fitness_function=fitness, range_rate=rate.get, method="smart"), #Parenting is not needed in this case
     l.KeepLength(20),  # keeps a low population
 ])
 

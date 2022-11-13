@@ -25,7 +25,10 @@ class Rate:
             return int(r)
         return r
     def get(self):
-        return self.start
+        if self.ri:
+            return int(self.start)
+        else:
+            return self.start
 
     def graph(self):
         s = self.start
