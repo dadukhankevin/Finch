@@ -4,8 +4,24 @@ import random
 
 import numpy
 import numpy as np
-from Finch.FinchGA.EvolveRates import *
 import random as r
+import numpy
+import functools
+import operator
+
+
+def img2genes(img_arr):  # From pygad
+    ret = numpy.reshape(a=img_arr, newshape=(functools.reduce(operator.mul, img_arr.shape)))
+    print(len(ret))
+    return ret
+
+
+def genes2img(vector, shape):  # From pygad
+    if len(vector) != functools.reduce(operator.mul, shape):
+        raise ValueError(
+            "A vector of length {vector_length} into an array of shape {shape}.".format(vector_length=len(vector),
+                                                                                        shape=shape))
+    return numpy.reshape(a=vector, newshape=shape)
 
 
 class Fittness:
@@ -39,6 +55,7 @@ class Equation:
         self.vars = vars
         self.equation = equation
         self.desired = desired
+
     def evaluate(self, individual):
         local_string = self.equation
         local_iter = iter(self.vars)
@@ -47,7 +64,8 @@ class Equation:
         try:
             return eval(local_string)
         except ZeroDivisionError and OverflowError:
-            return self.desired*-1
+            return self.desired * -1
+
 
 class Gene:
     def __init__(self, gene, weight=1):
@@ -90,7 +108,7 @@ class Individual:
         # gene = np.random.choice(self.genes)
         # gene = self.genes
         # input(self.genes)
-        these_ones = np.random.choice(len(self.genes), size = int(len(self.genes) * int(percent())))
+        these_ones = np.random.choice(len(self.genes), size=int(len(self.genes) * int(percent())))
         if pool.replacement == True:
             for i in these_ones:
                 self.genes[i] = pool.rand()
@@ -101,8 +119,8 @@ class Individual:
 
                 if r.randint(0, 100) < percent():
                     newgene = pool.rand(index=i - 1)  # Use this pool if the pool is actually a typed gene pool
-                    if np.all(self.genes != newgene) or pool.replacement: # Keeps only unique genes
-                        self.genes[i - 1] = newgene # TODO: replace this whole thing with np.unique() which is faster
+                    if np.all(self.genes != newgene) or pool.replacement:  # Keeps only unique genes
+                        self.genes[i - 1] = newgene  # TODO: replace this whole thing with np.unique() which is faster
 
     def mutate(self, pool, select, percent):
         """
@@ -112,23 +130,23 @@ class Individual:
         :return:
         """
         if r.randint(0, 100) < select():
-            self.mfunction(pool, percent) #calls the mutate function
-            self.fit(1) # calls the fitness function with 100% bias to its new fitness
+            self.mfunction(pool, percent)  # calls the mutate function
+            self.fit(1)  # calls the fitness function with 100% bias to its new fitness
 
     def fit(self, factor=1):
         """
         :param factor: values closer to 0 favor the earlier fitness while values closer to 1 favors the new fitness
         """
         self.fitness = ((1 - factor) * self.fitness) + (
-                    factor * self.fitness_func(self.genes))  # to prevent division by zero
+                factor * self.fitness_func(self.genes))  # to prevent division by zero
         return self.fitness
 
-    def get_genes(self): # returns all genes
+    def get_genes(self):  # returns all genes
         return self.genes
 
     def set_genes(self, data):
         """:param data: new data"""
-        self.genes = data # sets the genes
+        self.genes = data  # sets the genes
 
     @staticmethod
     def sorting_key(individual):
@@ -156,7 +174,6 @@ class Generation:
             i.fit(factor=factor)
 
     def add(self, lst):
-        self.individuals = np.append(lst,self.individuals)
+        self.individuals = np.append(lst, self.individuals)
 
 # pool = GenePool([1, 2, 3, 4, 5])
-

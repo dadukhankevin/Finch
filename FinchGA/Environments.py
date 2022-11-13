@@ -1,4 +1,6 @@
 import math
+import random
+
 import Finch.FinchGA.generic as generic
 import logging
 import sys
@@ -72,7 +74,8 @@ class SequentialEnvironment:
                 self.history = history
                 return self.data, history
             if i % self.every == 0:
-                print("\033[92m" + str(int((i/self.epochs)*100)) + "%: (. ❛ ᴗ ❛.)", ind.fitness, ind.genes)
+                face = ["(. ❛ ᴗ ❛.)", "^_^", "T_T", "OwO"]
+                print("\033[92m" + str(int((i/self.epochs)*100)) + "%: "+random.choice(face), ind.fitness, ind.genes)
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
             self.history = history

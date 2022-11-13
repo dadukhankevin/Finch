@@ -1,7 +1,12 @@
+from Finch.FinchGA.generic import img2genes
+from numpy import np
+import imageio
+
 
 class ValueWeightFunction:
     def __init__(self, maxweight):
         self.maxweight = maxweight
+
     def func(self, individual):
 
         weight = 0
@@ -13,6 +18,8 @@ class ValueWeightFunction:
             return 0
         else:
             return value
+
+
 class EquationFitness:
     def __init__(self, desired_result, equation):
         """
@@ -21,15 +28,35 @@ class EquationFitness:
         """
         self.desired = desired_result
         self.equation = equation
+
     def func(self, individual):
         result = self.equation.evaluate(individual)
         if result > self.desired:
             try:
-                return self.desired/result
+                return self.desired / result
             except ZeroDivisionError or OverflowError:
                 return 0
         else:
             try:
-                return result/self.desired
+                return result / self.desired
             except ZeroDivisionError or OverflowError:
                 return 0
+
+
+class ImageSimilarity:
+    def __init__(self, path):
+        self.path = path
+        target_im = imageio.imread(path)
+        target_im = np.asarray(target_im, dtype=np.float)
+        self.target_genes = img2genes(target_im) / 255
+        self.max_fitness = self.fitness_raw(self.target_genes)
+
+    def fitness_raw(self, solution):
+        fitness = np.sum(np.abs(self.target_genes - solution))
+        fitness = np.sum(self.target_genes) - fitness
+        return fitness
+
+    def fitness_fun(self, solution):
+        fitness = np.sum(np.abs(self.target_genes - solution))
+        fitness = np.sum(self.target_genes) - fitness
+        return fitness / self.max_fitness
