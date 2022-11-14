@@ -473,7 +473,7 @@ class OverPoweredMutation(Layer):
         self.rand_range = er.make_constant_rate(range_rate)
         logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
                         "index.")
-
+        self.least_mutated = None
     def complete_random(self, data, func):
         individual = data.individuals[self.index]
         fitness = individual.fit(1)
@@ -492,9 +492,13 @@ class OverPoweredMutation(Layer):
         individual = data.individuals[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
-        for i in range(self.iterations):
+        if self.least_mutated is None:
+            self.least_mutated = np.ones(l)
+        indexes = random.choices(range(0, l), weights=self.least_mutated, k=self.iterations)
+        for i in indexes:
             new = copy.deepcopy(individual)
-            new.genes[random.randint(0, l - 1)] += random.uniform(-self.rand_range(), self.rand_range())
+            new.genes[i] += random.uniform(-self.rand_range(), self.rand_range())
+            self.least_mutated[i] *= .96
             newf = new.fit(1)
             if newf > fitness:
                 data.individuals[self.index] = new
