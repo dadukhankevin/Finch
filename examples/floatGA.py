@@ -6,7 +6,7 @@ from Finch.FinchGA import FitnessFunctions as ff
 from Finch.FinchGA import Environments, EvolveRates
 from Finch.FinchGA import Layers as l
 
-desired = 21  # what we want our equation to equal
+desired = 5  # what we want our equation to equal
 expression = """x/z + z/y + y/x + y*z*x"""  # the equation with unkown variables
 print("in")
 rate = EvolveRates.Rate(5, .1, 1000)
