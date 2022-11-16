@@ -325,8 +325,9 @@ class Parent(Layer):
     def parent(self, X, Y):
         ret = np.array([])
         # get their raw data
-        x = np.asarray(X.genes)
-        y = np.asarray(Y.genes)
+        x = np.asarray(X.genes).reshape((-1, self.gene_size()))
+        y = np.asarray(Y.genes).reshape((-1, self.gene_size()))
+
 
         for i in range(
                 self.fs()):  # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
@@ -336,6 +337,7 @@ class Parent(Layer):
             # print(choice)
 
             both = np.where(choice, x, y)
+            both = np.concatenate(both).ravel()
             new = copy.deepcopy(X)
             if self.pool.replacement == False:
                 # both = np.unique(both,axis=-1)
@@ -459,6 +461,7 @@ class FastMutateTop(Layer):
             choices = random.choices(list(range(0, len(this.genes) - 1)), k=k)
             these_ones[i].genes[choices] = self.pool.rand_many(index=1, amount=k)
             these_ones[i].fit(self.fitness_mix_factor)
+
         return data
 
 
@@ -584,6 +587,7 @@ class MutateByDirectionalWeights(Layer):
         for i, individual in enumerate(these_ones):
                 individual.genes = np.multiply(self.pool.directional_weights, individual.genes, out = individual.genes, casting="unsafe")
         return data
+
 class DetermineFitnessAndSort(Layer):
     def __init__(self, factor =1 , delay=0, every=0, end=0):
         super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)

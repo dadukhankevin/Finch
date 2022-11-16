@@ -1,8 +1,4 @@
-import copy
 import math
-import random
-
-import numpy
 import numpy as np
 import random as r
 import numpy
@@ -25,7 +21,7 @@ def genes2img(vector, shape):  # From pygad
 
 
 class Fittness:
-    def __init__(self, funcs, thresh=[]):
+    def __init__(self, funcs, thresh=[math.inf], switch_every=math.inf):
         """
         :param funcs: The fitness functions
         :param thresh: The threshold of fitness before you want to move on to the next function
@@ -34,13 +30,19 @@ class Fittness:
         self.thresholds = iter(thresh)
         self.funct = next(self.funcs)
         self.thresh = next(self.thresholds)
+        self.switch = switch_every
+        self.epoch = 0
 
     def func(self, individual):
+        self.epoch += 1
         points, individual = self.funct(individual)
-        if points >= self.thresh:  # gets then next function
+        if points >= self.thresh or self.epoch%self.switch == 0:  # gets then next function
             try:
                 self.funct = next(self.funcs)
-                self.thresh = next(self.thresholds)
+                try:
+                    self.thresh = next(self.thresholds)
+                except:
+                    pass
             except StopIteration:
                 pass
         return points, individual
