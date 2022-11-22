@@ -6,6 +6,18 @@ def sig(x):
     return 1 / (1 + np.exp(-x))
 
 
+def softmax(x):
+    return np.exp(x) / np.exp(x).sum()
+
+
+def relu(x):
+    return x * (x > 0)
+
+
+def drelu(x):
+    return 1. * (x > 0)
+
+
 class Network:
     def __init__(self, layers=[]):
         self.layers = layers
@@ -25,7 +37,7 @@ class Network:
 
 class Dense:
     def __init__(self, input_length, output_length, synapses, activation=None):
-        self.weights = np.ones(input_length)
+        self.weights = np.random.uniform(input_length)
         self.weighed = np.ones(input_length)
         self.activation = activation
         # for the next layer
@@ -38,7 +50,7 @@ class Dense:
                 val = inputs[i - 1]
                 self.weighed[int(connection)] += val
         if self.activation:
-            self.weighed = sig(np.multiply(self.weighed, self.weights))
+            self.weighed = self.activation(np.multiply(self.weighed, self.weights))
         else:
             self.weighed = np.multiply(self.weighed, self.weights)
         return self.weighed, self.connections
@@ -48,7 +60,6 @@ def get_all_weights(network):  # TODO: get a better way
     all = np.array([])
     for i in network.layers:
         all = np.append(all, i.weights)
-        input(i.weights)
     return all
 
 
@@ -85,5 +96,4 @@ def evaluate(network, x, y, amount):
         a = network.predict(choice[0])
         wanted = choice[1]
         error.append(np.square(np.subtract(a, wanted)).mean())
-    return sum(error)/len(error)
-
+    return sum(error) / len(error)

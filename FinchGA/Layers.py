@@ -501,7 +501,7 @@ class OverPoweredMutation(Layer):
         for i in indexes:
             new = copy.deepcopy(individual)
             new.genes[i] += random.uniform(-self.rand_range(), self.rand_range())
-            self.least_mutated[i] *= .96
+            self.least_mutated[i] *= .96 # TODO: make this a parameter
             newf = new.fit(1)
             if newf > fitness:
                 data.individuals[self.index] = new

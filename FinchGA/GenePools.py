@@ -3,8 +3,12 @@ import math
 import numpy as np
 from Finch.FinchGA.generic import Gene, Individual
 import Finch.FinchGA.EvolveRates as er
+from Finch import Neuro
 
 
+class NeuroPool:
+    def __init__(self, nn, fitness_func, mx=1, mn=1):
+        self.base_neuralnetworks = nn
 class GenePool:
     def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1):
         """

@@ -7,7 +7,7 @@ from Finch.FinchGA import Environments, GenePools
 from Finch.FinchGA import Layers as l
 
 desired = 33 #what we want our equation to equal
-expression = """(x**x**x)+(y**y**y)+(z**z**z)""" #the equation with unkown variables
+expression = """(x**x)+(y**y)+(z**z)""" #the equation with unkown variables
 print("in")
 eq = generic.Equation(["x", "y", "z"], expression, desired=desired) #Declare the equation in the equation class give it the variable names.
 

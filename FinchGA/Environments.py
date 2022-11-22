@@ -9,7 +9,7 @@ handler = logging.StreamHandler(sys.stdout)
 
 
 class SequentialEnvironment:
-    def __init__(self, layers=[]):
+    def __init__(self, layers: object = []) -> object:
         """
         :param every: Defines the environment
         :param layers: The layers of the environment
@@ -74,8 +74,7 @@ class SequentialEnvironment:
                 self.history = history
                 return self.data, history
             if i % self.every == 0:
-                face = ["(. ❛ ᴗ ❛.)", "^_^", "T_T", "OwO"]
-                print("\033[92m" + str(int((i/self.epochs)*100)) + "%: "+random.choice(face), ind.fitness, ind.genes)
+                print("\033[92m" + str(int((i/self.epochs)*100)) + "%: ", ind.fitness, ind.genes)
             if self.keep_going:
                 self.epochs += 1  # So that it continues until self.stop threshold is met.
             self.history = history
