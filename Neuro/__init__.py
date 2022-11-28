@@ -1,1 +1,1 @@
-from neuro2 import *
+from Finch.Neuro.neuro2 import *
