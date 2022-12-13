@@ -4,6 +4,7 @@ import numpy as np
 import random as r
 import matplotlib.pyplot as plt
 
+
 def fitness(net):
     a = net.rec(1)
     if a > 9 and a < 10:
@@ -25,8 +26,9 @@ class SuperNetworkPopulation:
     def determine_fitness(self):
         fitnesses = []
         for net in self.allnets:
-            fitnesses.append((fit([1,2], net), net))
+            fitnesses.append((fit([1, 2], net), net))
         return list(sorted(fitnesses))
+
     def train(self, epochs):
         hist = []
         for i in range(epochs):
@@ -39,6 +41,7 @@ class SuperNetworkPopulation:
         all = self.determine_fitness()
 
         return all[-1][1], hist
+
 
 class Network:
     def __init__(self, subnets=[]):
@@ -53,6 +56,7 @@ class Network:
     def remake_weights(self):
 
         self.weights = np.random.uniform(0, 1, len(self.subnets))
+
     def rec(self, i, weight):
         self.sum += i * weight
 
@@ -63,6 +67,10 @@ class Network:
         self.sum *= self.weight
         for i in self.subnets:
             i.rec(self.sum)
+
+    def prune(self, thresh):
+        if self.sum < thresh:
+            self.subnets = []
 
     def mutate(self, percent):
         global mutate_age
@@ -81,7 +89,7 @@ class Network:
 
 class FirstLayer:
     def __init__(self, width, depth, output):
-        self.outputs = [0]*output
+        self.outputs = [0] * output
         self.layers = np.ones((depth, width)).tolist()
         for i, n in enumerate(self.outputs):
             self.outputs[i] = copy.deepcopy(Network())
@@ -102,7 +110,6 @@ class FirstLayer:
         for i, n in enumerate(self.subnets):
             n.rec(lst[i], self.weights[i])
 
-
         outs = []
         for i in self.outputs:
             outs.append(i.sum)
@@ -118,14 +125,17 @@ class FirstLayer:
         for i in self.subnets:
             i.mutate(percent)
         if r.uniform(0, 1) < percent:
-            self.weights[r.randint(0, len(self.weights))-1] += r.uniform(-.1, .1)
+            self.weights[r.randint(0, len(self.weights)) - 1] += r.uniform(-.1, .1)
+
+
 def fit(inputs, network):
     a = network.rec(inputs)
     if sum(a) > 100:
-        return 100/sum(a)
+        return 100 / sum(a)
     else:
-        return sum(a)/100
+        return sum(a) / 100
 
-net = FirstLayer(2, 3, 5)
-a = net.rec([1,19])
+
+net = FirstLayer(2, 10, 5)
+a = net.rec([1, 19])
 print(a)

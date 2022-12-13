@@ -430,10 +430,16 @@ class KeepLength(Layer):
 
 class RemoveDuplicatesFromTop(Layer):
     def __init__(self, delay=0, every=1, end=math.inf, amount=2):
+        """
+        :param delay: same
+        :param every: same
+        :param end: same
+        :param amount: The amount of individuals to check (at the top).
+        """
         self.amount = amount
         super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
 
-    def native_run(self, data, func):
+    def native_run(self, data):
         for i in range(self.amount):
             try:
                 if np.all(data.individuals[-i].genes == data.individuals[-(i + 1)].genes):
@@ -444,7 +450,7 @@ class RemoveDuplicatesFromTop(Layer):
 
 
 class FastMutateTop(Layer):
-    def __init__(self, pool, delay=0, every=1, end=math.inf, amount=3, individual_mutation_amount=.3,
+    def __init__(self, pool, delay=0, every=1, end=math.inf, amount=3, individual_mutation_amount=1,
                  fitness_mix_factor=1, adaptive=False):
         self.pool = pool
         self.individual_select = er.make_constant_rate(individual_mutation_amount)
@@ -596,4 +602,24 @@ class DetermineFitnessAndSort(Layer):
         for individual in data.individuals:
             individual.fit(self.factor)
         data.sort()
+        return data
+
+
+class Mutate50(Layer):
+    def __init__(self, delay, end, every, iterations, fitness_function, change_amount=1):
+        self.fitness_function = fitness_function
+        self.change_amount = er.make_constant_rate(change_amount)
+        super().__init__(delay=delay, end=end, every=every, native_run=self.run)
+    def mutate(self, arr):
+        these = random.choices()
+    def run(self, individuals, func) -> np.ndarray:
+        """
+        :param individuals:
+        :return:
+        """
+        for data in individuals:
+            shape = data.shape
+            data = data.flatten()
+
+
         return data

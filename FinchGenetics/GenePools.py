@@ -1,15 +1,22 @@
 import random
 import math
 import numpy as np
-from Finch.FinchGA.generic import Gene, Individual
-import Finch.FinchGA.EvolveRates as er
-from Finch import Neuro
-print("FinchGA IS DEPRECATED, PLEASE USE Finch.FinchGenetics")
+from FinchGenetics.Genetics import Individual
+from FinchGenetics.Rates import make_callable
+def mul_tup(tup):
+    base = 1
+    for i in tup:
+        base = base*i
+    return base
+class Pool:
+    def __init__(self):
+        pass
 
-class NeuroPool:
-    def __init__(self, nn, fitness_func, mx=1, mn=1):
-        self.base_neuralnetworks = nn
-class GenePool:
+    def gen_data(self, data, amount, shape):
+        pass
+
+
+class GenePool(Pool):
     def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1):
         """
         :param data: The "vocabulary" to make into genes
@@ -17,38 +24,33 @@ class GenePool:
         :param mx: The minimum weight
         :param mn: The maximum weight
         """
+        super().__init__()
         self.fitnes_func = fitness_func
         self.raw = np.array(data)
-        self.genes = to_genes(data)  # converts data to chromosome
-        self.weights = np.asarray([gene.weight for gene in self.genes])
-        self.mx = er.make_constant_rate(mx)
-        self.mn = er.make_constant_rate(mn)
+        self.weights = np.ones(len(self.raw))
+        self.mx = make_callable(mx)
+        self.mn = make_callable(mn)
         self.replacement = replacement
         self.max_fitness = max_fitness
         self.directional_weights = 1
 
-    def to_gene(self, i):
-        """
-        :param i: Raw data
-        :return: Object of Gene class
-        """
-        return self.date[np.where(self.genes.gene == i)][0]
 
-    def gen_data(self, gen, population, length):
+
+    def gen_data(self, population, population_count, shape):
         """
         :param data: The already existing data
-        :param population: The wanted population
+        :param population: The wanted population_count
         :param length: The amount of chromosome within each individual.
         :return: New data with old data
         """
-        while len(gen.individuals) < population:
+        while len(population) < population_count:
             p = np.nan_to_num(self.weights / self.weights.sum(), nan=0)
-            ind = Individual(self,
-                             ar=self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=length)],
-                             fitness_func=self.fitnes_func)  # Creates the new individual
+            data = self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=mul_tup(shape))]
+            data = data.reshape(shape)
+            ind = Individual(data, self.fitnes_func)  # Creates the new individual
             ind.fit(1)  # completely recalculates the fitness
-            gen.add(ind)
-
+            population = np.append([ind], population)
+        return population
     def set_all_weights(self, value):
         for i in range(len(self.weights) - 1):
             self.weights[i] = value
@@ -59,7 +61,7 @@ class GenePool:
         :return: None
         """
 
-        self.weights = np.asarray([gene.weight for gene in self.genes])  # updates weights
+        self.weights = np.asarray([gene.weight for gene in self.raw])  # updates weights
 
         self.weights = np.nan_to_num(self.weights, nan=0)  # get rid of nan values
 
@@ -71,19 +73,18 @@ class GenePool:
         r = random.choices(self.raw, weights=self.weights / sum(self.weights), k=1)[0]
         return r
 
-    def get_weight(self, raw):
-        return self.genes[np.where(self.raw == raw)[0]]
 
-    def rand_many(self, index, amount):
+    def rand_many(self, amount):
         r = random.choices(self.raw, weights=self.weights / sum(self.weights), k=amount)
         return r
 
 
-class TypedGenePool:
+class TypedGenePool(Pool):
     def __init__(self, pools=[]):
         """
         :param pools: The pools to be included in the mega gene pool
         """
+        super().__init__()
         self.pools = pools
         self.replacement = None
 
@@ -116,11 +117,12 @@ class TypedGenePool:
             ind = Individual(self,
                              ar=addable,
                              fitness_func=i.fitnes_func)  # TODO: verify this logic is best
-            gen.add(ind)
+            gen.append(ind)
 
 
-class FloatPool:
+class FloatPool(Pool):
     def __init__(self, min, max, fitfunc, initialization="midpoint"):
+        super().__init__()
         self.min = min
         self.max = max
         self.fitness_func = fitfunc
@@ -138,42 +140,30 @@ class FloatPool:
         """
         return np.random.uniform(self.min, self.max, 1)[0]
 
-    def gen_data(self, gen, population, length):
+    def gen_data(self, population, population_count, shape):
         """
-        :param gen:
         :param data: The already existing data
-        :param population: The wanted population
+        :param population_count: The wanted population
         :param length: The amount of chromosome within each individual.
         :return: New data with old data
         """
-        if self.first:
-            a = np.empty(length)
-            a.fill(self.midpoint)
-            while len(gen.individuals) < population:
-                ind = Individual(self,
-                                 ar=a,
-                                 fitness_func=self.fitness_func)  # Creates the new individual
-                ind.fit(1)  # completely recalculates the fitness
-                gen.add(ind)
-        else:
-            while len(gen.individuals) < population:
-                ind = Individual(self,
-                                 ar=np.random.uniform(self.min, self.max, length),
-                                 fitness_func=self.fitness_func)  # Creates the new individual
-                ind.fit(1)  # completely recalculates the fitness
-                gen.add(ind)
-
+        data = np.zeros(shape)
+        data.fill(self.midpoint)
+        while len(population) < population_count:
+            ind = Individual(
+                             ar=data,
+                             fitness_func=self.fitness_func)  # Creates the new individual
+            ind.fit(1)  # completely recalculates the fitness
+            population.append(ind)
+        return population
+    def get_one(self, shape):
+        return self.gen_data([], 1, shape)
     def get_weight(self, raw):
         return 1  # float pools don't have weights yet
 
-    def rand_many(self, index, amount):
+    def rand_many(self, amount):
         r = np.random.uniform(self.min, self.max, amount)
         return r
 
 
-def to_genes(data):
-    """
-    :param data: Raw vocabulary
-    :return:
-    """
-    return np.array([Gene(i) for i in data])
+
