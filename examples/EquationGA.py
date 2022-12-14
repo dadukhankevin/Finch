@@ -2,7 +2,7 @@
 This is an example of how to find good *possible* values for all variables in a singular equation with many variables.
 """
 from Finch.FinchGA import generic
-from Finch.FinchGA import FitnessFunctions as ff
+from Finch.FinchGenetics import FitnessFunctions as ff
 from Finch.FinchGA import Environments, GenePools
 from Finch.FinchGA import Layers as l
 

@@ -3,8 +3,10 @@ import logging
 import math
 
 import numpy as np
-from FinchGenetics.Layers import Layer
-from FinchGenetics.Rates import make_callable, make_switcher
+
+from Finch.FinchGenetics.Genetics import Individual
+from Finch.FinchGenetics.Layers import Layer
+from Finch.FinchGenetics.Rates import make_callable, make_switcher
 import random
 
 
@@ -26,7 +28,7 @@ class MutatePercent(Layer):
         if new >= old:
             pass
         else:
-            array[these] -= n
+            array[these] -= 2*n
 
 
 
@@ -41,17 +43,16 @@ class MutatePercent(Layer):
             shape = genes.shape
             genes = genes.flatten()
             self.mutate(ind, genes)
-            genes = genes.reshape(shape)
             ind.genes = genes
 
         return individuals
 
 
 class OverPoweredMutation(Layer):
-    def __init__(self, pool, iterations, index, fitness_function, range_rate=1,method="smartint", delay=0, every=1, end=math.inf):
-        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run)
+    def __init__(self, pool, iters, index, fitness_function, range_rate=1, method="smartint", delay=0, every=1, end=math.inf):
+        super().__init__(delay=delay, every=every, end=end, native_run=self.native_run, iterations=1)
         self.pool = pool
-        self.iterations = iterations
+        self.iterations = make_callable(iters)
         self.index = index
         self.fitness_function = fitness_function
         self.method = method
@@ -59,12 +60,13 @@ class OverPoweredMutation(Layer):
         logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
                         "index.")
         self.least_mutated = None
-    def complete_random(self, data, func):
+    def complete_random(self, data):
         individual = data[self.index]
+        s = individual.genes.shape()
         fitness = individual.fit(1)
         l = len(individual.genes)
         for i in range(self.iterations):
-            new = copy.deepcopy(individual)
+            new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
             new.genes[random.randint(0, l - 1)] = self.pool.rand(index=1)
             newf = new.fit(1)
             if newf > fitness:
@@ -73,15 +75,16 @@ class OverPoweredMutation(Layer):
                 individual = data[self.index]
         return data
 
-    def smart(self, data, func):
+    def smart(self, data):
         individual = data[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
         if self.least_mutated is None:
             self.least_mutated = np.ones(l)
-        indexes = random.choices(range(0, l), weights=self.least_mutated, k=self.iterations)
+        indexes = random.choices(range(0, l), weights=self.least_mutated, k=self.iterations())
         for i in indexes:
-            new = copy.deepcopy(individual)
+            new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
+
             new.genes[i] += random.uniform(-self.rand_range(), self.rand_range())
             self.least_mutated[i] *= .96 # TODO: make this a parameter
             newf = new.fit(1)
@@ -90,12 +93,13 @@ class OverPoweredMutation(Layer):
                 fitness = newf
                 individual = data[self.index]
         return data
-    def smartint(self, data, func):
+    def smartint(self, data):
         individual = data[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
         for i in range(self.iterations):
-            new = copy.deepcopy(individual)
+            new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
+
             new.genes[random.randint(0, l - 1)] += random.randint(-int(self.rand_range()), int(self.rand_range()))
             newf = new.fit(1)
             if newf > fitness:
@@ -104,13 +108,13 @@ class OverPoweredMutation(Layer):
                 individual = data[self.index]
         return data
 
-    def native_run(self, data, func):
+    def native_run(self, data):
         if self.method == "random":
-            data = self.complete_random(data, func)
+            data = self.complete_random(data)
         if self.method == "smart":
-            data = self.smart(data, func)
+            data = self.smart(data)
         if self.method == "smartint":
-            data = self.smartint(data, func)
+            data = self.smartint(data)
         return data
 
 

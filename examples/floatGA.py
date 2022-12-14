@@ -1,5 +1,5 @@
 from Finch.FinchGA import Environments, EvolveRates, GenePools
-from Finch.FinchGA import FitnessFunctions as ff
+from Finch.FinchGenetics import FitnessFunctions as ff
 from Finch.FinchGA import Layers as l
 from Finch.FinchGA import generic
 desired = 500  # what we want our equation to equal

@@ -2,7 +2,7 @@
 from Finch.FinchGA.GenePools import GenePool
 from Finch.FinchGA import Layers
 from Finch.FinchGA.Environments import *
-from Finch.FinchGA.FitnessFunctions import ValueWeightFunction
+from Finch.FinchGenetics.FitnessFunctions import ValueWeightFunction
 import numpy as np
 
 fitness = ValueWeightFunction(maxweight=15) #max wieght of our backpack is 15 weight units. Feel free to make your own fitness function whenever.

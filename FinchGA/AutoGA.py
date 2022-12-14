@@ -1,7 +1,7 @@
-from Finch.FinchGA.GenePools import GenePool, TypedGenePool
-from Finch.FinchGA import Layers, EvolveRates, generic
+from Finch.FinchGA.GenePools import GenePool
+from Finch.FinchGA import Layers
 from Finch.FinchGA.Environments import *
-import Finch.FinchGA.FitnessFunctions as ff
+import Finch.FinchGenetics.FitnessFunctions as ff
 import math
 
 # TODO: add a bunch more auto classes
@@ -13,7 +13,7 @@ class ValueWeight: # for problems like the backpack problem
         outside of backpacks.
         :param max_weight: The max amount of weight allowed in a backpack
         :param stop_thresh: Stop when the value reaches this amount
-        :param epochs: amount of iterations
+        :param epochs: amount of iters
         """
         self.stop_thresh = stop_thresh
         self.max_weight = max_weight

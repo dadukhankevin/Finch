@@ -4,8 +4,9 @@ import random
 
 import numpy as np
 
-import FinchGenetics.GenePools as GenePools
-from FinchGenetics.Rates import make_callable
+import Finch.FinchGenetics.GenePools as GenePools
+from Finch.FinchGenetics.Genetics import Individual
+from Finch.FinchGenetics.Rates import make_callable
 
 
 def mul_tup(tup):
@@ -55,23 +56,22 @@ class Layer:
 
 
 class Generate(Layer):
-    def __init__(self, pool: GenePools.Pool, amount, shape, delay=0, end=math.inf, every=1, iterations=1):
+    def __init__(self, pool: GenePools.Pool, amount, delay=0, end=math.inf, every=1, iterations=1):
         """
         :param pool:
         :param amount: The gene pool you are using
         :param shape: The shape of each individual
-        :param delay: Don't do this until x iterations
-        :param end: Stop after x iterations
-        :param every: Do this every x iterations
+        :param delay: Don't do this until x iters
+        :param end: Stop after x iters
+        :param every: Do this every x iters
         :param iterations: Do this x times every time you do it.
         """
         super().__init__(delay=delay, end=end, every=every, iterations=iterations, native_run=self.run)
         self.pool = pool
         self.amount = amount
-        self.shape = shape
 
     def run(self, data):
-        data = self.pool.gen_data(data, self.amount, self.shape)
+        data = self.pool.gen_data(data, self.amount)
         return data
 
 
@@ -193,11 +193,10 @@ class Parent(Layer):
 
             both = np.where(choice, x, y)
             both = np.concatenate(both).ravel()
-            new = copy.deepcopy(X)
+            new = Individual(X.pool, copy.deepcopy(X.genes), X.fitness_func)
             if self.pool.replacement == False:
                 # both = np.unique(both,axis=-1)
                 pass
-            both = both.reshape(shape)
             new.genes = both
             new.fit(1)
             ret = np.append(ret, new)
@@ -255,8 +254,8 @@ class Parents(Parent):
 class KeepLength(Layer):
     def __init__(self, amount, delay=0, every=1, end=math.inf):
         """
-        :param delay: Don't do until x iterations
-        :param every: Do this every other x iterations
+        :param delay: Don't do until x iters
+        :param every: Do this every other x iters
         """
         super().__init__(end=end, every=every, delay=delay, native_run=self.native_run, iterations=1)
         self.amount = make_callable(amount)
