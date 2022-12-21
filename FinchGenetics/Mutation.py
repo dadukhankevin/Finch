@@ -65,7 +65,7 @@ class OverPoweredMutation(Layer):
         s = individual.genes.shape
         fitness = individual.fit(1)
         l = len(individual.genes)
-        for i in range(self.iterations):
+        for i in range(self.iterations()):
             new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
             new.genes[random.randint(0, l - 1)] = self.pool.rand(index=1)
             newf = new.fit(1)
@@ -97,7 +97,7 @@ class OverPoweredMutation(Layer):
         individual = data[self.index]
         fitness = individual.fit(1)
         l = len(individual.genes)
-        for i in range(self.iterations):
+        for i in range(self.iterations()):
             new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
 
             new.genes[random.randint(0, l - 1)] += random.randint(-int(self.rand_range()), int(self.rand_range()))
