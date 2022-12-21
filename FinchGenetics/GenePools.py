@@ -37,7 +37,7 @@ class GenePool(Pool):
 
 
 
-    def gen_data(self, population, population_count, shape):
+    def gen_data(self, population, population_count):
         """
         :param data: The already existing data
         :param population: The wanted population_count
@@ -46,7 +46,7 @@ class GenePool(Pool):
         """
         while len(population) < population_count:
             p = np.nan_to_num(self.weights / self.weights.sum(), nan=0)
-            data = self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=mul_tup(shape))]
+            data = self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=mul_tup(self.shape))]
             ind = Individual(self, data, self.fitnes_func)  # Creates the new individual
             ind.fit(1)  # completely recalculates the fitness
             population = np.append([ind], population)
