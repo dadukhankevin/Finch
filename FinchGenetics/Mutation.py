@@ -62,7 +62,7 @@ class OverPoweredMutation(Layer):
         self.least_mutated = None
     def complete_random(self, data):
         individual = data[self.index]
-        s = individual.genes.shape()
+        s = individual.genes.shape
         fitness = individual.fit(1)
         l = len(individual.genes)
         for i in range(self.iterations):
