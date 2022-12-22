@@ -60,12 +60,16 @@ class OPMutation(Layer):
         size = self.genes()
 
         for individual in selected:
+            f = individual.raw_fit()
             individual.genes = individual.genes.reshape(self.pool.shape)
+            old_genes = copy.deepcopy(individual.genes)
             gene_indicies = np.random.choice(len(individual.genes), size=size)
             selected_genes = self.pool.rand_many(amount=size)
             individual.genes[gene_indicies] = selected_genes
-
             individual.genes = individual.genes.flatten()
+            new_f = individual.raw_fit()
+            if f > new_f:
+                individual.genes = old_genes.flatten()
         return individuals
     def run(self, data):
         return self.random(data)
