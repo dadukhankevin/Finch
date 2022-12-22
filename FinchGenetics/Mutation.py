@@ -47,13 +47,15 @@ class MutatePercent(Layer):
 
 class OPMutation(Layer):
     def __init__(self, pool, fitness_function, delay=0, every=1, iterations=1, end=math.inf, method="random", amount=1,
-                 genes=1):
+                 genes=1, constant=1, use_constant=False):
         super().__init__(every, delay, iterations, native_run=self.run, end=end)
         self.genes = make_callable(genes)
         self.pool = pool
         self.method = method
         self.amount = make_callable(amount)
         self.fitness_function = fitness_function
+        self.constant = make_switcher(constant)
+        self.use_constant = use_constant
 
     def random(self, individuals):
         selected = random.choices(individuals, k=self.amount())
@@ -64,8 +66,11 @@ class OPMutation(Layer):
             individual.genes = individual.genes.reshape(self.pool.shape)
             old_genes = copy.deepcopy(individual.genes)
             gene_indicies = np.random.choice(len(individual.genes), size=size)
-            selected_genes = self.pool.rand_many(amount=size)
-            individual.genes[gene_indicies] = selected_genes
+            if self.use_constant:
+                individual.genes[gene_indicies] += self.constant()
+            else:
+                selected_genes = self.pool.rand_many(amount=size)
+                individual.genes[gene_indicies] = selected_genes
             individual.genes = individual.genes.flatten()
             new_f = individual.raw_fit()
             if f > new_f:
