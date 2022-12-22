@@ -75,6 +75,8 @@ class OPMutation(Layer):
             new_f = individual.raw_fit()
             if f > new_f:
                 individual.genes = old_genes.flatten()
+            individual.fit(1)
+
         return individuals
     def run(self, data):
         return self.random(data)
