@@ -17,7 +17,7 @@ class Pool:
 
 
 class GenePool(Pool):
-    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1, shape=None):
+    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1, shape=None, treat_sublists_as_genes=False):
         """
         :param data: The "vocabulary" to make into genes
         :param fitness_func: The fitness function
@@ -34,6 +34,7 @@ class GenePool(Pool):
         self.replacement = replacement
         self.max_fitness = max_fitness
         self.directional_weights = 1
+        self.treat_sublists_as_genes = treat_sublists_as_genes
 
 
 
@@ -46,7 +47,11 @@ class GenePool(Pool):
         """
         while len(population) < population_count:
             p = np.nan_to_num(self.weights / self.weights.sum(), nan=0)
-            data = self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=mul_tup(self.shape))]
+            if self.treat_sublists_as_genes:
+                data = self.raw[np.random.choice(len(self.raw), p=p, replace=self.replacement, size=self.shape[0])]
+            else:
+                data = self.raw[
+                    np.random.choice(len(self.raw), p=p, replace=self.replacement, size=mul_tup(self.shape))]
             ind = Individual(self, data, self.fitnes_func)  # Creates the new individual
             ind.fit(1)  # completely recalculates the fitness
             population = np.append([ind], population)
@@ -75,7 +80,9 @@ class GenePool(Pool):
 
 
     def rand_many(self, amount):
-        r = random.choices(self.raw, weights=self.weights / sum(self.weights), k=amount)
+
+        r = np.random.choice(len(self.raw), p=self.weights / sum(self.weights), size=amount, replace=self.replacement)
+        r = self.raw[r]
         return r
 
 
@@ -121,7 +128,7 @@ class TypedGenePool(Pool):
 
 
 class FloatPool(Pool):
-    def __init__(self, min, max, fitfunc, shape,initialization="midpoint"):
+    def __init__(self, min, max, fitfunc, shape,treat_sublists_as_genes=False,initialization="midpoint"):
         super().__init__()
         self.min = min
         self.max = max
@@ -133,6 +140,7 @@ class FloatPool(Pool):
         self.initialization = initialization
         self.midpoint = (min + max) / 2
         self.first = True
+        self.treat_sublists_as_genes = treat_sublists_as_genes
 
     def rand(self, index):
         """

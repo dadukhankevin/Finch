@@ -28,9 +28,7 @@ class MutatePercent(Layer):
         if new >= old:
             pass
         else:
-            array[these] -= 2*n
-
-
+            array[these] -= 2 * n
 
     def run(self, individuals: np.ndarray) -> np.ndarray:
         """
@@ -38,7 +36,6 @@ class MutatePercent(Layer):
         :return:
         """
         for ind in individuals:
-
             genes = ind.genes
             shape = genes.shape
             genes = genes.flatten()
@@ -48,8 +45,35 @@ class MutatePercent(Layer):
         return individuals
 
 
+class OPMutation(Layer):
+    def __init__(self, pool, fitness_function, delay=0, every=1, iterations=1, end=math.inf, method="random", amount=1,
+                 genes=1):
+        super().__init__(every, delay, iterations, native_run=self.run, end=end)
+        self.genes = make_callable(genes)
+        self.pool = pool
+        self.method = method
+        self.amount = make_callable(amount)
+        self.fitness_function = fitness_function
+
+    def random(self, individuals):
+        selected = random.choices(individuals, k=self.amount())
+        size = self.genes()
+
+        for individual in selected:
+            individual.genes = individual.genes.reshape(self.pool.shape)
+            gene_indicies = np.random.choice(len(individual.genes), size=size)
+            selected_genes = self.pool.rand_many(amount=size)
+            individual.genes[gene_indicies] = selected_genes
+
+            individual.genes = individual.genes.flatten()
+        return individuals
+    def run(self, data):
+        return self.random(data)
+
+
 class OverPoweredMutation(Layer):
-    def __init__(self, pool, iters, index, fitness_function, range_rate=1, method="smartint", delay=0, every=1, end=math.inf):
+    def __init__(self, pool, iters, index, fitness_function, range_rate=1, method="smartint", delay=0, every=1,
+                 end=math.inf):
         super().__init__(delay=delay, every=every, end=end, native_run=self.native_run, iterations=1)
         self.pool = pool
         self.iterations = make_callable(iters)
@@ -60,9 +84,9 @@ class OverPoweredMutation(Layer):
         logging.warning("Using OverPoweredMutation will override any custom fitness factor you set for your specified "
                         "index.")
         self.least_mutated = None
+
     def complete_random(self, data):
         individual = data[self.index]
-        s = individual.genes.shape
         fitness = individual.fit(1)
         l = len(individual.genes)
         for i in range(self.iterations()):
@@ -78,6 +102,7 @@ class OverPoweredMutation(Layer):
     def smart(self, data):
         individual = data[self.index]
         fitness = individual.fit(1)
+        individual.genes = individual.genes.reshape(self.pool.shape)
         l = len(individual.genes)
         if self.least_mutated is None:
             self.least_mutated = np.ones(l)
@@ -86,13 +111,14 @@ class OverPoweredMutation(Layer):
             new = Individual(individual.pool, copy.deepcopy(individual.genes), fitness_func=individual.fitness_func)
 
             new.genes[i] += random.uniform(-self.rand_range(), self.rand_range())
-            self.least_mutated[i] *= .96 # TODO: make this a parameter
+            self.least_mutated[i] *= .96  # TODO: make this a parameter
             newf = new.fit(1)
             if newf > fitness:
                 data[self.index] = new
                 fitness = newf
                 individual = data[self.index]
         return data
+
     def smartint(self, data):
         individual = data[self.index]
         fitness = individual.fit(1)
@@ -116,5 +142,4 @@ class OverPoweredMutation(Layer):
         if self.method == "smartint":
             data = self.smartint(data)
         return data
-
 

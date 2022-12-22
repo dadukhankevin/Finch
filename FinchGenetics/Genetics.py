@@ -18,3 +18,4 @@ class Individual:
         self.genes = self.genes.flatten()
         return self.fitness
 
+

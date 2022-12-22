@@ -178,12 +178,16 @@ class Parent(Layer):
         super().__init__(end=end, every=make_callable(every), delay=delay, native_run=self.func, iterations=iterations)
 
     def parent(self, X, Y):
+
+
         shape = X.genes.shape
         ret = np.array([])
         # get their raw data
         x = np.asarray(X.genes).reshape((-1, self.gene_size()))
         y = np.asarray(Y.genes).reshape((-1, self.gene_size()))
-
+        if self.pool.treat_sublists_as_genes:
+            x = x.reshape(self.pool.shape)
+            y = y.reshape(self.pool.shape)
         for i in range(
                 self.fs()):  # create fs() amount of children #TODO: I am unsure if anything in this loop is correct
             choice = np.array(random.choices([np.ones((1,) + x.shape[1:]), np.zeros((1,) + x.shape[1:])],
