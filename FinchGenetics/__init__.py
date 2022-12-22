@@ -4,3 +4,4 @@ from Finch.FinchGenetics.GenePools import *
 from Finch.FinchGenetics.Environments import *
 from Finch.FinchGenetics.FitnessFunctions import *
 from Finch.FinchGenetics.Rates import *
+from Finch.FinchGenetics.Equations import *

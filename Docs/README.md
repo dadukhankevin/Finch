@@ -1,4 +1,5 @@
 # Finch.FinchGA.Layers docs:
+# All of this is deprecated, new docs will be added soon
 ### Age
         :param delay:
         :param every:

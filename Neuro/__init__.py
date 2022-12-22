@@ -1,1 +1,0 @@
-from Finch.Neuro.neuro2 import *

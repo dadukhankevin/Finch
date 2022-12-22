@@ -1,9 +1,8 @@
+# TODO: add Gene Regulatory Networks
 import copy
 import math
 import random
-
 import numpy as np
-
 import Finch.FinchGenetics.GenePools as GenePools
 from Finch.FinchGenetics.Genetics import Individual
 from Finch.FinchGenetics.Rates import make_callable
