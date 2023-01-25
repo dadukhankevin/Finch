@@ -157,7 +157,8 @@ class FloatPool(Pool):
         :return: New data with old data
         """
         data = np.zeros(mul_tup(self.shape))
-        data.fill(self.midpoint)
+        if self.initialization == "midpoint":
+            data.fill(self.midpoint)
         while len(population) < population_count:
             ind = Individual(self,
                              ar=data,

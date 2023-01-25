@@ -19,7 +19,6 @@ I hope to add it to PyPi (pip) soon.
 #### 1. [Sentiment based fitness function, for word generation GA:](https://colab.research.google.com/drive/1iknzsYyYYH66AOucfWznLlSTXFcDXP2P#scrollTo=LuYrxVC0N7kD)
 #### 2. [Solve for all the missing variables, math based fitness function GA:](https://colab.research.google.com/drive/1MH5W08Jp4yUAv3Fx2qTO5Ds17XPfPFw4?usp=sharing)
 #### 3. [Make the best backpack, value based fitness function GA:](https://colab.research.google.com/drive/1vpKZgWXK8fDN1xfm1x_cR8kJu1xbIiU1?usp=sharing)
-#### 4. [Recreate an image (This one is so cool!)](https://colab.research.google.com/drive/1LCZSRed7n4ZMet1S6SsVTAvHXj3qeVKP?usp=sharing#scrollTo=lAuCsS-CBiDr)
 
 ## What makes Finch different than other libraries?
 ### Performance:
@@ -34,4 +33,9 @@ and learns which ones generally improve the fitness.
 5. You can take individuals from one environment and put them in another one.
 6. You can change the fitness function when a past fitness function is maximized in its effect.
 7. Built-in fitness functions
-8. Built in environments (AutoGA)
+8. Built in environments (AutoGA). This is a work in progress.
+
+### Familiarity:
+Finch is meant to be similar in syntax to other popular libraries like Keras.
+## Please contribute ( : 
+I want to see Finch do the best it can, and it can't be everything it should be if I am the only one developing it.

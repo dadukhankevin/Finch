@@ -80,7 +80,7 @@ class SortFitness(Layer):
 
     def run(self, data):
         data = np.asarray(data)
-        sort = np.argsort([i.fitness for i in data]).astype(int)
+        sort = np.argsort([i.fitness for i in data]).astype(int)  # O(2n) ish
         data = data[sort]
         return data
 
@@ -177,7 +177,6 @@ class Parent(Layer):
         super().__init__(end=end, every=make_callable(every), delay=delay, native_run=self.func, iterations=iterations)
 
     def parent(self, X, Y):
-
 
         shape = X.genes.shape
         ret = np.array([])

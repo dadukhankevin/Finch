@@ -9,7 +9,7 @@ class Environment:
         self.layers = layers
         self.iterations = 0
 
-    def evolve(self, generations, data=[], verbose=1, callback=None):
+    def evolve(self, generations, data=[], verbose=1, callback = None):
         """
         :param generations: The number of generations/epochs
         :param data: If any pre-existing data

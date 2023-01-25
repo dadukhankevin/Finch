@@ -43,7 +43,10 @@ class EquationFitness:
 
     def func(self, individual):
 
-        result = self.equation.evaluate(individual)
+        try:
+            result = self.equation.evaluate(individual)
+        except ZeroDivisionError or OverflowError:
+            return 0
         if result > self.desired:
             try:
                 return self.desired / result

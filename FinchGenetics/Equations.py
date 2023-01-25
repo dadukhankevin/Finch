@@ -10,11 +10,11 @@ class Equation:
         self.desired = desired
 
     def evaluate(self, individual):
-        local_string = self.equation
-        local_iter = iter(self.vars)
-        for i in individual:
-            local_string = local_string.replace(next(local_iter), str(i))
         try:
-            return eval(local_string)
-        except ZeroDivisionError and OverflowError:
+            local_string = self.equation
+            local_iter = iter(self.vars)
+            for i in individual:
+                local_string = local_string.replace(next(local_iter), str(i))
+            return eval(local_string) #be wary that this is a security risk. TODO: replace later
+        except (ZeroDivisionError,  OverflowError):
             return self.desired * -1
