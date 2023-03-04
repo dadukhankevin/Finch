@@ -47,7 +47,6 @@ def make_switcher(x):
     def r():
         return random.choice([-n, n])
     return r
-
 def make_callable(x):
     if not callable(x):
         def constant():

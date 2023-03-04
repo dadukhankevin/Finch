@@ -1,6 +1,6 @@
 from Finch.FinchGenetics import *
 
-fitness = ValueWeightFunction(maxweight=13, force_unique_items=True) #max wieght of our backpack is 15 weight units. Feel free to make your own fitness function whenever.
+fitness = ValueWeightFunction(maxweight=13, force_unique_items=True) # max wieght of our backpack is 15 weight units. Feel free to make your own fitness function whenever.
 
 # In the format [name, value, weight] all of these have little bearing on reality.
 backpack = np.array(
@@ -16,6 +16,7 @@ env = Environment([
     SortFitness(),
     KeepLength(9)
 ])
+
 
 data, history = env.evolve(30, verbose=10)
 print(data[-1].genes.reshape(pool.shape))

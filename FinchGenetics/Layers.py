@@ -152,7 +152,7 @@ class Function(Layer):
         self.func = fun
 
     def native_run(self, data):
-        self.func(data=data)
+        return self.func(data=data)
 
 
 class Parent(Layer):

@@ -3,11 +3,15 @@ import math
 import numpy as np
 from Finch.FinchGenetics.Genetics import Individual
 from Finch.FinchGenetics.Rates import make_callable
+
+
 def mul_tup(tup):
     base = 1
     for i in tup:
-        base = base*i
+        base = base * i
     return base
+
+
 class Pool:
     def __init__(self):
         pass
@@ -16,8 +20,26 @@ class Pool:
         pass
 
 
+class CustomGenePool(Pool):
+    def __init__(self, gen_function, fitness_func, shape):
+        super().__init__()
+        self.gen_function = gen_function
+        self.fitness_func = fitness_func
+        self.shape = shape
+        self.treat_sublists_as_genes = 0
+        self.replacement = 1
+
+    def gen_data(self, population, population_count):
+        while len(population) < population_count:
+            ind = Individual(self, self.gen_function(), self.fitness_func)  # Creates the new individual
+            population = np.append([ind], population)
+        return population
+
+
+
 class GenePool(Pool):
-    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1, shape=None, treat_sublists_as_genes=False):
+    def __init__(self, data, fitness_func, mx=1, mn=0, replacement=True, max_fitness=1, shape=None,
+                 treat_sublists_as_genes=False):
         """
         :param data: The "vocabulary" to make into genes
         :param fitness_func: The fitness function
@@ -35,8 +57,6 @@ class GenePool(Pool):
         self.max_fitness = max_fitness
         self.directional_weights = 1
         self.treat_sublists_as_genes = treat_sublists_as_genes
-
-
 
     def gen_data(self, population, population_count):
         """
@@ -56,6 +76,7 @@ class GenePool(Pool):
             ind.fit(1)  # completely recalculates the fitness
             population = np.append([ind], population)
         return population
+
     def set_all_weights(self, value):
         for i in range(len(self.weights) - 1):
             self.weights[i] = value
@@ -77,7 +98,6 @@ class GenePool(Pool):
         """
         r = random.choices(self.raw, weights=self.weights / sum(self.weights), k=1)[0]
         return r
-
 
     def rand_many(self, amount):
 
@@ -128,7 +148,7 @@ class TypedGenePool(Pool):
 
 
 class FloatPool(Pool):
-    def __init__(self, min, max, fitfunc, shape,treat_sublists_as_genes=False,initialization="midpoint"):
+    def __init__(self, min, max, fitfunc, shape, treat_sublists_as_genes=False, initialization="midpoint"):
         super().__init__()
         self.min = min
         self.max = max
@@ -166,14 +186,13 @@ class FloatPool(Pool):
             ind.fit(1)  # completely recalculates the fitness
             population = np.append(ind, population)
         return population
+
     def get_one(self, shape):
         return self.gen_data([], 1, shape)
+
     def get_weight(self, raw):
         return 1  # float pools don't have weights yet
 
     def rand_many(self, amount):
         r = np.random.uniform(self.min, self.max, amount)
         return r
-
-
-

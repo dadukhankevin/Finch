@@ -26,7 +26,6 @@ class Environment:
             if callback:
                 callback(data)
             history.append(data[-1].fitness)
-
         return data, history
 
 
