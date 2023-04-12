@@ -17,16 +17,15 @@ def mutate(data):
 def fit(string):
     return len("".join(string).replace("|", ""))
 
-def parent(string):
-    return string
+def parent(data):
+    return data
 pool = CustomGenePool(gen_function=gen, fitness_func=fit, shape=(20,))
 
 env = Environment([
     Generate(pool, 6),
-    Parents(pool, delay=1, gene_size=1, family_size=2, percent=.5, method="best", amount=10, every=100),
     Function(parent),
     Function(mutate),
-    SortFitness(),
+    SortAllFitness(),
     KeepLength(3),
 ])
 

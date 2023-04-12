@@ -75,16 +75,23 @@ class Generate(Layer):
 
 
 class SortFitness(Layer):
-    def __init__(self, delay=0, end=math.inf, every=1):
-        super().__init__(delay=delay, end=end, every=every, iterations=1, native_run=self.run)
+    def __init__(self, delay=0, end=math.inf, every=1, iterations=1, native_run=None):
+        if native_run == None:
+            native_run = self.run
+        super().__init__(delay=delay, end=end, every=every, iterations=iterations, native_run=self.run)
 
     def run(self, data):
         data = np.asarray(data)
         sort = np.argsort([i.fitness for i in data]).astype(int)  # O(2n) ish
         data = data[sort]
         return data
-
-
+class SortAllFitness(SortFitness):
+    def __init__(self, delay=0, end=math.inf, every=1):
+        super().__init__(delay=delay, end=end, every=every, iterations=1, native_run=self.run)
+    def run(self, data):
+        for individual in data:
+            individual.fit(1)
+        return super().native_run(data)
 class Duplicate(Layer):
     def __init__(self, every=1, clones=1, delay=0, end=math.inf):
         """
