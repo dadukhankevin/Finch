@@ -1,8 +1,8 @@
 import math
 
 import numpy as np
-import selection
-import crossover
+from finch import selection
+from finch import crossover
 
 
 class Populate:
@@ -23,12 +23,13 @@ class MutateAmount:
         self.gene_pool = gene_pool
 
     def run(self, individuals):
-        individuals = np.random.choice(individuals, self.amount_individuals)
-        for individual in individuals:
-            random_indices = np.random.choice(len(individual), self.amount_genes, replace=False)
+        selected_individuals = np.random.choice(individuals, self.amount_individuals, replace=False)
+        for individual in selected_individuals:
+            random_indices = np.random.choice(len(individual.genes), self.amount_genes, replace=False)
             individual.genes[random_indices] = self.gene_pool.generate_genes(self.amount_genes)
             individual.fit()
         return individuals
+
 
 
 class Parent:
@@ -75,12 +76,14 @@ class Kill:
     def __init__(self, percent):
         """
         :param percent: The percent to kill (picks from the worst)
+        :param every: Do this every n epochs
+        :param delay: Do this after n epochs
         """
         self.name = "kill"
         self.percent = percent
         self.now = 0
 
-    def native_run(self, data):
+    def run(self, data):
         data = data[:int(len(data) * (1 - self.percent))]
         return data
 
@@ -110,3 +113,12 @@ class RemoveDuplicatesFromTop:
                 unique_individuals.append(individuals[i])
         return unique_individuals
 
+
+class SortByFitness:
+    def __init__(self):
+        pass
+
+    def run(self, individuals):
+        sorted_indices = np.argsort([-individual.fitness for individual in individuals])
+        sorted_individuals = individuals[sorted_indices]
+        return sorted_individuals

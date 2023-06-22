@@ -1,5 +1,6 @@
 import torch
 import tensorflow as tf
+from finch import genetics
 
 class KerasPool:
     def __init__(self, model, fitness_function):

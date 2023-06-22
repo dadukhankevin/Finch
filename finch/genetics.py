@@ -8,5 +8,5 @@ class Individual:
         self.fitness_function = fitness_function
 
     def fit(self):
-        self.fitness = self.fitness_function()
+        self.fitness = self.fitness_function(self.genes)
 
