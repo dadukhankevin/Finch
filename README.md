@@ -25,4 +25,59 @@ These include:
 - Environments
 - Mutation sharing (coming soon)
 
-TODO: Finish the rest of the readme (:
+Now lets get started!
+### Installation
+```git clone https://github.com/dadukhankevin/FinchGenetics.git```
+
+pip will be added later.
+### Usage
+
+```python
+from finch import selection, genepools, layers, environments
+```
+
+Lets say we want to evolve a string to include only the letter "a". This is a pointless problem, but lets do it anyway!
+We need a fitness function that returns a higher score the higher the amount of 'a's occor in text.
+
+```python
+def fit(individual):
+    return "".join(individual).count("a") # individuals are lists
+```
+
+Next lets set up our environment!
+
+```python
+gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm", length=20, fitness_function=fit)
+
+environment = environments.Sequential(layers=[
+    layers.Populate(gene_pool=gene_pool, population=4),
+    layers.MutateAmount(amount_individuals=4, amount_genes=3, gene_pool=gene_pool),
+    layers.Parent(num_children=2, num_families=4, selection_function=selection.random_selection),
+    layers.SortByFitness(),
+    layers.Kill(percent=.3),
+])
+
+environment.evolve(100)
+```
+
+It will output something like this after each generation:
+
+```Generation 1/100. Max fitness: 0. Population: 0```
+
+After 100 generations:
+
+```Generation 100/1000. Max fitness: 10. Population: 16```
+
+Now lets see the results:
+
+```python
+print(environment.individuals[0].genes)
+```
+
+Which prints a list of mostly the letter "a".
+```
+['o' 'a' 'p' 'v' 't' 'a' 'a' 'b' 'a' 'o' 'a' 'a' 'a' 'a' 'a' 'e' 'q' 'c'
+ 'a' 'a']
+ ```
+
+Congratulations! Your first genetic algorithm.
