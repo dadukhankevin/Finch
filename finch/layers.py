@@ -1,4 +1,3 @@
-import copy
 import math
 
 import numpy as np
@@ -143,7 +142,8 @@ class CapPopulation:
 
 
 class OverPoweredMutation(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, tries, selection_function=selection.random_selection):
+    def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
+                 selection_function=selection.random_selection):
         super().__init__(amount_individuals, amount_genes, gene_pool, False)
         self.tries = tries
         self.selection_function = selection_function
@@ -151,10 +151,36 @@ class OverPoweredMutation(MutateAmount):
     def run(self, individuals):
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
-            copied = individual.copy()  # Use a custom copy method instead of deepcopy
-            super().mutate_one(copied)
-            copied.fit()
-            if copied.fitness > individual.fitness:
-                individual.genes = copied.genes  # Assign the genes directly without deepcopy
+            for i in range(self.tries):
+                copied = individual.copy()  # Use a custom copy method instead of deepcopy
+                super().mutate_one(copied)
+                copied.fit()
+                if copied.fitness > individual.fitness:
+                    individual.genes = copied.genes  # Assign the genes directly without deepcopy
         return individuals
 
+
+class Function:
+    def __init__(self, function):
+        self.function = function
+
+    def run(self, individuals):
+        return self.function(individuals)
+
+
+class Controller:
+    def __init__(self, layer, execute_every=1, repeat=1, delay=0, stop_at=math.inf):
+        self.layer = layer
+        self.every = execute_every
+        self.delay = delay
+        self.end = stop_at
+        self.repeat = repeat
+        self.n = 0
+
+    def run(self, individuals):
+        self.n += 1
+        if self.delay >= self.n and self.end >= self.n:
+            if self.every%self.n==0:
+                for i in range(self.repeat):
+                    individuals = self.layer.run(individuals)
+        return individuals
