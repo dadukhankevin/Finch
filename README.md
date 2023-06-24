@@ -1,5 +1,5 @@
 # Finch 2.0
-![](img.png)        
+![](resources/img.png)        
 
 ## What is Finch?
 Finch is a genetic algorithm framework. 
@@ -34,7 +34,9 @@ pip will be added later.
 
 ```python
 
-from Finch import selection, layers, environments, genepools
+from Finch.environmental import layers, environments
+from Finch.genetics import genepools
+from Finch.functions import selection
 ```
 
 Lets say we want to evolve a string to include only the letter "a". This is a pointless problem, but lets do it anyway!

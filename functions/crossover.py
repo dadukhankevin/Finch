@@ -1,5 +1,5 @@
 import random
-from Finch.genetics import *
+from Finch.genetics.population import *
 
 
 def single_point_crossover(parent1, parent2):

@@ -2,8 +2,7 @@ import math
 
 import numpy as np
 
-from Finch import selection
-from Finch import crossover
+from Finch.functions import crossover, selection
 
 
 class Populate:

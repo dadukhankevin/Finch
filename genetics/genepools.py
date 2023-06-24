@@ -1,4 +1,4 @@
-from Finch.genetics import *
+from Finch.genetics.population import *
 
 
 class DefaultPool:
