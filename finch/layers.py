@@ -180,7 +180,7 @@ class Controller:
     def run(self, individuals):
         self.n += 1
         if self.delay >= self.n and self.end >= self.n:
-            if self.every%self.n==0:
+            if self.every % self.n == 0:
                 for i in range(self.repeat):
                     individuals = self.layer.run(individuals)
         return individuals
