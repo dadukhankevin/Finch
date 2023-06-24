@@ -1,4 +1,3 @@
-
 class Equation:
     def __init__(self, vars, equation, desired):  # TODO: make this class
         """
@@ -8,6 +7,7 @@ class Equation:
         self.vars = vars
         self.equation = equation
         self.desired = desired
+
     def evaluate(self, individual):
         local_string = self.equation
         local_iter = iter(self.vars)
@@ -16,4 +16,4 @@ class Equation:
         try:
             return eval(local_string)
         except ZeroDivisionError and OverflowError:
-            return self.desired*-1
+            return self.desired * -1
