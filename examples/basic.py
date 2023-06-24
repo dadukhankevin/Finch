@@ -1,4 +1,4 @@
-from finch import *
+from finch import genepools, layers, environments, selection
 
 
 def fit(individual):

@@ -1,8 +1,9 @@
 import math
 
 import numpy as np
-import .selection
-import .crossover
+
+from finch import selection
+from finch import crossover
 
 
 class Populate:

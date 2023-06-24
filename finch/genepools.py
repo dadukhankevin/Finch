@@ -1,5 +1,5 @@
 import numpy as np
-from .genetics import *
+from finch.genetics import *
 
 
 class DefaultPool:
@@ -24,7 +24,7 @@ class FloatPool:
 
     def generate(self):
         genes = np.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
-        return genetics.Individual(genes, self.fitness_function)
+        return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
         return np.random.uniform(self.minimum_gene, self.maximum_gene, size=num_genes)
@@ -39,7 +39,7 @@ class IntPool:
 
     def generate(self):
         genes = np.random.randint(self.minimum_gene, self.maximum_gene + 1, size=self.length)
-        return genetics.Individual(genes, self.fitness_function)
+        return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
         return np.random.randint(self.minimum_gene, self.maximum_gene + 1, size=num_genes)
@@ -52,7 +52,7 @@ class BinaryPool:
 
     def generate(self):
         genes = np.random.randint(0, 2, size=self.length)
-        return genetics.Individual(genes, self.fitness_function)
+        return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
         return np.random.randint(0, 2, size=(num_genes, self.length))
@@ -66,7 +66,7 @@ class StringPool:
 
     def generate(self):
         genes = np.random.choice(list(self.valid_characters), size=self.length)
-        return genetics.Individual(genes, self.fitness_function)
+        return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
         genes = np.random.choice(list(self.valid_characters), size=(num_genes, self.length))
@@ -81,7 +81,7 @@ class PermutationPool:
 
     def generate(self):
         genes = np.random.permutation(self.valid_genes)[:self.length]
-        return genetics.Individual(genes, self.fitness_function)
+        return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
         genes = np.random.permutation(self.valid_genes)[:num_genes * self.length]
