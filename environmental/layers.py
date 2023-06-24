@@ -259,6 +259,7 @@ class IntOverPoweredMutation(OverPoweredMutation):
                 copied.fit()
                 if copied.fitness > individual.fitness:
                     individual.genes = copied.genes
+                    individual.fit()
         return individuals
 
 
@@ -287,4 +288,5 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                 copied.fit()
                 if copied.fitness > individual.fitness:
                     individual.genes = copied.genes
+                    individual.fit()
         return individuals
