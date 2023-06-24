@@ -27,7 +27,7 @@ These include:
 
 Now lets get started!
 ### Installation
-```git clone https://github.com/dadukhankevin/FinchGenetics.git```
+```git clone https://github.com/dadukhankevin/Finch.git```
 
 pip will be added later.
 ### Usage
