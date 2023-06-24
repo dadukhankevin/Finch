@@ -1,4 +1,7 @@
-from finch import genepools, layers, environments, selection
+import selection
+import layers
+import genepools
+import environments
 
 
 def fit(individual):

@@ -1,5 +1,4 @@
-import numpy as np
-from finch.genetics import *
+from genetics import *
 
 
 class DefaultPool:

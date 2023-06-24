@@ -33,7 +33,11 @@ pip will be added later.
 ### Usage
 
 ```python
-from finch import selection, genepools, layers, environments
+
+import selection
+import layers
+import genepools
+import environments
 ```
 
 Lets say we want to evolve a string to include only the letter "a". This is a pointless problem, but lets do it anyway!
