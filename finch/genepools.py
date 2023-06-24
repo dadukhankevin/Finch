@@ -1,5 +1,5 @@
 import numpy as np
-from finch import genetics
+from .genetics import *
 
 
 class DefaultPool:
@@ -9,7 +9,7 @@ class DefaultPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        return genetics.Individual(np.random.choice(self.valid_genes, size=self.length), self.fitness_function)
+        return Individual(np.random.choice(self.valid_genes, size=self.length), self.fitness_function)
 
     def generate_genes(self, num_genes):
         return np.random.choice(self.valid_genes, size=num_genes)
