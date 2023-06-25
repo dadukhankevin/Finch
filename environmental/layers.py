@@ -134,8 +134,14 @@ class SortByFitness:
 
     def run(self, individuals, environment):
         print(individuals.__class__)
-        sorted_indices = np.argsort([-individual.fitness for individual in individuals])
-        sorted_individuals = individuals[sorted_indices]
+        try:
+            import cupy as cp
+            sorted_indices = np.argsort([-individual.fitness for individual in individuals].get())
+            sorted_individuals = individuals[sorted_indices]
+        except:
+            sorted_indices = np.argsort([-individual.fitness for individual in individuals])
+            sorted_individuals = individuals[sorted_indices]
+
         return sorted_individuals
 
 
