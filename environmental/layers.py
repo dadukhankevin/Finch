@@ -133,6 +133,7 @@ class SortByFitness:
         pass
 
     def run(self, individuals, environment):
+        print(type(individuals))
         sorted_indices = np.argsort(np.asarray([-individual.fitness for individual in individuals]))
         sorted_individuals = individuals[sorted_indices]
         return sorted_individuals
