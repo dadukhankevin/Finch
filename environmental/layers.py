@@ -7,8 +7,9 @@ try:
     import cupy as cp
 
     # Check if GPU is available
-    if cp.cuda.runtime.is_available():
+    if cp.cuda.check_cuda_available():
         print("GPU detected. Using CuPy.")
+
         array_module = cp
     else:
         print("GPU not detected. Using NumPy.")
