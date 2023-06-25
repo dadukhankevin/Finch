@@ -3,21 +3,7 @@ import math
 import numpy as np
 
 # Try importing CuPy
-try:
-    import cupy as cp
 
-    # Check if GPU is available
-    if cp.cuda.check_cuda_available():
-        print("GPU detected. Using CuPy.")
-
-        array_module = cp
-    else:
-        print("GPU not detected. Using NumPy.")
-        array_module = np
-
-except ImportError:
-    print("CuPy not found. Using NumPy.")
-    array_module = np
 
 from Finch.functions import crossover, selection
 

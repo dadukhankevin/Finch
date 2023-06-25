@@ -5,10 +5,11 @@ try:
     import cupy as cp
 
     # Check if GPU is available
-    if cp.cuda.check_cuda_available():
+    if cp.cuda.runtime.getDeviceCount() > 0:
         print("GPU detected. Using CuPy.")
 
         array_module = cp
+        NPCP = cp
     else:
         print("GPU not detected. Using NumPy.")
         cp = np
