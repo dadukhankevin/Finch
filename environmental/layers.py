@@ -7,7 +7,7 @@ try:
     import cupy as cp
 
     # Check if GPU is available
-    if cp.cuda.get_device_id() == 0:
+    if cp.cuda.check_cuda_available():
         print("GPU detected. Using CuPy.")
 
         array_module = cp
