@@ -1,5 +1,22 @@
 import numpy as np
 
+# Try importing CuPy
+try:
+    import cupy as cp
+
+    # Check if GPU is available
+    if cp.cuda.runtime.is_available():
+        print("GPU detected. Using CuPy.")
+        array_module = cp
+    else:
+        print("GPU not detected. Using NumPy.")
+        array_module = np
+
+except ImportError:
+    print("CuPy not found. Using NumPy.")
+    array_module = np
+np = array_module
+
 
 # Define the selection functions
 

@@ -2,6 +2,23 @@ import math
 
 import numpy as np
 
+# Try importing CuPy
+try:
+    import cupy as cp
+
+    # Check if GPU is available
+    if cp.cuda.runtime.is_available():
+        print("GPU detected. Using CuPy.")
+        array_module = cp
+    else:
+        print("GPU not detected. Using NumPy.")
+        array_module = np
+
+except ImportError:
+    print("CuPy not found. Using NumPy.")
+    array_module = np
+np = array_module
+
 from Finch.functions import crossover, selection
 
 
@@ -10,7 +27,7 @@ class Populate:
         self.gene_pool = gene_pool
         self.population = population
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         while len(individuals) < self.population:
             individuals = np.append(individuals, self.gene_pool.generate())
         return individuals
@@ -26,7 +43,7 @@ class MutateAmount:
         self.refit = refit
         self.selection_function = selection_function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         self.amount_individuals = min(len(individuals), self.amount_individuals)
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
@@ -51,7 +68,7 @@ class Parent:
         self.selection_function = selection_function
         self.crossover_function = crossover_function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         to_parent = self.selection_function(individuals, self.num_families * 2)
         new_individuals = []
         for parent1, parent2 in zip(to_parent[::2], to_parent[1::2]):
@@ -73,7 +90,7 @@ class KillRandom:
         self.num_kill = num_kill
         self.selection_function = selection_function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         # select some individuals to kill using the selection function
         to_kill = self.selection_function(individuals, self.num_kill)
         # remove the selected individuals from the population
@@ -92,8 +109,8 @@ class Kill:
         self.percent = percent
         self.now = 0
 
-    def run(self, data):
-        data = data[:int(len(data) * (1 - self.percent))]
+    def run(self, individuals, environment):
+        data = individuals[:int(individuals.size * (1 - self.percent))]
         return data
 
 
@@ -102,7 +119,7 @@ class DuplicateRandom:
         self.num_duplicate = num_duplicate
         self.selection_function = selection_function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         # select some individuals to duplicate using the selection function
         duplicates = self.selection_function(individuals, self.num_duplicate)
         # append the duplicates to the population
@@ -114,7 +131,7 @@ class RemoveDuplicatesFromTop:
     def __init__(self, top_n):
         self.top_n = top_n
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         # remove any duplicates from the top n individuals
         unique_individuals = individuals[:self.top_n]
         for i in range(self.top_n, len(individuals)):
@@ -127,7 +144,7 @@ class SortByFitness:
     def __init__(self):
         pass
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         sorted_indices = np.argsort([-individual.fitness for individual in individuals])
         sorted_individuals = individuals[sorted_indices]
         return sorted_individuals
@@ -137,7 +154,7 @@ class CapPopulation:
     def __init__(self, max_population):
         self.max_population = max_population
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         return individuals[0:self.max_population]  # kills only the worst ones assuming they are sorted
 
 
@@ -148,7 +165,7 @@ class OverPoweredMutation(MutateAmount):
         self.tries = tries
         self.selection_function = selection_function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
             for i in range(self.tries):
@@ -164,7 +181,7 @@ class Function:
     def __init__(self, function):
         self.function = function
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         return self.function(individuals)
 
 
@@ -177,7 +194,7 @@ class Controller:
         self.repeat = repeat
         self.n = 0
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         self.n += 1
         if self.delay >= self.n and self.end >= self.n:
             if self.every % self.n == 0:
@@ -202,7 +219,7 @@ class FloatMutateAmount(MutateAmount):
         individual.genes = mutated_genes
         return individual
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         self.amount_individuals = min(individuals.size, self.amount_individuals)
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
@@ -227,7 +244,7 @@ class IntMutateAmount(MutateAmount):
         individual.genes = mutated_genes
         return individual
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         self.amount_individuals = min(individuals.size, self.amount_individuals)
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
@@ -250,7 +267,7 @@ class IntOverPoweredMutation(OverPoweredMutation):
         individual.genes = mutated_genes
         return individual
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
             for i in range(self.tries):
@@ -279,7 +296,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
         individual.genes = mutated_genes
         return individual
 
-    def run(self, individuals):
+    def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
             for i in range(self.tries):
@@ -290,3 +307,66 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                     individual.genes = copied.genes
                     individual.fit()
         return individuals
+
+
+
+class FloatMomentumMutation:
+    def __init__(self, divider, amount_individuals, amount_genes, execute_every=1, based_on_probability=False,
+                 selection_function=selection.rank_based_selection, selection_arg=1, calculate_custom_diff=False,
+                 probability_power=1):
+        self.divider = divider
+        self.based_on_probability = based_on_probability
+        self.amount_individuals = amount_individuals
+        self.amount_genes = amount_genes
+        self.execute_every = execute_every
+        self.selection_function = selection_function
+        self.calculate_custom_diff = calculate_custom_diff
+        self.selection_arg = selection_arg
+        self.probability_power = probability_power
+
+    def run(self, individuals, environment):
+        selected_individuals = self.selection_function(individuals, self.selection_arg)
+        if environment.iteration > 0:  # diff will be none until after
+            for individual in selected_individuals:
+                if self.calculate_custom_diff:
+                    if self.based_on_probability:
+                        diff = (environment.original.genes - individual.genes)
+                        p = np.abs(diff) ** self.probability_power
+                        p = p/np.sum(p)
+                        p = np.nan_to_num(p)
+                        # Normalize the probabilities by dividing them by their sum
+                        # Use np.random.multinomial to get the random indices based on the probabilities
+                        random_indices = np.random.multinomial(len(individual.genes)-1, p)
+                        # Use np.unique to remove any duplicates from the random indices
+                        random_indices = np.unique(random_indices)
+                        # Take the first amount_genes elements of the unique indices as the final indices
+                        random_indices = random_indices[:self.amount_genes]
+                        individual.genes[random_indices] += (diff[random_indices] / self.divider)
+                    else:
+                        diff = (environment.original.genes - individual.genes)
+                        # Use np.random.permutation to get the random indices without probabilities
+                        random_indices = np.random.permutation(len(individual.genes)-1)
+                        # Take the first amount_genes elements of the random indices as the final indices
+                        random_indices = random_indices[:self.amount_genes]
+                        individual.genes[random_indices] += (diff[random_indices] / self.divider)
+                else:
+                    if self.based_on_probability:
+                        p = np.abs(environment.diff) ** self.probability_power
+                        p = p / np.sum(p)
+                        p = np.nan_to_num(p)
+                        # Normalize the probabilities by dividing them by their sum
+                        random_indices = np.random.multinomial(len(individual.genes)-1, p)
+                        # Use np.unique to remove any duplicates from the random indices
+                        random_indices = np.unique(random_indices)
+                        # Take the first amount_genes elements of the unique indices as the final indices
+                        random_indices = random_indices[:self.amount_genes]
+                        individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
+                    else:
+                        # Use np.random.permutation to get the random indices without probabilities
+                        random_indices = np.random.permutation(len(individual.genes)-1)
+                        # Take the first amount_genes elements of the random indices as the final indices
+                        random_indices = random_indices[:self.amount_genes]
+                        individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
+            individual.fit()
+        return individuals
+
