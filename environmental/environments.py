@@ -7,7 +7,6 @@ try:
     # Check if GPU is available
     if cp.cuda.get_device_id() == 0:
         print("GPU detected. Using CuPy.")
-
         array_module = cp
     else:
         print("GPU not detected. Using NumPy.")
@@ -16,7 +15,9 @@ try:
 except ImportError:
     print("CuPy not found. Using NumPy.")
     array_module = np
-np = array_module
+
+oa = np
+fa = array_module
 
 from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 
@@ -25,7 +26,7 @@ class Sequential:
     def __init__(self, layers, individuals=None):
         if individuals is None:
             individuals = []
-        self.individuals = np.asarray(individuals)
+        self.individuals = oa.asarray(individuals)
         self.layers = layers
         self.stop = False
         self.original = None
