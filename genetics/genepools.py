@@ -8,10 +8,10 @@ class DefaultPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        return Individual(np.random.choice(self.valid_genes, size=self.length), self.fitness_function)
+        return Individual(NPCP.random.choice(self.valid_genes, size=self.length), self.fitness_function)
 
     def generate_genes(self, num_genes):
-        return np.random.choice(self.valid_genes, size=num_genes)
+        return NPCP.random.choice(self.valid_genes, size=num_genes)
 
 
 class FloatPool:
@@ -22,11 +22,11 @@ class FloatPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        genes = np.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
+        genes = NPCP.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
-        return np.random.uniform(self.minimum_gene, self.maximum_gene, size=num_genes)
+        return NPCP.random.uniform(self.minimum_gene, self.maximum_gene, size=num_genes)
 
 
 class IntPool:
@@ -37,11 +37,11 @@ class IntPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        genes = np.random.randint(self.minimum_gene, self.maximum_gene + 1, size=self.length)
+        genes = NPCP.random.randint(self.minimum_gene, self.maximum_gene + 1, size=self.length)
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
-        return np.random.randint(self.minimum_gene, self.maximum_gene + 1, size=num_genes)
+        return NPCP.random.randint(self.minimum_gene, self.maximum_gene + 1, size=num_genes)
 
 
 class BinaryPool:
@@ -50,11 +50,11 @@ class BinaryPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        genes = np.random.randint(0, 2, size=self.length)
+        genes = NPCP.random.randint(0, 2, size=self.length)
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
-        return np.random.randint(0, 2, size=(num_genes, self.length))
+        return NPCP.random.randint(0, 2, size=(num_genes, self.length))
 
 
 class StringPool:
@@ -79,12 +79,12 @@ class PermutationPool:
         self.fitness_function = fitness_function
 
     def generate(self):
-        genes = np.random.permutation(self.valid_genes)[:self.length]
+        genes = NPCP.random.permutation(self.valid_genes)[:self.length]
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
-        genes = np.random.permutation(self.valid_genes)[:num_genes * self.length]
-        return np.split(genes, num_genes)
+        genes = NPCP.random.permutation(self.valid_genes)[:num_genes * self.length]
+        return NPCP.split(genes, num_genes)
 
 
 # Below are ML related gene pools, which have not been properly tested yet

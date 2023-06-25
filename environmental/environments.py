@@ -26,7 +26,7 @@ class Sequential:
     def __init__(self, layers, individuals=None):
         if individuals is None:
             individuals = []
-        self.individuals = oa.asarray(individuals)
+        self.individuals = np.asarray(individuals)
         self.layers = layers
         self.stop = False
         self.original = None

@@ -19,10 +19,9 @@ except ImportError:
     print("CuPy not found. Using NumPy.")
     array_module = np
 
-oa = np
-fa = array_module
-
 from Finch.functions import crossover, selection
+
+from Finch.genetics.population import NPCP
 
 
 class Populate:
@@ -39,7 +38,6 @@ class Populate:
 class MutateAmount:
     def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
                  selection_function=selection.random_selection):
-
         self.amount_individuals = amount_individuals
         self.amount_genes = amount_genes
         self.gene_pool = gene_pool
@@ -56,7 +54,7 @@ class MutateAmount:
         return individuals
 
     def mutate_one(self, individual):
-        random_indices = oa.random.choice(len(individual.genes), self.amount_genes, replace=False)
+        random_indices = NPCP.random.choice(len(individual.genes), self.amount_genes, replace=False)
         individual.genes[random_indices] = self.gene_pool.generate_genes(self.amount_genes)
         return individual
 
@@ -85,7 +83,7 @@ class Parent:
                     new_ind.fit()
                     new_individuals.append(new_ind)
 
-        individuals = oa.append(individuals, new_individuals)
+        individuals = np.append(individuals, new_individuals)
         return individuals
 
 
@@ -127,7 +125,7 @@ class DuplicateRandom:
         # select some individuals to duplicate using the selection function
         duplicates = self.selection_function(individuals, self.num_duplicate)
         # append the duplicates to the population
-        individuals = oa.append(individuals, duplicates)
+        individuals = np.append(individuals, duplicates)
         return individuals
 
 
@@ -139,7 +137,7 @@ class RemoveDuplicatesFromTop:
         # remove any duplicates from the top n individuals
         unique_individuals = individuals[:self.top_n]
         for i in range(self.top_n, len(individuals)):
-            if not any(oa.array_equal(ind.genes, individuals[i].genes) for ind in unique_individuals):
+            if not any(NPCP.array_equal(ind.genes, individuals[i].genes) for ind in unique_individuals):
                 unique_individuals.append(individuals[i])
         return unique_individuals
 
@@ -149,7 +147,7 @@ class SortByFitness:
         pass
 
     def run(self, individuals, environment):
-        sorted_indices = oa.argsort([-individual.fitness for individual in individuals])
+        sorted_indices = NPCP.argsort([-individual.fitness for individual in individuals])
         sorted_individuals = individuals[sorted_indices]
         return sorted_individuals
 
@@ -216,8 +214,9 @@ class FloatMutateAmount(MutateAmount):
         self.max_positive_mutation = max_positive_mutation
 
     def mutate_one(self, individual):
-        random_indices = cp.random.choice(individual.genes.size, self.amount_genes, replace=False)
-        mutation = cp.random.uniform(self.max_negative_mutation, self.max_positive_mutation, size=self.amount_genes)
+        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes, replace=False)
+        mutation = NPCP.random.uniform(self.max_negative_mutation, self.max_positive_mutation,
+                                               size=self.amount_genes)
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -241,8 +240,8 @@ class IntMutateAmount(MutateAmount):
         self.max_mutation = max_mutation
 
     def mutate_one(self, individual):
-        random_indices = cp.random.choice(individual.genes.size, self.amount_genes, replace=False)
-        mutation = cp.random.randint(self.min_mutation, self.max_mutation + 1, size=self.amount_genes)
+        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes, replace=False)
+        mutation = NPCP.random.randint(self.min_mutation, self.max_mutation + 1, size=self.amount_genes)
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -264,8 +263,8 @@ class IntOverPoweredMutation(OverPoweredMutation):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
 
     def mutate_one(self, individual):
-        random_indices = cp.random.choice(individual.genes.size, self.amount_genes, replace=False)
-        mutation = cp.random.randint(self.min_mutation, self.max_mutation + 1, size=self.amount_genes)
+        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes, replace=False)
+        mutation = NPCP.random.randint(self.min_mutation, self.max_mutation + 1, size=self.amount_genes)
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -293,8 +292,8 @@ class FloatOverPoweredMutation(OverPoweredMutation):
         self.max_positive_mutation = max_positive_mutation
 
     def mutate_one(self, individual):
-        random_indices = cp.random.choice(individual.genes.size, self.amount_genes, replace=False)
-        mutation = cp.random.uniform(self.max_negative_mutation, self.max_positive_mutation, size=self.amount_genes)
+        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes, replace=False)
+        mutation = NPCP.random.uniform(self.max_negative_mutation, self.max_positive_mutation, size=self.amount_genes)
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -311,7 +310,6 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                     individual.genes = copied.genes
                     individual.fit()
         return individuals
-
 
 
 class FloatMomentumMutation:
@@ -335,42 +333,41 @@ class FloatMomentumMutation:
                 if self.calculate_custom_diff:
                     if self.based_on_probability:
                         diff = (environment.original.genes - individual.genes)
-                        p = cp.abs(diff) ** self.probability_power
-                        p = p/np.sum(p)
-                        p = cp.nan_to_num(p)
+                        p = NPCP.abs(diff) ** self.probability_power
+                        p = p / NPCP.sum(p)
+                        p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum
                         # Use np.random.multinomial to get the random indices based on the probabilities
-                        random_indices = cp.random.multinomial(len(individual.genes)-1, p)
+                        random_indices = NPCP.random.multinomial(len(individual.genes) - 1, p)
                         # Use np.unique to remove any duplicates from the random indices
-                        random_indices = cp.unique(random_indices)
+                        random_indices = NPCP.unique(random_indices)
                         # Take the first amount_genes elements of the unique indices as the final indices
                         random_indices = random_indices[:self.amount_genes]
                         individual.genes[random_indices] += (diff[random_indices] / self.divider)
                     else:
                         diff = (environment.original.genes - individual.genes)
                         # Use np.random.permutation to get the random indices without probabilities
-                        random_indices = cp.random.permutation(len(individual.genes)-1)
+                        random_indices = NPCP.random.permutation(len(individual.genes) - 1)
                         # Take the first amount_genes elements of the random indices as the final indices
                         random_indices = random_indices[:self.amount_genes]
                         individual.genes[random_indices] += (diff[random_indices] / self.divider)
                 else:
                     if self.based_on_probability:
-                        p = cp.abs(environment.diff) ** self.probability_power
-                        p = p / cp.sum(p)
-                        p = cp.nan_to_num(p)
+                        p = NPCP.abs(environment.diff) ** self.probability_power
+                        p = p / NPCP.sum(p)
+                        p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum
-                        random_indices = cp.random.multinomial(len(individual.genes)-1, p)
-                        # Use cp.unique to remove any duplicates from the random indices
-                        random_indices = cp.unique(random_indices)
+                        random_indices = NPCP.random.multinomial(len(individual.genes) - 1, p)
+                        # Use np.unique to remove any duplicates from the random indices
+                        random_indices = NPCP.unique(random_indices)
                         # Take the first amount_genes elements of the unique indices as the final indices
                         random_indices = random_indices[:self.amount_genes]
                         individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
                     else:
-                        # Use cp.random.permutation to get the random indices without probabilities
-                        random_indices = cp.random.permutation(len(individual.genes)-1)
+                        # Use np.random.permutation to get the random indices without probabilities
+                        random_indices = NPCP.random.permutation(len(individual.genes) - 1)
                         # Take the first amount_genes elements of the random indices as the final indices
                         random_indices = random_indices[:self.amount_genes]
                         individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
             individual.fit()
         return individuals
-
