@@ -135,7 +135,7 @@ class SortByFitness:
     def run(self, individuals, environment):
         sorted_individuals = sorted(individuals, key=lambda x: -x.fitness)
 
-        return sorted_individuals
+        return np.assaray(sorted_individuals)
 
 
 class CapPopulation:
