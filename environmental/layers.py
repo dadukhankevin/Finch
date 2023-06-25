@@ -133,7 +133,7 @@ class SortByFitness:
         pass
 
     def run(self, individuals, environment):
-        sorted_indices = NPCP.argsort([-individual.fitness for individual in individuals])
+        sorted_indices = NPCP.argsort(NPCP.asarray([-individual.fitness for individual in individuals]))
         sorted_individuals = individuals[sorted_indices]
         return sorted_individuals
 
