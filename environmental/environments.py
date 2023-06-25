@@ -24,9 +24,9 @@ class Sequential:
             if verbose_every and i % verbose_every == 0:
                 print(f"Generation {i + 1}/{generations}. Max fitness: {fitness}. Population: {len(self.individuals)}")
             for layer in self.layers:
-                print("b ",type(self.individuals))
+                print("b ",self.individuals.__class__)
                 self.individuals = layer.run(self.individuals, self)
-                print(type(self.individuals))
+                print(self.individuals.__class__)
             if callback:
                 callback(self.individuals, self)
             if self.individuals.size == 0:
