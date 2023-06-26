@@ -281,7 +281,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
 
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.uniform(self.max_negative_mutation, self.max_positive_mutation(), size=self.amount_genes())
+        mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(), size=self.amount_genes())
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
