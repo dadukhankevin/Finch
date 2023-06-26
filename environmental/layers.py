@@ -321,7 +321,7 @@ class FloatMomentumMutation:
                     if self.based_on_probability:
                         diff = (environment.original.genes - individual.genes)
                         p = NPCP.abs(diff) ** self.probability_power
-                        p = p / NPCP.sum(p)
+                        p[-1] = 1 - NPCP.sum(p[0:-1])
                         p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum
                         # Use np.random.multinomial to get the random indices based on the probabilities
@@ -341,7 +341,7 @@ class FloatMomentumMutation:
                 else:
                     if self.based_on_probability:
                         p = NPCP.abs(environment.diff) ** self.probability_power
-                        p = p / NPCP.sum(p)
+                        p[-1] = 1 - NPCP.sum(p[0:-1])
                         p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum
                         random_indices = NPCP.random.multinomial(len(individual.genes) - 1, p)
