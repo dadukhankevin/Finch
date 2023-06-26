@@ -69,8 +69,7 @@ class Parent:
                     new_ind = self.crossover_function(parent1, parent2)
                     new_ind.fit()
                     new_individuals.append(new_ind)
-
-        individuals = np.append(individuals, new_individuals)
+        individuals += new_individuals
         return individuals
 
 
@@ -185,10 +184,10 @@ class Controller:
 
     def run(self, individuals, environment):
         self.n += 1
-        if self.delay() >= self.n and self.end >= self.n:
+        if self.delay() <= self.n <= self.end:
             if self.every() % self.n == 0:
                 for i in range(self.repeat()):
-                    individuals = self.layer.run(individuals)
+                    individuals = self.layer.run(individuals, environment)
         return individuals
 
 
