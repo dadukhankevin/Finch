@@ -320,5 +320,5 @@ class FloatMomentumMutation:
                 individual.genes[random_indices] += (environment.diff[random_indices] / self.divider())
                 if self.reset_baseline:
                     environment.original = environment.individuals[0]
-            individual.fit()
+                individual.fit()
         return individuals

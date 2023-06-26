@@ -3,7 +3,7 @@ from Finch.environmental import layers
 from Finch.genetics import genepools
 from Finch.functions import selection
 #import matplotlib.pyplot as plt
-
+# 1 min per 50
 import numpy as np
 from PIL import Image
 
@@ -32,14 +32,14 @@ n = 0
 #   n += 1
 #   return individuals
 gene_pool = genepools.FloatPool(0, 1, length=gene_len, fitness_function=fitness_function)
-
+input()
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
-    layers.FloatOverPoweredMutation(amount_individuals=4, amount_genes=1, tries=10, gene_pool=gene_pool),
-    layers.Controller(layers.Parent(num_children=2, num_families=4, selection_function=selection.random_selection), execute_every=5),
-    layers.FloatMomentumMutation(3, 3, 400, 5, selection_arg=10),
+    layers.FloatOverPoweredMutation(amount_individuals=2, amount_genes=1000, tries=30, gene_pool=gene_pool, max_negative_mutation=-.1, max_positive_mutation=.1),
+    layers.Controller(layers.Parent(num_children=3, num_families=4, selection_function=selection.rank_based_selection), execute_every=5),
+    layers.FloatMomentumMutation(divider=3, amount_individuals=3, amount_genes=3000, execute_every=5, selection_arg=10, reset_baseline=1),
     layers.SortByFitness(),
-    layers.Kill(percent=.3),
+    layers.Kill(percent=.1),
 ])
 
 individuals, history = environment.evolve(500, verbose_every=1, track_float_diff_every=1)
