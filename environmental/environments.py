@@ -24,6 +24,7 @@ class Sequential:
                 print(f"Generation {i + 1}/{generations}. Max fitness: {fitness}. Population: {len(self.individuals)}")
             for layer in self.layers:
                 self.individuals = layer.run(self.individuals, self)
+                self.individuals = list(self.individuals)
             if callback:
                 callback(self.individuals, self)
             if len(self.individuals) == 0:
