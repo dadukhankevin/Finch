@@ -19,12 +19,15 @@ class Sequential:
         history = []
         fitness = 0
         for i in range(generations):
+            print(self.individuals.__class__)
             self.iteration = i
             if verbose_every and i % verbose_every == 0:
                 print(f"Generation {i + 1}/{generations}. Max fitness: {fitness}. Population: {len(self.individuals)}")
-            print("i", self.individuals.__class__)
             for layer in self.layers:
                 self.individuals = layer.run(self.individuals, self)
+                print("i", self.individuals.__class__)
+
+
             if callback:
                 callback(self.individuals, self)
             if len(self.individuals) == 0:
