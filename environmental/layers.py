@@ -8,7 +8,7 @@ import numpy as np
 from Finch.functions import crossover, selection
 
 from Finch.genetics.population import NPCP
-
+from Finch.tools import rates
 
 class Populate:
     def __init__(self, gene_pool, population):
@@ -25,8 +25,8 @@ class Populate:
 class MutateAmount:
     def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
                  selection_function=selection.random_selection):
-        self.amount_individuals = amount_individuals
-        self.amount_genes = amount_genes
+        self.amount_individuals = rates.make_callable(amount_individuals)
+        self.amount_genes = rates.make_callable(amount_genes)
         self.gene_pool = gene_pool
         self.refit = refit
         self.selection_function = selection_function
@@ -300,59 +300,24 @@ class FloatOverPoweredMutation(OverPoweredMutation):
 
 
 class FloatMomentumMutation:
-    def __init__(self, divider, amount_individuals, amount_genes, execute_every=1, based_on_probability=False,
-                 selection_function=selection.rank_based_selection, selection_arg=1, calculate_custom_diff=False):
-        self.divider = divider
-        self.based_on_probability = based_on_probability
-        self.amount_individuals = amount_individuals
-        self.amount_genes = amount_genes
-        self.execute_every = execute_every
+    def __init__(self, divider, amount_individuals, amount_genes, execute_every=1,
+                 selection_function=selection.rank_based_selection, selection_arg=1, reset_baseline=False):
+        self.divider = rates.make_callable(divider)
+        self.amount_individuals = rates.make_callable(amount_individuals)
+        self.amount_genes = rates.make_callable(amount_genes)
+        self.execute_every = rates.make_callable(execute_every)
         self.selection_function = selection_function
-        self.calculate_custom_diff = calculate_custom_diff
-        self.selection_arg = selection_arg
+        self.selection_arg = rates.make_callable(selection_arg)
+        self.reset_baseline = reset_baseline
 
     def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.selection_arg)
         if environment.iteration > 0:  # diff will be none until after
             for individual in selected_individuals:
-                if self.calculate_custom_diff:
-                    if self.based_on_probability:
-                        diff = (environment.original.genes - individual.genes)
-                        p = (NPCP.abs(diff)).astype('float64')
-                        p = p / NPCP.sum(p)
-                        p = NPCP.nan_to_num(p)
-                        # Normalize the probabilities by dividing them by their sum
-                        # Use np.random.multinomial to get the random indices based on the probabilities
-                        random_indices = NPCP.random.multinomial(len(individual.genes) - 1, p)
-                        # Use np.unique to remove any duplicates from the random indices
-                        random_indices = NPCP.unique(random_indices)
-                        # Take the first amount_genes elements of the unique indices as the final indices
-                        random_indices = random_indices[:self.amount_genes]
-                        individual.genes[random_indices] += (diff[random_indices] / self.divider)
-                    else:
-                        diff = (environment.original.genes - individual.genes)
-                        # Use np.random.permutation to get the random indices without probabilities
-                        random_indices = NPCP.random.permutation(len(individual.genes) - 1)
-                        # Take the first amount_genes elements of the random indices as the final indices
-                        random_indices = random_indices[:self.amount_genes]
-                        individual.genes[random_indices] += (diff[random_indices] / self.divider)
-                else:
-                    if self.based_on_probability:
-                        p = NPCP.abs(environment.diff)
-                        p = p / NPCP.sum(p)
-                        p = NPCP.nan_to_num(p)
-                        # Normalize the probabilities by dividing them by their sum
-                        random_indices = NPCP.random.multinomial(len(individual.genes) - 1, p)
-                        # Use np.unique to remove any duplicates from the random indices
-                        random_indices = NPCP.unique(random_indices)
-                        # Take the first amount_genes elements of the unique indices as the final indices
-                        random_indices = random_indices[:self.amount_genes]
-                        individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
-                    else:
-                        # Use np.random.permutation to get the random indices without probabilities
-                        random_indices = NPCP.random.permutation(len(individual.genes) - 1)
-                        # Take the first amount_genes elements of the random indices as the final indices
-                        random_indices = random_indices[:self.amount_genes]
-                        individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
+                random_indices = NPCP.random.permutation(len(individual.genes) - 1)
+                random_indices = random_indices[:self.amount_genes]
+                individual.genes[random_indices] += (environment.diff[random_indices] / self.divider)
+                if self.reset_baseline:
+                    environment.original = environment.individuals[0]
             individual.fit()
         return individuals

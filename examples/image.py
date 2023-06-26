@@ -37,7 +37,7 @@ environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
     layers.FloatOverPoweredMutation(amount_individuals=4, amount_genes=1, tries=10, gene_pool=gene_pool),
     layers.Controller(layers.Parent(num_children=2, num_families=4, selection_function=selection.random_selection), execute_every=5),
-    layers.FloatMomentumMutation(3, 3, 400, 5, selection_arg=10, calculate_custom_diff=1, based_on_probability=1, probability_power=3),
+    layers.FloatMomentumMutation(3, 3, 400, 5, selection_arg=10, calculate_custom_diff=1, based_on_probability=1),
     layers.SortByFitness(),
     layers.Kill(percent=.3),
 ])
