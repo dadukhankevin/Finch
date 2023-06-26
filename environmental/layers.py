@@ -301,8 +301,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
 
 class FloatMomentumMutation:
     def __init__(self, divider, amount_individuals, amount_genes, execute_every=1, based_on_probability=False,
-                 selection_function=selection.rank_based_selection, selection_arg=1, calculate_custom_diff=False,
-                 probability_power=1):
+                 selection_function=selection.rank_based_selection, selection_arg=1, calculate_custom_diff=False):
         self.divider = divider
         self.based_on_probability = based_on_probability
         self.amount_individuals = amount_individuals
@@ -311,7 +310,6 @@ class FloatMomentumMutation:
         self.selection_function = selection_function
         self.calculate_custom_diff = calculate_custom_diff
         self.selection_arg = selection_arg
-        self.probability_power = probability_power
 
     def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.selection_arg)
@@ -320,7 +318,7 @@ class FloatMomentumMutation:
                 if self.calculate_custom_diff:
                     if self.based_on_probability:
                         diff = (environment.original.genes - individual.genes)
-                        p = (NPCP.abs(diff) ** self.probability_power).astype('float64')
+                        p = (NPCP.abs(diff)).astype('float64')
                         p = p / NPCP.sum(p)
                         p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum
@@ -340,7 +338,7 @@ class FloatMomentumMutation:
                         individual.genes[random_indices] += (diff[random_indices] / self.divider)
                 else:
                     if self.based_on_probability:
-                        p = (NPCP.abs(environment.diff) ** self.probability_power).astype('float64')
+                        p = NPCP.abs(environment.diff)
                         p = p / NPCP.sum(p)
                         p = NPCP.nan_to_num(p)
                         # Normalize the probabilities by dividing them by their sum

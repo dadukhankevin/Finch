@@ -19,24 +19,19 @@ class Sequential:
         history = []
         fitness = 0
         for i in range(generations):
-            print(self.individuals.__class__)
             self.iteration = i
             if verbose_every and i % verbose_every == 0:
                 print(f"Generation {i + 1}/{generations}. Max fitness: {fitness}. Population: {len(self.individuals)}")
             for layer in self.layers:
                 self.individuals = layer.run(self.individuals, self)
-                print("i", self.individuals.__class__)
-
-
             if callback:
                 callback(self.individuals, self)
             if len(self.individuals) == 0:
                 raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
             if self.original is None:
                 self.original = self.individuals[0]
-            print("o", self.original.__class__)
             if track_float_diff_every and i % track_float_diff_every == 0:
-                self.diff = (-(self.original.genes - self.individuals[0].genes)).astype('float64')
+                self.diff = (-(self.original.genes - self.individuals[0].genes))
             fitness = self.individuals[-1].fitness
             history.append(fitness)
             if self.stop:
