@@ -24,7 +24,7 @@ class FloatPool:
 
     def generate(self):
         if self.default is not None:
-            genes = NPCP.asarray([self.default]*self.length)
+            genes = NPCP.full(self.length, self.default)
         else:
             genes = NPCP.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
         return Individual(genes, self.fitness_function)
