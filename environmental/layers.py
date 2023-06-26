@@ -16,8 +16,9 @@ class Populate:
         self.population = population
 
     def run(self, individuals, environment):
+        individuals = list(individuals) # TODO fix the need for this...
         while len(individuals) < self.population:
-            individuals = np.append(individuals, self.gene_pool.generate())
+            individuals.append(self.gene_pool.generate())
         return individuals
 
 
@@ -98,7 +99,7 @@ class Kill:
         self.now = 0
 
     def run(self, individuals, environment):
-        data = individuals[:int(individuals.size * (1 - self.percent))]
+        data = individuals[:int(len(individuals) * (1 - self.percent))]
         return data
 
 
@@ -209,7 +210,7 @@ class FloatMutateAmount(MutateAmount):
         return individual
 
     def run(self, individuals, environment):
-        self.amount_individuals = min(individuals.size, self.amount_individuals)
+        self.amount_individuals = min(len(individuals), self.amount_individuals)
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
             individual = self.mutate_one(individual)
@@ -234,7 +235,7 @@ class IntMutateAmount(MutateAmount):
         return individual
 
     def run(self, individuals, environment):
-        self.amount_individuals = min(individuals.size, self.amount_individuals)
+        self.amount_individuals = min(len(individuals), self.amount_individuals)
         selected_individuals = self.selection_function(individuals, self.amount_individuals)
         for individual in selected_individuals:
             individual = self.mutate_one(individual)

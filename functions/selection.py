@@ -1,7 +1,4 @@
-import numpy as np
-
-# Try importing CuPy
-
+import random
 
 
 # Define the selection functions
@@ -10,7 +7,7 @@ def tournament_selection(individuals, num_selections, tournament_size):
     selected_individuals = []
 
     for _ in range(num_selections):
-        tournament_individuals = np.random.choice(individuals, size=tournament_size, replace=False)
+        tournament_individuals = random.sample(individuals, k=tournament_size)
         winner = max(tournament_individuals, key=lambda individual: individual.fitness)
         selected_individuals.append(winner)
 
@@ -18,56 +15,22 @@ def tournament_selection(individuals, num_selections, tournament_size):
 
 
 def random_selection(individuals, num_selections):
-    selected_individuals = np.random.choice(individuals, size=num_selections)
+    selected_individuals = random.choices(individuals, k=num_selections)
     return selected_individuals
 
 
 def rank_based_selection(individuals, factor):
-    population_size = individuals.size
-    ranks = np.arange(1, population_size + 1)
+    population_size = len(individuals)
+    ranks = list(range(1, population_size + 1))
 
     # Adjusted formula to assign higher probabilities to lower ranks
-    selection_probs = np.exp(-factor * ranks / population_size)
+    selection_probs = [pow(2.71828, -factor * rank / population_size) for rank in ranks]
 
     # Normalize probabilities
-    selection_probs /= np.sum(selection_probs)
+    sum_probs = sum(selection_probs)
+    selection_probs = [prob / sum_probs for prob in selection_probs]
 
-    selected_indices = np.random.choice(population_size, size=population_size, p=selection_probs)
-    selected_individuals = individuals[selected_indices]
+    selected_indices = random.choices(range(population_size), weights=selection_probs, k=population_size)
+    selected_individuals = [individuals[i] for i in selected_indices]
 
     return selected_individuals
-
-
-if __name__ == '__main__':  # thanks to chatgpt for this!
-    # Example usage
-
-    # Generate some dummy individuals
-    class Individual:
-        def __init__(self, fitness):
-            self.fitness = fitness
-
-
-    individuals = np.array(
-        [Individual(fitness) for fitness in [100, 100, 10, 7, 5, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]])
-
-    # Tournament selection
-    tournament_size = 3
-    num_selections = 2
-    selected_tournament = tournament_selection(individuals, num_selections, tournament_size)
-    print("Tournament Selection:")
-    for individual in selected_tournament:
-        print(individual.fitness)
-
-    # Random selection
-    num_selections = 3
-    selected_random = random_selection(individuals, num_selections)
-    print("\nRandom Selection:")
-    for individual in selected_random:
-        print(individual.fitness)
-
-    # Rank-based selection
-    factor = -10
-    selected_rank_based = rank_based_selection(individuals, factor)
-    print("\nRank-based Selection:")
-    for individual in selected_rank_based:
-        print(individual.fitness)

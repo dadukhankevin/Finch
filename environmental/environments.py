@@ -4,12 +4,11 @@ import numpy as np
 
 from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 
-
 class Sequential:
     def __init__(self, layers, individuals=None):
         if individuals is None:
             individuals = []
-        self.individuals = np.asarray(individuals)
+        self.individuals = individuals
         self.layers = layers
         self.stop = False
         self.original = None
@@ -24,12 +23,10 @@ class Sequential:
             if verbose_every and i % verbose_every == 0:
                 print(f"Generation {i + 1}/{generations}. Max fitness: {fitness}. Population: {len(self.individuals)}")
             for layer in self.layers:
-                print("b ",self.individuals.__class__)
                 self.individuals = layer.run(self.individuals, self)
-                print(self.individuals.__class__)
             if callback:
                 callback(self.individuals, self)
-            if self.individuals.size == 0:
+            if len(self.individuals) == 0:
                 raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
             if self.original is None:
                 self.original = self.individuals[0]
