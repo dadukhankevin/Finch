@@ -36,7 +36,7 @@ class Sequential:
                 self.original = self.individuals[0]
             print("o", self.original.__class__)
             if track_float_diff_every and i % track_float_diff_every == 0:
-                self.diff = -(self.original.genes - self.individuals[0].genes)
+                self.diff = (-(self.original.genes - self.individuals[0].genes)).astype('float64')
             fitness = self.individuals[-1].fitness
             history.append(fitness)
             if self.stop:
