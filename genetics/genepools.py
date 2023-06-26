@@ -15,14 +15,18 @@ class DefaultPool:
 
 
 class FloatPool:
-    def __init__(self, minimum_float, maximum_float, length: int, fitness_function):
+    def __init__(self, minimum_float, maximum_float, length: int, fitness_function, default=None):
         self.minimum_gene = minimum_float
         self.maximum_gene = maximum_float
         self.length = length
         self.fitness_function = fitness_function
+        self.default = default
 
     def generate(self):
-        genes = NPCP.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
+        if self.default is not None:
+            genes = NPCP.full(self.length, self.default)
+        else:
+            genes = NPCP.random.uniform(self.minimum_gene, self.maximum_gene, size=self.length)
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
