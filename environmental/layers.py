@@ -321,3 +321,12 @@ class FloatMomentumMutation:
                     environment.original = environment.individuals[0]
                 individual.fit()
         return individuals
+
+class BestChildParenting:
+    def __init__(self, num_children, num_families, selection):
+        self.num_children = num_children
+        self.num_families = num_families
+        self.selection_function = selection
+
+    def run(self, individuals, environment):
+        selected_individuals = selection.select(individuals, environment, self)

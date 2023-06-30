@@ -77,3 +77,12 @@ def parent_by_gene_segmentation(parent1, parent2, gene_size=2):
     child = np.concatenate(segments)
 
     return Individual(child, parent1.fitness_function)
+
+def smart_crossover(parent1, parent2, baseline):
+    parent1_genes = parent1.genes
+    parent2_genes = parent2.genes
+    new_genes = np.array([]) # but make this the same size as parent1.genes
+    # find the 50% indicies of parent1_genes that are the most different from the baseline
+    # do the same thing of parent2_genes but make sure NONE of the indicies are the same as the ones selected from parent1
+    # select enough to fill
+    # Place the values of the genes into the new_genes using these indicies
