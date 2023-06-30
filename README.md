@@ -5,8 +5,22 @@
 Finch is a genetic algorithm framework. 
 Genetic algorithms are types of algorithms that mimic natural evolution to evolve 
 solutions to problems. This is not to be confused with machine learning, they are not the same!
-
 ## Why Finch?
+- Simple, easy to use
+- All major functionalities are in seperate layers
+- Easy to make custom layers
+- GPU support can speed up GAs drastically
+- Specify any crossover function, fitness function, or selection function
+- Very modular
+- Support for most types of genes:
+  - floats
+  - ints
+  - strings
+  - Keras weights * 
+  - Pytorch weights *
+  - Tensorflow weights *
+  - Objects
+## What is a genetic algorithm?
 There are very few genetic algorithm frameworks out there. Finch aims to fill the void. 
 Finch is simple, fast, and very customizable. It is modeled after Keras (the ML library) for its eas of use.
 Before we get into examples, lets go over what a genetic algorithms consist of.
@@ -84,3 +98,19 @@ Which prints a list of mostly the letter "a".
  ```
 
 Congratulations! Your first genetic algorithm.
+
+### Roadmap
+- Set up a socket server (or something) to allow Finch to control elements of non-python environments like Unity or Unreal
+- Better support of LLMs
+- Mutation of Prompts (MoP) - specific to Finch
+- Mutation Sharing (more on that later)
+- Q# library (eventually) for quantum computing
+- Better parallelization 
+- Adversarial environments (soon)
+- lists, tuples, and dictionaries as genes (possible if you make your own class) (soon)
+- Consistent selection, crossover, and parenting functions (soon)
+- AutoGA (similar to AutoML) (soonish)
+- LLM pruning (long term)
+- Better support for problems like traveling salesperson (soon) possible already
+- Genetic Prompt Injection (just an idea 🤔)
+- lots, lots more...
