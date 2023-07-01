@@ -51,6 +51,21 @@ class MutateAmount:
         return individual
 
 
+class FloatMutateAmountUniform(MutateAmount):
+    def __init__(self, amount_individuals, amount_genes, gene_pool, max_mutation=0.1
+                 , refit=True, selection_function=randomSelect.select):
+        super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
+        self.max_mutation = rates.make_callable(max_mutation)
+
+    def mutate_one(self, individual):
+        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
+        mutation = NPCP.random.uniform(-self.max_mutation(), self.max_mutation())
+        mutated_genes = individual.genes.copy()
+        mutated_genes[random_indices] += mutation
+        individual.genes = mutated_genes
+        return individual
+
+
 class KillRandom:
     def __init__(self, num_kill, selection_function):
         self.num_kill = rates.make_callable(num_kill)
@@ -309,7 +324,7 @@ class ParentBestChild:
 
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
-                                                               environment=environment, layer=self)
+                                                    environment=environment, layer=self)
         return individuals
 
 
