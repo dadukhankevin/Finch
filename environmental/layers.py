@@ -5,10 +5,13 @@ import numpy as np
 # Try importing CuPy
 
 
-from Finch.functions import crossover, selection
+from Finch.functions import parenting, selection
 
 from Finch.genetics.population import NPCP
 from Finch.tools import rates
+
+randomSelect = selection.RandomSelection()
+
 
 class Populate:
     def __init__(self, gene_pool, population):
@@ -16,15 +19,17 @@ class Populate:
         self.population = rates.make_callable(population)
 
     def run(self, individuals, environment):
-        individuals = list(individuals) # TODO fix the need for this...
+        individuals = list(individuals)  # TODO fix the need for this...
         while len(individuals) < self.population():
             individuals.append(self.gene_pool.generate())
+        if environment.original is None:
+            environment.original = individuals[0].genes
         return individuals
 
 
 class MutateAmount:
     def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
-                 selection_function=selection.random_selection):
+                 selection_function=randomSelect.select):
         self.amount_individuals = rates.make_callable(amount_individuals)
         self.amount_genes = rates.make_callable(amount_genes)
         self.gene_pool = gene_pool
@@ -33,7 +38,7 @@ class MutateAmount:
 
     def run(self, individuals, environment):
         self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
+        selected_individuals = self.selection_function(individuals=individuals, amount=self.amount_individuals())
         for individual in selected_individuals:
             individual = self.mutate_one(individual)
             if self.refit:
@@ -44,33 +49,6 @@ class MutateAmount:
         random_indices = NPCP.random.choice(len(individual.genes), self.amount_genes(), replace=False)
         individual.genes[random_indices] = self.gene_pool.generate_genes(self.amount_genes())
         return individual
-
-
-class Parent:
-    def __init__(self, num_children, num_families, selection_function=selection.random_selection,
-                 crossover_function=crossover.parent_by_gene_segmentation, gene_size=None):
-        self.num_children = rates.make_callable(num_children)
-        self.num_families = rates.make_callable(num_families)
-        self.gene_size = rates.make_callable(gene_size)  # TODO: figure out a better way to do this
-
-        self.selection_function = selection_function
-        self.crossover_function = crossover_function
-
-    def run(self, individuals, environment):
-        to_parent = self.selection_function(individuals, self.num_families() * 2)
-        new_individuals = []
-        for parent1, parent2 in zip(to_parent[::2], to_parent[1::2]):
-            for i in range(self.num_children()):
-                if self.gene_size():
-                    new_ind = self.crossover_function(parent1, parent2, self.gene_size())
-                    new_ind.fit()
-                    new_individuals.append(new_ind)
-                else:
-                    new_ind = self.crossover_function(parent1, parent2)
-                    new_ind.fit()
-                    new_individuals.append(new_ind)
-        individuals += new_individuals
-        return individuals
 
 
 class KillRandom:
@@ -103,7 +81,7 @@ class Kill:
 
 
 class DuplicateRandom:
-    def __init__(self, num_duplicate, selection_function=selection.random_selection):
+    def __init__(self, num_duplicate, selection_function=randomSelect.select):
         self.num_duplicate = rates.make_callable(num_duplicate)
         self.selection_function = selection_function
 
@@ -148,7 +126,7 @@ class CapPopulation:
 
 class OverPoweredMutation(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function=selection.random_selection):
+                 selection_function=randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, False)
         self.tries = rates.make_callable(tries)
         self.selection_function = selection_function
@@ -194,7 +172,7 @@ class Controller:
 class FloatMutateAmount(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
-                 , refit=True, selection_function=selection.random_selection):
+                 , refit=True, selection_function=randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
@@ -202,7 +180,7 @@ class FloatMutateAmount(MutateAmount):
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
         mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
-                                               size=self.amount_genes())
+                                       size=self.amount_genes())
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -220,11 +198,10 @@ class FloatMutateAmount(MutateAmount):
 
 class IntMutateAmount(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, min_mutation=-1, max_mutation=1
-                 , refit=True, selection_function=selection.random_selection):
+                 , refit=True, selection_function=randomSelect.select):
         super().__init__(rates.make_callable(amount_individuals), amount_genes, gene_pool, refit, selection_function)
         self.min_mutation = rates.make_callable(min_mutation)
         self.max_mutation = rates.make_callable(max_mutation)
-
 
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
@@ -246,7 +223,7 @@ class IntMutateAmount(MutateAmount):
 
 class IntOverPoweredMutation(OverPoweredMutation):
     def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function=selection.random_selection):
+                 selection_function=randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
 
     def mutate_one(self, individual):
@@ -273,14 +250,15 @@ class IntOverPoweredMutation(OverPoweredMutation):
 class FloatOverPoweredMutation(OverPoweredMutation):
     def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
-                 , tries=1, selection_function=selection.random_selection):
+                 , tries=1, selection_function=randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
 
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(), size=self.amount_genes())
+        mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
+                                       size=self.amount_genes())
         mutated_genes = individual.genes.copy()
         mutated_genes[random_indices] += mutation
         individual.genes = mutated_genes
@@ -301,32 +279,43 @@ class FloatOverPoweredMutation(OverPoweredMutation):
 
 class FloatMomentumMutation:
     def __init__(self, divider, amount_individuals, amount_genes, execute_every=1,
-                 selection_function=selection.rank_based_selection, selection_arg=1, reset_baseline=False):
+                 selection_function=randomSelect.select, reset_baseline=False):
         self.divider = rates.make_callable(divider)
         self.amount_individuals = rates.make_callable(amount_individuals)
         self.amount_genes = rates.make_callable(amount_genes)
         self.execute_every = rates.make_callable(execute_every)
         self.selection_function = selection_function
-        self.selection_arg = rates.make_callable(selection_arg)
         self.reset_baseline = reset_baseline
 
     def run(self, individuals, environment):
-        selected_individuals = self.selection_function(individuals, self.selection_arg())
+        if not individuals:
+            print("n")
+            return individuals
+        selected_individuals = self.selection_function(individuals, self.amount_individuals())
         if environment.iteration > 0:  # diff will be none until after
             for individual in selected_individuals:
                 random_indices = NPCP.random.permutation(len(individual.genes) - 1)
                 random_indices = random_indices[:self.amount_genes()]
                 individual.genes[random_indices] += (environment.diff[random_indices] / self.divider())
                 if self.reset_baseline:
-                    environment.original = environment.individuals[0]
+                    environment.original = environment.individuals[0].genes
                 individual.fit()
         return individuals
 
-class BestChildParenting:
-    def __init__(self, num_children, num_families, selection):
-        self.num_children = num_children
-        self.num_families = num_families
-        self.selection_function = selection
+
+class ParentBestChild:
+    def __init__(self, num_families, selection_function=randomSelect.select):
+        self.parenting_object = parenting.BestChild(num_families, selection_function)
 
     def run(self, individuals, environment):
-        selected_individuals = selection.select(individuals, environment, self)
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                               environment=environment, layer=self)
+        return individuals
+
+
+class ClassicParentNPoint:
+    def __init__(self, num_families, selection_function=randomSelect.select):
+        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function)
+
+    def run(self, individuals, environment):
+        return individuals.append(self.parenting_object.parent(individuals, environment, self))

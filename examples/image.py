@@ -34,10 +34,10 @@ n = 0
 gene_pool = genepools.FloatPool(0, 1, length=gene_len, fitness_function=fitness_function)
 input()
 environment = environments.Sequential(layers=[
-    layers.Populate(gene_pool=gene_pool, population=4),
+    layers.Populate(gene_pool=gene_pool, population=8),
     layers.FloatOverPoweredMutation(amount_individuals=2, amount_genes=1000, tries=30, gene_pool=gene_pool, max_negative_mutation=-.1, max_positive_mutation=.1),
-    layers.Controller(layers.Parent(num_children=3, num_families=4, selection_function=selection.rank_based_selection), execute_every=5),
-    layers.FloatMomentumMutation(divider=3, amount_individuals=3, amount_genes=3000, execute_every=5, selection_arg=10, reset_baseline=1),
+    layers.ParentBestChild(3),
+    layers.FloatMomentumMutation(divider=3, amount_individuals=3, amount_genes=3000, execute_every=5, reset_baseline=0),
     layers.SortByFitness(),
     layers.Kill(percent=.1),
 ])

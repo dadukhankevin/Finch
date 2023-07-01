@@ -2,15 +2,18 @@ import random
 
 
 class TournamentSelection:
-    def __init__(self, num_selections, tournament_size):
-        self.num_selections = num_selections
-        self.tournament_size = tournament_size
+    # Removed the num_selections and tournament_size parameters from the init
+    def __init__(self):
+        pass
 
-    def select(self, individuals):
+    # Added an amount parameter to the select function
+    def select(self, individuals, amount):
         selected_individuals = []
 
-        for _ in range(self.num_selections):
-            tournament_individuals = random.sample(individuals, k=self.tournament_size)
+        for _ in range(amount):
+            # Use the length of individuals as the tournament size
+            tournament_size = len(individuals)
+            tournament_individuals = random.sample(individuals, k=tournament_size)
             winner = max(tournament_individuals, key=lambda individual: individual.fitness)
             selected_individuals.append(winner)
 
@@ -18,19 +21,23 @@ class TournamentSelection:
 
 
 class RandomSelection:
-    def __init__(self, num_selections):
-        self.num_selections = num_selections
+    # Removed the num_selections parameter from the init
+    def __init__(self):
+        pass
 
-    def select(self, individuals):
-        selected_individuals = random.choices(individuals, k=self.num_selections)
+    # Added an amount parameter to the select function
+    def select(self, individuals, amount):
+        selected_individuals = random.choices(individuals, k=amount)
         return selected_individuals
 
 
 class RankBasedSelection:
+    # Keep the factor parameter in the init
     def __init__(self, factor):
         self.factor = factor
 
-    def select(self, individuals):
+    # Add an amount parameter to the select function
+    def select(self, individuals, amount):
         population_size = len(individuals)
         ranks = list(range(1, population_size + 1))
 
@@ -41,7 +48,9 @@ class RankBasedSelection:
         sum_probs = sum(selection_probs)
         selection_probs = [prob / sum_probs for prob in selection_probs]
 
-        selected_indices = random.choices(range(population_size), weights=selection_probs, k=population_size)
+        # Use the random.choices function with the selection_probs as weights
+        selected_indices = random.choices(range(population_size), weights=selection_probs, k=amount)
         selected_individuals = [individuals[i] for i in selected_indices]
 
         return selected_individuals
+
