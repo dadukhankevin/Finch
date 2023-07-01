@@ -28,8 +28,7 @@ class Sequential:
                 callback(self.individuals, self)
             if len(self.individuals) == 0:
                 raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
-            if self.original is None:
-                self.original = self.individuals[0].genes
+            self.original = self.individuals[0].copy().genes
             if track_float_diff_every and i % track_float_diff_every == 0:
                 self.diff = (-(self.original - self.individuals[0].genes))
             fitness = self.individuals[-1].fitness
