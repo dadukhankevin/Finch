@@ -19,7 +19,7 @@ class Parent:
         return kids
 
 
-class BestChild(Parent):
+class num_childrenhild(Parent):
     def __init__(self, num_families, selection_function):
         super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
@@ -55,8 +55,8 @@ class BestChild(Parent):
 
 
 class SinglePointCrossover(Parent):
-    def __init__(self, num_families, selection_function):
-        super().__init__(num_children=2, num_families=num_families, selection_function=selection_function,
+    def __init__(self, num_families, selection_function, num_children):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
 
     def crossover(self, parent1, parent2, environment, layer):
@@ -67,8 +67,8 @@ class SinglePointCrossover(Parent):
 
 
 class UniformCrossover(Parent):
-    def __init__(self, num_families, selection_function, probability=0.5):
-        super().__init__(num_children=2, num_families=num_families, selection_function=selection_function,
+    def __init__(self, num_families, selection_function, num_children, probability=0.5):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
         self.probability = probability
 
@@ -90,8 +90,8 @@ class UniformCrossover(Parent):
 
 
 class NPointCrossover(Parent):
-    def __init__(self, num_families, selection_function, n):
-        super().__init__(num_children=2, num_families=num_families, selection_function=selection_function,
+    def __init__(self, num_families, selection_function, num_children, n):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
         self.n = n
 
@@ -118,8 +118,8 @@ class NPointCrossover(Parent):
 
 
 class UniformCrossoverMultiple(Parent):
-    def __init__(self, num_families, selection_function):
-        super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
+    def __init__(self, num_families, selection_function, num_children):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
 
     def crossover(self, parent1, parent2, environment, layer):
@@ -136,8 +136,8 @@ class UniformCrossoverMultiple(Parent):
 
 
 class ParentByGeneSegmentation(Parent):
-    def __init__(self, num_families, selection_function, gene_size=2):
-        super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
+    def __init__(self, num_families, selection_function, num_children, gene_size=2):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
         self.gene_size = gene_size
 

@@ -328,9 +328,61 @@ class ParentBestChild:
         return individuals
 
 
+class ParentSinglePointCrossover:
+    def __init__(self, num_families, num_childrem, selection_function=randomSelect.select):
+        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
+                                                               num_childrem)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
+class ParentUniformCrossover:
+    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+        self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
+class ParentNPointCrossover:
+    def __init__(self, num_families, selection_function=randomSelect.select, n=2):
+        self.parenting_object = parenting.NPointCrossover(num_families, selection_function, n)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
+class ParentUniformCrossoverMultiple:
+    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+        self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
+class ParentByGeneSegmentation:
+    def __init__(self, num_families, num_children, selection_function=randomSelect.select, gene_size=2):
+        self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
+                                                                   num_children)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
 class ClassicParentNPoint:
-    def __init__(self, num_families, selection_function=randomSelect.select):
-        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function)
+    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
     def run(self, individuals, environment):
         return individuals.append(self.parenting_object.parent(individuals, environment, self))
