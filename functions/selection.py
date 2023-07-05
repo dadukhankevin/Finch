@@ -1,36 +1,56 @@
 import random
 
 
-# Define the selection functions
+class TournamentSelection:
+    # Removed the num_selections and tournament_size parameters from the init
+    def __init__(self):
+        pass
 
-def tournament_selection(individuals, num_selections, tournament_size):
-    selected_individuals = []
+    # Added an amount parameter to the select function
+    def select(self, individuals, amount):
+        selected_individuals = []
 
-    for _ in range(num_selections):
-        tournament_individuals = random.sample(individuals, k=tournament_size)
-        winner = max(tournament_individuals, key=lambda individual: individual.fitness)
-        selected_individuals.append(winner)
+        for _ in range(amount):
+            # Use the length of individuals as the tournament size
+            tournament_size = len(individuals)
+            tournament_individuals = random.sample(individuals, k=tournament_size)
+            winner = max(tournament_individuals, key=lambda individual: individual.fitness)
+            selected_individuals.append(winner)
 
-    return selected_individuals
-
-
-def random_selection(individuals, num_selections):
-    selected_individuals = random.choices(individuals, k=num_selections)
-    return selected_individuals
+        return selected_individuals
 
 
-def rank_based_selection(individuals, factor):
-    population_size = len(individuals)
-    ranks = list(range(1, population_size + 1))
+class RandomSelection:
+    # Removed the num_selections parameter from the init
+    def __init__(self):
+        pass
 
-    # Adjusted formula to assign higher probabilities to lower ranks
-    selection_probs = [pow(2.71828, -factor * rank / population_size) for rank in ranks]
+    # Added an amount parameter to the select function
+    def select(self, individuals, amount):
+        selected_individuals = random.choices(individuals, k=amount)
+        return selected_individuals
 
-    # Normalize probabilities
-    sum_probs = sum(selection_probs)
-    selection_probs = [prob / sum_probs for prob in selection_probs]
 
-    selected_indices = random.choices(range(population_size), weights=selection_probs, k=population_size)
-    selected_individuals = [individuals[i] for i in selected_indices]
+class RankBasedSelection:
+    # Keep the factor parameter in the init
+    def __init__(self, factor):
+        self.factor = factor
 
-    return selected_individuals
+    # Add an amount parameter to the select function
+    def select(self, individuals, amount):
+        population_size = len(individuals)
+        ranks = list(range(1, population_size + 1))
+
+        # Adjusted formula to assign higher probabilities to lower ranks
+        selection_probs = [pow(2.71828, -self.factor * rank / population_size) for rank in ranks]
+
+        # Normalize probabilities
+        sum_probs = sum(selection_probs)
+        selection_probs = [prob / sum_probs for prob in selection_probs]
+
+        # Use the random.choices function with the selection_probs as weights
+        selected_indices = random.choices(range(population_size), weights=selection_probs, k=amount)
+        selected_individuals = [individuals[i] for i in selected_indices]
+
+        return selected_individuals
+

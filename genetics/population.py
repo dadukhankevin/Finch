@@ -1,5 +1,8 @@
 import numpy as np
+
 cp = None
+set = False
+
 # Try importing CuPy
 try:
     import cupy as cp
@@ -7,21 +10,25 @@ try:
     # Check if GPU is available
     if cp.cuda.runtime.getDeviceCount() > 0:
         print("GPU detected. Using CuPy.")
-
-        array_module = cp
         NPCP = cp
     else:
         print("GPU not detected. Using NumPy.")
         cp = np
-        array_module = np
+        NPCP = np
 
 except ImportError:
     print("CuPy not found. Using NumPy.")
-    array_module = np
-set = False
+    NPCP = np
+
+
+def force_gpu_off():
+    global NPCP
+    import numpy as np
+    NPCP = np
 
 
 def can_use_cupy(array):
+    global set
     set = True
     # Check if the data type of the array is compatible with CuPy
     if np.issubdtype(array.dtype, np.number):
@@ -34,15 +41,9 @@ def can_use_cupy(array):
         return False
 
 
-NPCP = array_module
-
-
 class Individual:
     def __init__(self, genes, fitness_function):
-        global NPCP
-        if set == False and cp and can_use_cupy(genes):
-            NPCP = cp
-        self.genes = NPCP.asarray(genes)  # Not sure if this will make it ineficiant if it already is the right type?
+        self.genes = NPCP.asarray(genes)  # Not sure if this will make it inefficient if it already is the right type?
         # TODO
         self.fitness = 0
         self.fitness_function = fitness_function
