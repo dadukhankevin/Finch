@@ -21,7 +21,7 @@ class Populate:
     def run(self, individuals, environment):
         individuals = list(individuals)  # TODO fix the need for this...
         while len(individuals) < self.population():
-            individuals.append(self.gene_pool.generate())
+            individuals += [self.gene_pool.generate()]
         if environment.original is None:
             environment.original = individuals[0].genes
         return individuals
@@ -385,4 +385,6 @@ class Parent:
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
     def run(self, individuals, environment):
-        return individuals.append(self.parenting_object.parent(individuals, environment, self))
+        new = self.parenting_object.parent(individuals, environment, self)
+        individuals += new
+        return individuals

@@ -15,11 +15,13 @@ class Parent:
         for i in range(self.num_families):
             parents = self.selection_function(individuals, 2)
             for j in range(self.num_children):
-                kids.append(self.parent_function(parents[0], parents[1], environment, layer))
+                kids += self.parent_function(parents[0], parents[1], environment, layer)
+        for kid in kids:
+            kid.fit()
         return kids
 
 
-class num_childrenhild(Parent):
+class BestChild(Parent):
     def __init__(self, num_families, selection_function):
         super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
@@ -48,7 +50,7 @@ class num_childrenhild(Parent):
         # Place the values of the genes into the new_genes using these indices
         new_genes[indices1] = parent1_genes[indices1]  # copy the genes from parent1 using indices1
         new_genes[indices2] = parent2_genes[indices2]  # copy the genes from parent2 using indices2
-        return Individual(new_genes, parent1.fitness_function)
+        return [Individual(new_genes, parent1.fitness_function)]
 
     def crossover(self, parent1, parent2, environment, layer):
         return self.best_child(parent1, parent2, environment.original)
@@ -61,9 +63,10 @@ class SinglePointCrossover(Parent):
 
     def crossover(self, parent1, parent2, environment, layer):
         point = random.randint(1, len(parent1.genes) - 1)
-        offspring1 = Individual(parent1.genes[:point] + parent2.genes[point:], parent1.fitness_function)
-        offspring2 = Individual(parent2.genes[:point] + parent1.genes[point:], parent2.fitness_function)
-        return offspring1, offspring2
+        offspring1 = Individual(np.append(parent1.genes[:point], parent2.genes[point:]), parent1.fitness_function)
+        offspring2 = Individual(np.append(parent2.genes[:point], parent1.genes[point:]), parent2.fitness_function)
+
+        return [offspring1, offspring2]
 
 
 class UniformCrossover(Parent):
