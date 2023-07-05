@@ -380,7 +380,7 @@ class ParentByGeneSegmentation:
         return individuals
 
 
-class ClassicParentNPoint:
+class Parent:
     def __init__(self, num_families, num_children, selection_function=randomSelect.select):
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
