@@ -69,7 +69,7 @@ gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm", length=20, fitnes
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
     layers.MutateAmount(amount_individuals=4, amount_genes=3, gene_pool=gene_pool),
-    layers.Parent(num_children=2, num_families=4, selection_function=selection.random_selection),
+    layers.Parent(num_children=2, num_families=4),
     layers.SortByFitness(),
     layers.Kill(percent=.3),
 ])
