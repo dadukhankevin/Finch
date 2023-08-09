@@ -191,7 +191,7 @@ class FloatMutateAmount(MutateAmount):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
-
+        self.amount_individuals = rates.make_callable(amount_individuals)
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
         mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
@@ -288,7 +288,8 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                 copied.fit()
                 if copied.fitness > individual.fitness:
                     individual.genes = copied.genes
-                    individual.fit()
+                    individual.fit() #TODO: I feel like this should be = copied.fitness
+                    break
         return individuals
 
 
