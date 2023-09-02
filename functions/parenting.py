@@ -35,6 +35,7 @@ class BestChild(Parent):
         :param baseline: The individual without any mutations, like a first generation that was not randomly initialized
         :return:
         """
+
         parent1_genes = np.array(parent1.genes)
         parent2_genes = np.array(parent2.genes)
         new_genes = np.zeros_like(parent1_genes)  # create an array of zeros with the same shape as parent1_genes
@@ -53,7 +54,8 @@ class BestChild(Parent):
         return [Individual(new_genes, parent1.fitness_function)]
 
     def crossover(self, parent1, parent2, environment, layer):
-        return self.best_child(parent1, parent2, environment.original)
+        if environment.iteration > 0:
+            return self.best_child(parent1, parent2, environment.original)
 
 
 class SinglePointCrossover(Parent):
@@ -116,6 +118,8 @@ class NPointCrossover(Parent):
             end = points[i + 1] if i + 1 < len(points) else len(parent1.genes)
             offspring1.genes[start:end], offspring2.genes[start:end] = offspring2.genes[start:end], offspring1.genes[
                                                                                                     start:end]
+        offspring1.fit()
+        offspring2.fit()
 
         return offspring1, offspring2
 
