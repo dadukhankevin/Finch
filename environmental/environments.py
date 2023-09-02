@@ -14,9 +14,9 @@ class Sequential:
         self.original = None
         self.diff = None
         self.iteration = 0
+        self.history = []
 
     def evolve(self, generations: int, callback=None, verbose_every=False, track_float_diff_every=False):
-        history = []
         fitness = 0
         for i in range(generations):
             self.iteration = i
@@ -31,11 +31,11 @@ class Sequential:
             self.original = self.individuals[0].copy().genes
             if track_float_diff_every and i % track_float_diff_every == 0:
                 self.diff = (-(self.original - self.individuals[0].genes))
-            fitness = self.individuals[-1].fitness
-            history.append(fitness)
+            fitness = self.individuals[0].fitness
+            self.history.append(fitness)
             if self.stop:
-                return self.individuals, history
-        return self.individuals, history
+                return self.individuals, self.history
+        return self.individuals, self.history
 
     def stop(self):
         self.stop = True

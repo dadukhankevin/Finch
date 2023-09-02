@@ -21,7 +21,9 @@ class Populate:
     def run(self, individuals, environment):
         individuals = list(individuals)  # TODO fix the need for this...
         while len(individuals) < self.population():
-            individuals += [self.gene_pool.generate()]
+            new = self.gene_pool.generate()
+            new.fit()
+            individuals += [new]
         if environment.original is None:
             environment.original = individuals[0].genes
         return individuals
@@ -191,7 +193,7 @@ class FloatMutateAmount(MutateAmount):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
-
+        self.amount_individuals = rates.make_callable(amount_individuals)
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
         mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
@@ -217,6 +219,8 @@ class IntMutateAmount(MutateAmount):
         super().__init__(rates.make_callable(amount_individuals), amount_genes, gene_pool, refit, selection_function)
         self.min_mutation = rates.make_callable(min_mutation)
         self.max_mutation = rates.make_callable(max_mutation)
+        self.amount_individuals = rates.make_callable(amount_individuals)
+
 
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
@@ -227,7 +231,7 @@ class IntMutateAmount(MutateAmount):
         return individual
 
     def run(self, individuals, environment):
-        self.amount_individuals = min(len(individuals), self.amount_individuals())
+        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
         for individual in selected_individuals:
             individual = self.mutate_one(individual)
@@ -288,7 +292,8 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                 copied.fit()
                 if copied.fitness > individual.fitness:
                     individual.genes = copied.genes
-                    individual.fit()
+                    individual.fit() #TODO: I feel like this should be = copied.fitness
+                    break
         return individuals
 
 
@@ -350,8 +355,8 @@ class ParentUniformCrossover:
 
 
 class ParentNPointCrossover:
-    def __init__(self, num_families, selection_function=randomSelect.select, n=2):
-        self.parenting_object = parenting.NPointCrossover(num_families, selection_function, n)
+    def __init__(self, num_families, num_children, selection_function=randomSelect.select, n=2):
+        self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
 
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
@@ -388,3 +393,9 @@ class Parent:
         new = self.parenting_object.parent(individuals, environment, self)
         individuals += new
         return individuals
+
+class RemoveAllButBest:
+    def __init__(self):
+        pass
+    def run(self, individuals, environment):
+        return [individuals[0]]
