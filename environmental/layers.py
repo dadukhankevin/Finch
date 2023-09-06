@@ -19,7 +19,7 @@ class Populate:
         self.population = rates.make_callable(population)
 
     def run(self, individuals, environment):
-        individuals = list(individuals)  # TODO fix the need for this...
+        individuals = list(individuals)  # TODO fix the need for this... Is this fixed???? I have no idea
         while len(individuals) < self.population():
             new = self.gene_pool.generate()
             new.fit()
@@ -39,7 +39,7 @@ class MutateAmount:
         self.selection_function = selection_function
 
     def run(self, individuals, environment):
-        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))
+        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals())) #TODO: fix
         selected_individuals = self.selection_function(individuals=individuals, amount=self.amount_individuals())
         for individual in selected_individuals:
             individual = self.mutate_one(individual)
@@ -48,8 +48,9 @@ class MutateAmount:
         return individuals
 
     def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(len(individual.genes), self.amount_genes(), replace=False)
-        individual.genes[random_indices] = self.gene_pool.generate_genes(self.amount_genes())
+        amount = self.amount_genes()
+        random_indices = NPCP.random.choice(len(individual.genes), amount, replace=False)
+        individual.genes[random_indices] = self.gene_pool.generate_genes(amount)
         return individual
 
 
@@ -181,7 +182,7 @@ class Controller:
         self.n += 1
         if self.delay() <= self.n <= self.end:
             if self.every() % self.n == 0:
-                for i in range(self.repeat()):
+                for i in range(self.repeat()+1):
                     individuals = self.layer.run(individuals, environment)
         return individuals
 
@@ -194,6 +195,7 @@ class FloatMutateAmount(MutateAmount):
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
         self.amount_individuals = rates.make_callable(amount_individuals)
+
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
         mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
@@ -220,7 +222,6 @@ class IntMutateAmount(MutateAmount):
         self.min_mutation = rates.make_callable(min_mutation)
         self.max_mutation = rates.make_callable(max_mutation)
         self.amount_individuals = rates.make_callable(amount_individuals)
-
 
     def mutate_one(self, individual):
         random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
@@ -292,7 +293,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
                 copied.fit()
                 if copied.fitness > individual.fitness:
                     individual.genes = copied.genes
-                    individual.fit() #TODO: I feel like this should be = copied.fitness
+                    individual.fit()  # TODO: I feel like this should be = copied.fitness
                     break
         return individuals
 
@@ -326,6 +327,16 @@ class FloatMomentumMutation:
 class ParentBestChild:
     def __init__(self, num_families, selection_function=randomSelect.select):
         self.parenting_object = parenting.BestChild(num_families, selection_function)
+
+    def run(self, individuals, environment):
+        individuals += self.parenting_object.parent(individuals=individuals,
+                                                    environment=environment, layer=self)
+        return individuals
+
+
+class ParentBestChildBinary:
+    def __init__(self, num_families, selection_function=randomSelect.select):
+        self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
 
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
@@ -394,8 +405,10 @@ class Parent:
         individuals += new
         return individuals
 
+
 class RemoveAllButBest:
     def __init__(self):
         pass
+
     def run(self, individuals, environment):
         return [individuals[0]]

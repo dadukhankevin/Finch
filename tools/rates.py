@@ -10,16 +10,23 @@ class Rate:
         :param epochs: The number of epochs to reach the target value
         :param return_int: Whether to return only integers
         """
+        self.start = start
         self.value = start  # use a more descriptive name than start
         self.end = end
         self.epochs = epochs
         self.change_rate = (end - start) / epochs  # use underscores for variable names
+        print(self.change_rate)
         self.return_int = return_int  # use the same name as the parameter
 
     def next(self):
         # return the current value and update it by the change rate
+        if self.value < self.end < self.start:
+            return self.end
+        if self.value > self.end > self.start:
+            return self.end
         result = self.value
         self.value += self.change_rate
+
         if self.return_int:
             return int(result)
         return result

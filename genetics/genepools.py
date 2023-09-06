@@ -58,7 +58,7 @@ class BinaryPool:
         return Individual(genes, self.fitness_function)
 
     def generate_genes(self, num_genes):
-        return NPCP.random.randint(0, 2, size=(num_genes, self.length))
+        return NPCP.random.randint(0, 2, size=num_genes)
 
 
 class StringPool:

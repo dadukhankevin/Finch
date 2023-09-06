@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from Finch.functions import selection
 rank = selection.RankBasedSelection(2)
 history = {}
+
 def fit(individual):
     global history
     score = 0
@@ -27,7 +28,7 @@ gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=100,
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
     layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
-    layers.ParentSinglePointCrossover(2, 2, rank.select),
+    layers.ParentBestChildBinary(5, rank.select),
     layers.SortByFitness(),
     layers.CapPopulation(max_population=39),
 ])
