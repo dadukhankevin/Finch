@@ -68,8 +68,9 @@ v_low_c = environments.Sequential(layers=[
     layers.CapPopulation(3),
 ], name="ultra low population (3)")
 
-env = environments.Adversarial([no_m, no_p, standard, low_c, v_low_c, duplicate], 2000, 50)
-env.evolve()
+env = environments.Adversarial([no_m, no_p, standard, low_c, v_low_c, duplicate],"adversarial")
+env.compile(verbose_every=1000)
+env.evolve(2000)
 # print(env.history[-1])
 # print(env.individuals[-1].genes)
 # plt.plot(env.history)

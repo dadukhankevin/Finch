@@ -1,20 +1,23 @@
 import math
-
 import numpy as np
-
-# Try importing CuPy
-
-
 from Finch.functions import parenting, selection
-
-from Finch.genetics.population import NPCP
+from Finch.genetics.population import NPCP, Individual
 from Finch.tools import rates
-
+from Finch.functions.selection import Select
 randomSelect = selection.RandomSelection()
 
 
-class Populate:
+class Layer:
+    def __init__(self):
+        pass
+
+    def run(self, individuals: list[Individual], environment: any):
+        pass
+
+
+class Populate(Layer):
     def __init__(self, gene_pool, population):
+        super().__init__()
         self.gene_pool = gene_pool
         self.population = rates.make_callable(population)
 
@@ -24,14 +27,13 @@ class Populate:
             new = self.gene_pool.generate()
             new.fit()
             individuals += [new]
-        if environment.original is None:
-            environment.original = individuals[0].genes
         return individuals
 
 
-class MutateAmount:
-    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
-                 selection_function=randomSelect.select):
+class MutateAmount(Layer):
+    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True, 
+                 selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.amount_individuals = rates.make_callable(amount_individuals)
         self.amount_genes = rates.make_callable(amount_genes)
         self.gene_pool = gene_pool
@@ -39,7 +41,7 @@ class MutateAmount:
         self.selection_function = selection_function
 
     def run(self, individuals, environment):
-        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals())) #TODO: fix
+        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))  # TODO: fix
         selected_individuals = self.selection_function(individuals=individuals, amount=self.amount_individuals())
         for individual in selected_individuals:
             individual = self.mutate_one(individual)
@@ -56,7 +58,7 @@ class MutateAmount:
 
 class FloatMutateAmountUniform(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, max_mutation=0.1
-                 , refit=True, selection_function=randomSelect.select):
+                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_mutation = rates.make_callable(max_mutation)
 
@@ -69,8 +71,9 @@ class FloatMutateAmountUniform(MutateAmount):
         return individual
 
 
-class KillRandom:
+class KillRandom(Layer):
     def __init__(self, num_kill, selection_function):
+        super().__init__()
         self.num_kill = rates.make_callable(num_kill)
         self.selection_function = selection_function
 
@@ -82,13 +85,12 @@ class KillRandom:
         return individuals
 
 
-class Kill:
+class Kill(Layer):
     def __init__(self, percent):
         """
         :param percent: The percent to kill (picks from the worst)
-        :param every: Do this every n epochs
-        :param delay: Do this after n epochs
         """
+        super().__init__()
         self.name = "kill"
         self.percent = rates.make_callable(percent)
         self.now = 0
@@ -98,8 +100,9 @@ class Kill:
         return data
 
 
-class DuplicateRandom:
-    def __init__(self, num_duplicate, selection_function=randomSelect.select):
+class DuplicateRandom(Layer):
+    def __init__(self, num_duplicate, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.num_duplicate = rates.make_callable(num_duplicate)
         self.selection_function = selection_function
 
@@ -111,8 +114,9 @@ class DuplicateRandom:
         return individuals
 
 
-class RemoveDuplicatesFromTop:
+class RemoveDuplicatesFromTop(Layer):
     def __init__(self, top_n):
+        super().__init__()
         self.top_n = rates.make_callable(top_n)
 
     def run(self, individuals, environment):
@@ -124,9 +128,9 @@ class RemoveDuplicatesFromTop:
         return unique_individuals
 
 
-class SortByFitness:
+class SortByFitness(Layer):
     def __init__(self):
-        pass
+        super().__init__()
 
     def run(self, individuals, environment):
         sorted_individuals = sorted(individuals, key=lambda x: -x.fitness)
@@ -134,8 +138,9 @@ class SortByFitness:
         return np.asarray(sorted_individuals)
 
 
-class CapPopulation:
+class CapPopulation(Layer):
     def __init__(self, max_population):
+        super().__init__()
         self.max_population = rates.make_callable(max_population)
 
     def run(self, individuals, environment):
@@ -144,7 +149,7 @@ class CapPopulation:
 
 class OverPoweredMutation(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function=randomSelect.select):
+                 selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, False)
         self.tries = rates.make_callable(tries)
         self.selection_function = selection_function
@@ -161,16 +166,18 @@ class OverPoweredMutation(MutateAmount):
         return individuals
 
 
-class Function:
+class Function(Layer):
     def __init__(self, function):
+        super().__init__()
         self.function = function
 
     def run(self, individuals, environment):
         return self.function(individuals)
 
 
-class Controller:
+class Controller(Layer):
     def __init__(self, layer, execute_every=1, repeat=1, delay=0, stop_at=math.inf):
+        super().__init__()
         self.layer = layer
         self.every = rates.make_callable(execute_every)
         self.delay = rates.make_callable(delay)
@@ -182,7 +189,7 @@ class Controller:
         self.n += 1
         if self.delay() <= self.n <= self.end:
             if self.every() % self.n == 0:
-                for i in range(self.repeat()+1):
+                for i in range(self.repeat() + 1):
                     individuals = self.layer.run(individuals, environment)
         return individuals
 
@@ -190,7 +197,7 @@ class Controller:
 class FloatMutateAmount(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
-                 , refit=True, selection_function=randomSelect.select):
+                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
@@ -217,7 +224,7 @@ class FloatMutateAmount(MutateAmount):
 
 class IntMutateAmount(MutateAmount):
     def __init__(self, amount_individuals, amount_genes, gene_pool, min_mutation=-1, max_mutation=1
-                 , refit=True, selection_function=randomSelect.select):
+                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(rates.make_callable(amount_individuals), amount_genes, gene_pool, refit, selection_function)
         self.min_mutation = rates.make_callable(min_mutation)
         self.max_mutation = rates.make_callable(max_mutation)
@@ -243,7 +250,7 @@ class IntMutateAmount(MutateAmount):
 
 class IntOverPoweredMutation(OverPoweredMutation):
     def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function=randomSelect.select):
+                 selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
 
     def mutate_one(self, individual):
@@ -270,7 +277,7 @@ class IntOverPoweredMutation(OverPoweredMutation):
 class FloatOverPoweredMutation(OverPoweredMutation):
     def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
-                 , tries=1, selection_function=randomSelect.select):
+                 , tries=1, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
@@ -298,9 +305,10 @@ class FloatOverPoweredMutation(OverPoweredMutation):
         return individuals
 
 
-class FloatMomentumMutation:
-    def __init__(self, divider, amount_individuals, amount_genes, execute_every=1,
-                 selection_function=randomSelect.select, reset_baseline=False):
+class FloatMomentumMutation(Layer): #TODO: de-deprecate
+    def __init__(self, divider, amount_individuals: None, amount_genes, execute_every=1,
+                 selection_function: callable(Select.select) = randomSelect.select, reset_baseline=False):
+        super().__init__()
         self.divider = rates.make_callable(divider)
         self.amount_individuals = rates.make_callable(amount_individuals)
         self.amount_genes = rates.make_callable(amount_genes)
@@ -318,14 +326,14 @@ class FloatMomentumMutation:
                 random_indices = NPCP.random.permutation(len(individual.genes) - 1)
                 random_indices = random_indices[:self.amount_genes()]
                 individual.genes[random_indices] += (environment.diff[random_indices] / self.divider())
-                if self.reset_baseline:
-                    environment.original = environment.individuals[0].genes
+
                 individual.fit()
         return individuals
 
 
-class ParentBestChild:
-    def __init__(self, num_families, selection_function=randomSelect.select):
+class ParentBestChild(Layer):
+    def __init__(self, num_families, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.BestChild(num_families, selection_function)
 
     def run(self, individuals, environment):
@@ -334,8 +342,9 @@ class ParentBestChild:
         return individuals
 
 
-class ParentBestChildBinary:
-    def __init__(self, num_families, selection_function=randomSelect.select):
+class ParentBestChildBinary(Layer):
+    def __init__(self, num_families, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
 
     def run(self, individuals, environment):
@@ -344,8 +353,9 @@ class ParentBestChildBinary:
         return individuals
 
 
-class ParentSinglePointCrossover:
-    def __init__(self, num_families, num_childrem, selection_function=randomSelect.select):
+class ParentSinglePointCrossover(Layer):
+    def __init__(self, num_families, num_childrem, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
                                                                num_childrem)
 
@@ -355,8 +365,9 @@ class ParentSinglePointCrossover:
         return individuals
 
 
-class ParentUniformCrossover:
-    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+class ParentUniformCrossover(Layer):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
 
     def run(self, individuals, environment):
@@ -365,8 +376,9 @@ class ParentUniformCrossover:
         return individuals
 
 
-class ParentNPointCrossover:
-    def __init__(self, num_families, num_children, selection_function=randomSelect.select, n=2):
+class ParentNPointCrossover(Layer):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select, n=2):
+        super().__init__()
         self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
 
     def run(self, individuals, environment):
@@ -375,8 +387,9 @@ class ParentNPointCrossover:
         return individuals
 
 
-class ParentUniformCrossoverMultiple:
-    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+class ParentUniformCrossoverMultiple(Layer):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
 
     def run(self, individuals, environment):
@@ -385,8 +398,9 @@ class ParentUniformCrossoverMultiple:
         return individuals
 
 
-class ParentByGeneSegmentation:
-    def __init__(self, num_families, num_children, selection_function=randomSelect.select, gene_size=2):
+class ParentByGeneSegmentation(Layer):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select, gene_size=2):
+        super().__init__()
         self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
                                                                    num_children)
 
@@ -396,8 +410,9 @@ class ParentByGeneSegmentation:
         return individuals
 
 
-class Parent:
-    def __init__(self, num_families, num_children, selection_function=randomSelect.select):
+class Parent(Layer):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+        super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
     def run(self, individuals, environment):
@@ -406,9 +421,9 @@ class Parent:
         return individuals
 
 
-class RemoveAllButBest:
+class RemoveAllButBest(Layer):
     def __init__(self):
-        pass
+        super().__init__()
 
     def run(self, individuals, environment):
         return [individuals[0]]

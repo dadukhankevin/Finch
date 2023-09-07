@@ -1,6 +1,6 @@
 import random
 import matplotlib.pyplot as plt
-
+from typing import Union
 
 class Rate:
     def __init__(self, start, end, epochs, return_int=False):
@@ -52,7 +52,7 @@ class Rate:
         self.value = temp  # restore the current value
 
 
-def make_switcher(x):
+def make_switcher(x) -> callable(any):
     x = make_callable(x)
     n = x()
 
@@ -63,10 +63,10 @@ def make_switcher(x):
     return r
 
 
-def make_callable(x):
+def make_callable(x: Union[callable, int, float]) -> callable:
     if not callable(x):
         # return a function that always returns x
-        def constant():
+        def constant() -> int | float:
             return x
 
         return constant

@@ -27,6 +27,7 @@ strict_env = environments.Sequential(layers=[
     layers.SortByFitness(),
     layers.CapPopulation(99),
 ], name="B: parents only best")
+strict_env.compile(verbose_every=500)
 pure_strict_env = environments.Sequential(layers=[
     layers.Populate(pool, 100),
     layers.MutateAmount(2, 300, pool, 1, rank),
@@ -34,6 +35,8 @@ pure_strict_env = environments.Sequential(layers=[
     layers.SortByFitness(),
     layers.CapPopulation(99),
 ], name="B: parents only best")
+pure_strict_env.compile(verbose_every=500)
+
 v_low_c = environments.Sequential(layers=[
     layers.Populate(pool, 2),
     layers.MutateAmount(2, 5, pool, 1, rank),
@@ -41,6 +44,8 @@ v_low_c = environments.Sequential(layers=[
     layers.SortByFitness(),
     layers.CapPopulation(3),
 ], name="A: low population but parents everyone")
+v_low_c.compile(verbose_every=500)
+
 default = environments.Sequential(layers=[
     layers.Populate(pool, 2),
     layers.MutateAmount(2, 5, pool, 1, rank),
@@ -48,7 +53,11 @@ default = environments.Sequential(layers=[
     layers.SortByFitness(),
     layers.CapPopulation(3),
 ], name="A: low population but parents everyone")
-env = environments.MixedEnvironment([(strict_env, 150), (v_low_c, 1850)], verbose_every=700, name="Switches from A to B at 150")
+default.compile(verbose_every=500)
 
-adversarial = environments.Adversarial([env, default, pure_strict_env], 2000)
-adversarial.evolve()
+env = environments.ChronologicalEnvironment([(strict_env, 150), (v_low_c, 1850)], name="Switches from A to B at 150")
+env.compile(verbose_every=500)
+
+
+adversarial = environments.Adversarial([env, default, pure_strict_env])
+adversarial.evolve(2000)
