@@ -1,15 +1,49 @@
+"""
+Notes:
+- Finish making fitness for Layers and Environments make sense, make a better fitness function that
+can change quickly
+- Apply this to the Adaptable Environment so that it can use the fitness data to switch environments
+- Savable environments would be cool anyway
+- Save the end sequence to a ChronologicalEnvironment so that you can use it for later ones
+"""
+
 import math
 import numpy as np
 from Finch.functions import parenting, selection
 from Finch.genetics.population import NPCP, Individual
 from Finch.tools import rates
 from Finch.functions.selection import Select
+
 randomSelect = selection.RandomSelection()
 
 
-class Layer:
+class Layer(Individual):  # Layers are individuals, environments are layers,
+    # thus environments and layers both have fitness
     def __init__(self):
-        pass
+        super().__init__(self, self.fit_func)
+        self.fitness = 1
+        self.before_m = 1
+        self.after_m = 1
+        self.total = 1
+        self.runs = 1
+
+    def Measure(run):
+        def adjust(self, individuals, environment):
+            try:
+                self.before_m = environment.individuals[-1].fitness
+                individuals = run(self, individuals, environment)
+                self.after_m = environment.individuals[-1].fitness
+            except IndexError:
+                individuals = run(self, individuals, environment)
+            super().fit()
+            return individuals
+
+        return adjust
+
+    def fit_func(self, genes):  # don't do anything with genes but its gotta be there for now #TODO
+        self.total += self.after_m - self.before_m
+        self.runs += 1
+        return (self.total/self.runs * 100)
 
     def run(self, individuals: list[Individual], environment: any):
         pass
@@ -21,6 +55,7 @@ class Populate(Layer):
         self.gene_pool = gene_pool
         self.population = rates.make_callable(population)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals = list(individuals)  # TODO fix the need for this... Is this fixed???? I have no idea
         while len(individuals) < self.population():
@@ -31,7 +66,7 @@ class Populate(Layer):
 
 
 class MutateAmount(Layer):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True, 
+    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
                  selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.amount_individuals = rates.make_callable(amount_individuals)
@@ -40,6 +75,7 @@ class MutateAmount(Layer):
         self.refit = refit
         self.selection_function = selection_function
 
+    @Layer.Measure
     def run(self, individuals, environment):
         self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))  # TODO: fix
         selected_individuals = self.selection_function(individuals=individuals, amount=self.amount_individuals())
@@ -77,6 +113,7 @@ class KillRandom(Layer):
         self.num_kill = rates.make_callable(num_kill)
         self.selection_function = selection_function
 
+    @Layer.Measure
     def run(self, individuals, environment):
         # select some individuals to kill using the selection function
         to_kill = self.selection_function(individuals, self.num_kill())
@@ -95,6 +132,7 @@ class Kill(Layer):
         self.percent = rates.make_callable(percent)
         self.now = 0
 
+    @Layer.Measure
     def run(self, individuals, environment):
         data = individuals[:int(len(individuals) * (1 - self.percent()))]
         return data
@@ -106,6 +144,7 @@ class DuplicateRandom(Layer):
         self.num_duplicate = rates.make_callable(num_duplicate)
         self.selection_function = selection_function
 
+    @Layer.Measure
     def run(self, individuals, environment):
         # select some individuals to duplicate using the selection function
         duplicates = self.selection_function(individuals, self.num_duplicate())
@@ -119,6 +158,7 @@ class RemoveDuplicatesFromTop(Layer):
         super().__init__()
         self.top_n = rates.make_callable(top_n)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         # remove any duplicates from the top n individuals
         unique_individuals = individuals[:self.top_n()]
@@ -132,6 +172,7 @@ class SortByFitness(Layer):
     def __init__(self):
         super().__init__()
 
+    @Layer.Measure
     def run(self, individuals, environment):
         sorted_individuals = sorted(individuals, key=lambda x: -x.fitness)
 
@@ -143,6 +184,7 @@ class CapPopulation(Layer):
         super().__init__()
         self.max_population = rates.make_callable(max_population)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         return individuals[0:self.max_population()]  # kills only the worst ones assuming they are sorted
 
@@ -154,6 +196,7 @@ class OverPoweredMutation(MutateAmount):
         self.tries = rates.make_callable(tries)
         self.selection_function = selection_function
 
+    @Layer.Measure
     def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
         for individual in selected_individuals:
@@ -171,6 +214,7 @@ class Function(Layer):
         super().__init__()
         self.function = function
 
+    @Layer.Measure
     def run(self, individuals, environment):
         return self.function(individuals)
 
@@ -185,6 +229,7 @@ class Controller(Layer):
         self.repeat = rates.make_callable(repeat)
         self.n = 0
 
+    @Layer.Measure
     def run(self, individuals, environment):
         self.n += 1
         if self.delay() <= self.n <= self.end:
@@ -212,6 +257,7 @@ class FloatMutateAmount(MutateAmount):
         individual.genes = mutated_genes
         return individual
 
+    @Layer.Measure
     def run(self, individuals, environment):
         self.amount_individuals = min(len(individuals), self.amount_individuals())
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
@@ -238,6 +284,7 @@ class IntMutateAmount(MutateAmount):
         individual.genes = mutated_genes
         return individual
 
+    @Layer.Measure
     def run(self, individuals, environment):
         self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
@@ -261,6 +308,7 @@ class IntOverPoweredMutation(OverPoweredMutation):
         individual.genes = mutated_genes
         return individual
 
+    @Layer.Measure
     def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
         for individual in selected_individuals:
@@ -291,6 +339,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
         individual.genes = mutated_genes
         return individual
 
+    @Layer.Measure
     def run(self, individuals, environment):
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
         for individual in selected_individuals:
@@ -305,7 +354,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
         return individuals
 
 
-class FloatMomentumMutation(Layer): #TODO: de-deprecate
+class FloatMomentumMutation(Layer):  # TODO: de-deprecate
     def __init__(self, divider, amount_individuals: None, amount_genes, execute_every=1,
                  selection_function: callable(Select.select) = randomSelect.select, reset_baseline=False):
         super().__init__()
@@ -316,9 +365,9 @@ class FloatMomentumMutation(Layer): #TODO: de-deprecate
         self.selection_function = selection_function
         self.reset_baseline = reset_baseline
 
+    @Layer.Measure
     def run(self, individuals, environment):
         if not individuals:
-            print("n")
             return individuals
         selected_individuals = self.selection_function(individuals, self.amount_individuals())
         if environment.iteration > 0:  # diff will be none until after
@@ -336,6 +385,7 @@ class ParentBestChild(Layer):
         super().__init__()
         self.parenting_object = parenting.BestChild(num_families, selection_function)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -347,6 +397,7 @@ class ParentBestChildBinary(Layer):
         super().__init__()
         self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -359,6 +410,7 @@ class ParentSinglePointCrossover(Layer):
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
                                                                num_childrem)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -370,6 +422,7 @@ class ParentUniformCrossover(Layer):
         super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -377,10 +430,12 @@ class ParentUniformCrossover(Layer):
 
 
 class ParentNPointCrossover(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select, n=2):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select,
+                 n=2):
         super().__init__()
         self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -392,6 +447,7 @@ class ParentUniformCrossoverMultiple(Layer):
         super().__init__()
         self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -399,11 +455,13 @@ class ParentUniformCrossoverMultiple(Layer):
 
 
 class ParentByGeneSegmentation(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select, gene_size=2):
+    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select,
+                 gene_size=2):
         super().__init__()
         self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
                                                                    num_children)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
                                                     environment=environment, layer=self)
@@ -415,6 +473,7 @@ class Parent(Layer):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
+    @Layer.Measure
     def run(self, individuals, environment):
         new = self.parenting_object.parent(individuals, environment, self)
         individuals += new
@@ -425,5 +484,19 @@ class RemoveAllButBest(Layer):
     def __init__(self):
         super().__init__()
 
+    @Layer.Measure
     def run(self, individuals, environment):
         return [individuals[0]]
+
+
+class KillByFitnessPercentile(Layer):
+    def __init__(self, percentile):
+        super().__init__()
+        self.percentile = rates.make_callable(percentile)
+
+    @Layer.Measure
+    def run(self, individuals, environment):
+        num_to_kill = int(len(individuals) * self.percentile())
+        sorted_individuals = sorted(individuals, key=lambda x: x.fitness)
+        remaining_individuals = sorted_individuals[num_to_kill:]
+        return remaining_individuals

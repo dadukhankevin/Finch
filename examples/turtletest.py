@@ -46,13 +46,13 @@ def singular_fit(individual):
 gene_pool = gp.IntPool(-1, 1, 40, singular_fit)
 
 environment = Sequential(layers=[
-    Populate(gene_pool, 8),
-    IntMutateAmount(1, 7, gene_pool, min_mutation=-20, max_mutation=20),
+    Populate(gene_pool, 3),
+    IntMutateAmount(1, 2, gene_pool, min_mutation=-20, max_mutation=20),
     SortByFitness(),
-    CapPopulation(7),
+    CapPopulation(2),
 
 ])
-
+environment.compile(verbose_every=2)
 environment.evolve(100)
 print(environment.history)
 print(environment.individuals[-1].genes)

@@ -15,7 +15,6 @@ class Rate:
         self.end = end
         self.epochs = epochs
         self.change_rate = (end - start) / epochs  # use underscores for variable names
-        print(self.change_rate)
         self.return_int = return_int  # use the same name as the parameter
 
     def next(self):

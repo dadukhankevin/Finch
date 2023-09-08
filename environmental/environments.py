@@ -1,3 +1,4 @@
+import random
 import warnings
 
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ from Finch.genetics.population import Individual
 class Environment(Layer):
     def __init__(self, layers: list[Layer] = None, name="Environment", verbose_every=1):
         super().__init__()
+        self.generations = 0
         self.verbose_every = verbose_every
         self.callback = None
         self.name = name
@@ -20,6 +22,10 @@ class Environment(Layer):
         self.iteration = 0
         self.history = []
         self.compiled = False
+        self.deactivated = False
+
+    def deactivate(self):
+        self.deactivated = True
 
     def compile(self, individuals: list[Individual] = None, callback: callable = None, verbose_every: int = 1):
         self.individuals = individuals
@@ -30,29 +36,29 @@ class Environment(Layer):
         self.verbose_every = verbose_every
 
     def evolve(self, generations):
+        if self.deactivated:
+            return self.individuals
         fitness = 0
-        for i in range(generations):
+        self.generations = generations
+        for i in range(self.generations):
             self.iteration = i
-            if self.verbose_every and i % self.verbose_every == 0:
-                print(
-                    f"{self.name}: generation {i + 1}/{generations}. Max fitness: {fitness}. Population: "
-                    f"{len(self.individuals)}")
-            for layer in self.layers:
-                self.individuals = layer.run(self.individuals, self)
-            if self.callback:
-                self.callback(self.individuals, self)
-            if len(self.individuals) == 0:
-                raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
-            fitness = self.individuals[-1].fitness
-            self.history.append(fitness)
+            self.run(self.individuals, self)
         return self.individuals, self.history
 
+    @Layer.Measure
     def run(self, individuals: list[Individual], environment):
-        warnings.warn("You are using this environment as a layer")
-        individuals = []
         for layer in self.layers:
-            individuals = layer.run(individuals, environment)
-        return individuals
+            self.individuals = layer.run(self.individuals, self)
+        if self.callback:
+            self.callback(self.individuals, self)
+        if len(self.individuals) == 0:
+            raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
+        fitness = self.individuals[-1].fitness
+        if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:
+            print(
+                f"{self.name}: generation {self.iteration + 1}/{self.generations}. Max fitness: {fitness}. Population: "
+                f"{len(self.individuals)}")
+        self.history.append(fitness)
 
 
 class Sequential(Environment):
@@ -139,6 +145,7 @@ class ChronologicalEnvironment(Environment):
             print(f"Running {env.name} for {generations_here} generations...")
             env.individuals = self.individuals
             individuals, history = env.evolve(generations_here)
+            env.history = []
             self.individuals.extend(individuals)
             self.combined_history.extend(history)
             if not self.best_environment or history[-1] > self.best_environment[1]:
@@ -177,13 +184,15 @@ class ChronologicalEnvironment(Environment):
         plt.grid(True)
         plt.show()
 
+
 class AdaptiveEnvironment(Environment):
-    def __init__(self, environments, switch_every=10, name="AdaptiveEnvironment"):
+    def __init__(self, environments, switch_every=10, go_for=0, name="AdaptiveEnvironment"):
         super().__init__(name=name)
         self.environments = environments
         self.switch_every = switch_every
-        self.current_environment = None
+        self.current_environment = environments[0]
         self.current_generation = 0
+        self.go_for = go_for
 
     def compile(self, individuals: list[Individual] = None, callback: callable = None, verbose_every: int = 1):
         super().compile(individuals, callback, verbose_every)
@@ -193,32 +202,47 @@ class AdaptiveEnvironment(Environment):
 
     def evolve(self, generations: int):
         for i in range(generations):
+            self.iteration += 1
             self.current_generation += 1
-            if self.current_generation % self.switch_every == 0:
-                self.switch_environment()
-            if self.current_environment is not None:
-                self.individuals, history = self.current_environment.evolve(1)
-                self.history.extend(history)
-                if self.callback:
-                    self.callback(self.individuals)
+            new = self.smart_evolve()
+            new.individuals = self.current_environment.individuals
+            new.history = self.current_environment.history
+            self.current_environment = new
+            self.current_environment.evolve(1)
+
         return self.individuals, self.history
+
+    def smart_evolve(self):
+        for i in self.environments:
+            if i.fitness < 1:
+                i.deactivate()
+        if self.iteration % self.switch_every == 0:
+            weights = [x.fitness for x in self.environments]
+            choices = [x for x in self.environments]
+            return random.choices(choices, weights, k=1)[0]
+        else:
+            return self.current_environment
 
     def switch_environment(self):
         max_fitness_increase = -float('inf')
         best_environment = None
-
+        first = self.current_environment.individuals[-1].fitness
         for environment in self.environments:
-            if self.current_environment is None:
-                fitness_increase = environment.individuals[-1].fitness
-            else:
-                current_fitness = self.current_environment.individuals[-1].fitness
-                new_fitness = environment.individuals[-1].fitness
-                fitness_increase = new_fitness - current_fitness
+            environment.individuals = self.current_environment.individuals
+
+            environment.evolve(self.go_for)
+            new_fitness = environment.individuals[-1].fitness
+            fitness_increase = new_fitness - first
 
             if fitness_increase > max_fitness_increase:
                 max_fitness_increase = fitness_increase
                 best_environment = environment
 
         if best_environment:
+            best_environment.individuals = self.current_environment.individuals
             self.current_environment = best_environment
             print(f"Switching to environment: {best_environment.name} (Generation {self.current_generation})")
+
+    def plot(self):
+        plt.plot(self.current_environment.history)
+        plt.show()

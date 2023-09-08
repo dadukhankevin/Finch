@@ -23,17 +23,18 @@ def fit(individual):
     return score
 
 
-gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=100, fitness_function=fit)
+gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=10, fitness_function=fit)
 
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
     layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
-    layers.ParentBestChildBinary(5, rank.select),
+    layers.ParentSinglePointCrossover(5, 2, rank.select),
     layers.SortByFitness(),
     layers.CapPopulation(max_population=39),
 ])
 
-environment.evolve(50000, verbose_every=50)
+environment.compile(verbose_every=500)
+environment.evolve(50000)
 
 print(environment.individuals[0].genes)
 print("VOCAB SIZE:")
