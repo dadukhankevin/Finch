@@ -8,7 +8,7 @@ from Finch.functions.selection import RankBasedSelection
 rank = RankBasedSelection.select
 
 class LlmPromptMutation(Layer):
-    def __init__(self, llm: LLM, amount: Union[int|callable] = 2, selection_function: callable = rank, adjective: str =
+    def __init__(self, llm: LLM, amount= 2, selection_function: callable = rank, adjective: str =
     'just a little bit'):
         super().__init__()
         self.adjective = adjective
