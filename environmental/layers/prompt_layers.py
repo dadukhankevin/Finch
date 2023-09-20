@@ -5,7 +5,7 @@ from typing import Union
 from Finch.genetics.population import Individual
 from Finch.functions.selection import RankBasedSelection
 
-rank = RankBasedSelection.select
+rank = RankBasedSelection(2).select
 
 
 class LlmPromptMutation(Layer):
