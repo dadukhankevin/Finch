@@ -10,18 +10,21 @@ rank = RankBasedSelection(2).select
 
 class LlmPromptMutation(Layer):
     def __init__(self, llm: LLM, amount=2, selection_function: callable = rank, adjective: str =
-    'just a little bit'):
+    'one or two words'):
         super().__init__()
         self.adjective = adjective
         self.llm = llm
-        self.llm.system_prompt = "You are the mutation layer in a genetic algorithm, simply change a given text by " + \
-                                 adjective
+
+        self.instructions = "You are the mutation layer in a genetic algorithm, simply change a given text by " + \
+                            adjective
+        self.llm.system_prompt = self.instructions
         self.amount = make_callable(amount)
         self.selection_function = selection_function
 
     def run(self, individuals: list[Individual], environment: any):
         selected_individuals = self.selection_function(individuals, self.amount())
         for individual in selected_individuals:
+            self.llm.system_prompt = self.instructions
             individual.genes = self.llm.run(individual.genes)
         return individuals
 
@@ -46,7 +49,8 @@ class PromptParenting(Layer):
         # Generate multiple children
         for i in range(self.num_children):
             # Recombine prompts with LLM
-            self.llm.system_prompt = "Recombine these two prompts:"
+            self.llm.system_prompt = "You are a parenting function in a genetic algorithm, combine or parent these " \
+                                     "two prompts producing a child prompt of similar lenght.: "
             child_prompt = self.llm.run(parent1_prompt + "\n" + parent2_prompt)
 
             # Add child to population
