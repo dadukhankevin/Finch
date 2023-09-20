@@ -11,7 +11,7 @@ class LLM:
 
 
 class OpenAI(LLM):
-    def __init__(self, system_prompt, api_key, temperature=.7):
+    def __init__(self, api_key, temperature=.7, system_prompt='You are an evolutionary algorithm'):
         super().__init__(system_prompt, temperature)
         openai.api_key = api_key
 
@@ -20,7 +20,7 @@ class OpenAI(LLM):
             model="gpt-3.5-turbo",
             temperature=self.temperature,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": message}
             ]
         )
