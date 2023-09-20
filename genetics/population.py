@@ -1,9 +1,10 @@
 import numpy as np
+from Finch.exceptions.population_exceptions import IndividualGenesNotArrayType
 
 cp = None
 set = False
 
-# Try importing CuPy
+
 try:
     import cupy as cp
 
@@ -42,20 +43,28 @@ def can_use_cupy(array):
 
 
 class Individual:
-    def __init__(self, genes, fitness_function):
-        self.genes = NPCP.asarray(genes)  # Not sure if this will make it inefficient if it already is the right type?
-        # TODO
+    def __init__(self, genes, fitness_function, as_array=True):
+        self.as_array = as_array
+        if not as_array:
+            self.genes = genes
+        else:
+            self.genes = NPCP.asarray(genes)
         self.fitness = 0
         self.fitness_function = fitness_function
         self.frozen_genes = NPCP.array([])
 
     def freeze(self, gene_indices):
-        self.frozen_genes = np.append(self.frozen_genes, gene_indices)
-        self.frozen_genes = np.unique(self.frozen_genes) #TODO: is this the worst way of doing this?
+        if self.as_array:
+            self.frozen_genes = np.append(self.frozen_genes, gene_indices)
+            self.frozen_genes = np.unique(self.frozen_genes)  # TODO: is this the worst way of doing this?
+        else:
+            raise IndividualGenesNotArrayType('- You are trying to freeze genes that are of type: '+str(type(self.genes)))
 
     def thaw(self, gene_indices):
-        self.frozen_genes = np.setdiff1d(self.frozen_genes, gene_indices)
-
+        if self.as_array:
+            self.frozen_genes = np.setdiff1d(self.frozen_genes, gene_indices)
+        else:
+            raise IndividualGenesNotArrayType('- You are trying to thaw genes that are of type: '+str(type(self.genes)))
     def fit(self):
         self.fitness = self.fitness_function(self.genes)
 

@@ -114,4 +114,4 @@ class PromptPool:
         self.fitness_function = fitness_funtion
 
     def generate(self):
-        return Individual(self.llm.run(self.message), fitness_function=self.fitness_function)
+        return Individual(self.llm.run(self.message), fitness_function=self.fitness_function, as_array=False)
