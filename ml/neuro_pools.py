@@ -1,6 +1,9 @@
 import torch
 import tensorflow as tf
-from Finch import genetics
+from Finch.genetics.population import Individual
+from Finch.genetics.population import NPCP as np
+from Finch.ml.llm import LLM
+
 
 class KerasPool:
     def __init__(self, model, fitness_function):
@@ -10,7 +13,7 @@ class KerasPool:
 
     def generate(self):
         genes = self.generate_genes(1)
-        return genetics.Individual(genes, self.fitness_function_wrapped)
+        return Individual(genes, self.fitness_function_wrapped)
 
     def fitness_function_wrapped(self, individual):
         model = self.unflatten_model(self.model, individual.genes)
@@ -42,7 +45,7 @@ class PyTorchPool:
 
     def generate(self):
         genes = self.generate_genes(1)
-        return genetics.Individual(genes, self.fitness_function_wrapped)
+        return Individual(genes, self.fitness_function_wrapped)
 
     def fitness_function_wrapped(self, individual):
         model = self.unflatten_model(self.model, individual.genes)
@@ -76,7 +79,7 @@ class TensorFlowPool:
 
     def generate(self):
         genes = self.generate_genes(1)
-        return genetics.Individual(genes, self.fitness_function_wrapped)
+        return Individual(genes, self.fitness_function_wrapped)
 
     def fitness_function_wrapped(self, individual):
         model = self.unflatten_model(self.model, individual.genes)
@@ -98,3 +101,17 @@ class TensorFlowPool:
         reshaped_weights = [tf.reshape(w, s) for w, s in zip(split_weights, shapes)]
         model.set_weights(reshaped_weights)
         return model
+
+
+class PromptPool:
+    def __init__(self, llm: LLM, fitness_funtion, temperature=.8, instructions="You are an expert in generating "
+                                                                              "prompts for AI models.",
+                 user_message="generate a prompt"):
+        self.llm = llm
+        self.message = user_message
+        self.llm.system_prompt = instructions
+        self.llm.temperature = temperature
+        self.fitness_function = fitness_funtion
+
+    def generate(self):
+        return Individual(self.llm.run(self.message), fitness_function=self.fitness_function)

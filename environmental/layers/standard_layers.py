@@ -26,6 +26,7 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
         self.after_m = 1
         self.total = 1
         self.runs = 1
+        self.layer_history = []
 
     def Measure(run):
         def adjust(self, individuals, environment):
@@ -41,9 +42,11 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
         return adjust
 
     def fit_func(self, genes):  # don't do anything with genes but its gotta be there for now #TODO
-        self.total += self.after_m - self.before_m
+        change = self.after_m - self.before_m
+        self.total += change
         self.runs += 1
-        return (self.total/self.runs * 100)
+        self.layer_history.append(change)
+        return self.total
 
     def run(self, individuals: list[Individual], environment: any):
         pass
@@ -63,48 +66,6 @@ class Populate(Layer):
             new.fit()
             individuals += [new]
         return individuals
-
-
-class MutateAmount(Layer):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
-                 selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__()
-        self.amount_individuals = rates.make_callable(amount_individuals)
-        self.amount_genes = rates.make_callable(amount_genes)
-        self.gene_pool = gene_pool
-        self.refit = refit
-        self.selection_function = selection_function
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))  # TODO: fix
-        selected_individuals = self.selection_function(individuals=individuals, amount=self.amount_individuals())
-        for individual in selected_individuals:
-            individual = self.mutate_one(individual)
-            if self.refit:
-                individual.fit()
-        return individuals
-
-    def mutate_one(self, individual):
-        amount = self.amount_genes()
-        random_indices = NPCP.random.choice(len(individual.genes), amount, replace=False)
-        individual.genes[random_indices] = self.gene_pool.generate_genes(amount)
-        return individual
-
-
-class FloatMutateAmountUniform(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_mutation=0.1
-                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
-        self.max_mutation = rates.make_callable(max_mutation)
-
-    def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.uniform(-self.max_mutation(), self.max_mutation())
-        mutated_genes = individual.genes.copy()
-        mutated_genes[random_indices] += mutation
-        individual.genes = mutated_genes
-        return individual
 
 
 class KillRandom(Layer):
@@ -189,26 +150,6 @@ class CapPopulation(Layer):
         return individuals[0:self.max_population()]  # kills only the worst ones assuming they are sorted
 
 
-class OverPoweredMutation(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(amount_individuals, amount_genes, gene_pool, False)
-        self.tries = rates.make_callable(tries)
-        self.selection_function = selection_function
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        for individual in selected_individuals:
-            for i in range(self.tries()):
-                copied = individual.copy()  # Use a custom copy method instead of deepcopy
-                super().mutate_one(copied)
-                copied.fit()
-                if copied.fitness > individual.fitness:
-                    individual.genes = copied.genes  # Assign the genes directly without deepcopy
-        return individuals
-
-
 class Function(Layer):
     def __init__(self, function):
         super().__init__()
@@ -236,147 +177,6 @@ class Controller(Layer):
             if self.every() % self.n == 0:
                 for i in range(self.repeat() + 1):
                     individuals = self.layer.run(individuals, environment)
-        return individuals
-
-
-class FloatMutateAmount(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
-                 max_positive_mutation=0.1
-                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
-        self.max_negative_mutation = rates.make_callable(max_negative_mutation)
-        self.max_positive_mutation = rates.make_callable(max_positive_mutation)
-        self.amount_individuals = rates.make_callable(amount_individuals)
-
-    def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
-                                       size=self.amount_genes())
-        mutated_genes = individual.genes.copy()
-        mutated_genes[random_indices] += mutation
-        individual.genes = mutated_genes
-        return individual
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        self.amount_individuals = min(len(individuals), self.amount_individuals())
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        for individual in selected_individuals:
-            individual = self.mutate_one(individual)
-            if self.refit:
-                individual.fit()
-        return individuals
-
-
-class IntMutateAmount(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, min_mutation=-1, max_mutation=1
-                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(rates.make_callable(amount_individuals), amount_genes, gene_pool, refit, selection_function)
-        self.min_mutation = rates.make_callable(min_mutation)
-        self.max_mutation = rates.make_callable(max_mutation)
-        self.amount_individuals = rates.make_callable(amount_individuals)
-
-    def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.randint(self.min_mutation(), self.max_mutation() + 1, size=self.amount_genes())
-        mutated_genes = individual.genes.copy()
-        mutated_genes[random_indices] += mutation
-        individual.genes = mutated_genes
-        return individual
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        self.amount_individuals = rates.make_callable(min(len(individuals), self.amount_individuals()))
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        for individual in selected_individuals:
-            individual = self.mutate_one(individual)
-            if self.refit:
-                individual.fit()
-        return individuals
-
-
-class IntOverPoweredMutation(OverPoweredMutation):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
-                 selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
-
-    def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes, replace=False)
-        mutation = NPCP.random.randint(self.min_mutation(), self.max_mutation() + 1, size=self.amount_genes())
-        mutated_genes = individual.genes.copy()
-        mutated_genes[random_indices] += mutation
-        individual.genes = mutated_genes
-        return individual
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        for individual in selected_individuals:
-            for i in range(self.tries()):
-                copied = individual.copy()
-                copied = self.mutate_one(copied)
-                copied.fit()
-                if copied.fitness > individual.fitness:
-                    individual.genes = copied.genes
-                    individual.fit()
-        return individuals
-
-
-class FloatOverPoweredMutation(OverPoweredMutation):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
-                 max_positive_mutation=0.1
-                 , tries=1, selection_function: callable(Select.select) = randomSelect.select):
-        super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
-        self.max_negative_mutation = rates.make_callable(max_negative_mutation)
-        self.max_positive_mutation = rates.make_callable(max_positive_mutation)
-
-    def mutate_one(self, individual):
-        random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
-        mutation = NPCP.random.uniform(self.max_negative_mutation(), self.max_positive_mutation(),
-                                       size=self.amount_genes())
-        mutated_genes = individual.genes.copy()
-        mutated_genes[random_indices] += mutation
-        individual.genes = mutated_genes
-        return individual
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        for individual in selected_individuals:
-            for i in range(self.tries()):
-                copied = individual.copy()
-                copied = self.mutate_one(copied)
-                copied.fit()
-                if copied.fitness > individual.fitness:
-                    individual.genes = copied.genes
-                    individual.fit()  # TODO: I feel like this should be = copied.fitness
-                    break
-        return individuals
-
-
-class FloatMomentumMutation(Layer):  # TODO: de-deprecate
-    def __init__(self, divider, amount_individuals: None, amount_genes, execute_every=1,
-                 selection_function: callable(Select.select) = randomSelect.select, reset_baseline=False):
-        super().__init__()
-        self.divider = rates.make_callable(divider)
-        self.amount_individuals = rates.make_callable(amount_individuals)
-        self.amount_genes = rates.make_callable(amount_genes)
-        self.execute_every = rates.make_callable(execute_every)
-        self.selection_function = selection_function
-        self.reset_baseline = reset_baseline
-
-    @Layer.Measure
-    def run(self, individuals, environment):
-        if not individuals:
-            return individuals
-        selected_individuals = self.selection_function(individuals, self.amount_individuals())
-        if environment.iteration > 0:  # diff will be none until after
-            for individual in selected_individuals:
-                random_indices = NPCP.random.permutation(len(individual.genes) - 1)
-                random_indices = random_indices[:self.amount_genes()]
-                individual.genes[random_indices] += (environment.diff[random_indices] / self.divider())
-
-                individual.fit()
         return individuals
 
 
@@ -488,6 +288,21 @@ class RemoveAllButBest(Layer):
     def run(self, individuals, environment):
         return [individuals[0]]
 
+
+class FreezeRandom(Layer):
+    def __init__(self, amount_select, amount_genes, selection_function: callable = randomSelect.select):
+        super().__init__()
+        self.amount_select = rates.make_callable(amount_select)
+        self.amount_genes = rates.make_callable(amount_genes)
+        self.selection_function = selection_function
+
+    @Layer.Measure
+    def run(self, individuals, environment):
+        selected_individuals = self.selection_function(individuals, self.amount_select())
+        for individual in selected_individuals:
+            random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
+            individual.freeze(random_indices)
+        return individuals
 
 class KillByFitnessPercentile(Layer):
     def __init__(self, percentile):

@@ -1,5 +1,6 @@
 from Finch.environmental import environments
-from Finch.environmental import layers
+from Finch.environmental.layers import standard_layers as layers
+from Finch.environmental.layers import mutation_layers
 from Finch.genetics import genepools
 from textblob import TextBlob
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=10, 
 
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
-    layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
+    mutation_layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
     layers.ParentSinglePointCrossover(5, 2, rank.select),
     layers.SortByFitness(),
     layers.CapPopulation(max_population=39),

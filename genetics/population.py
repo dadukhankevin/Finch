@@ -47,6 +47,14 @@ class Individual:
         # TODO
         self.fitness = 0
         self.fitness_function = fitness_function
+        self.frozen_genes = NPCP.array([])
+
+    def freeze(self, gene_indices):
+        self.frozen_genes = np.append(self.frozen_genes, gene_indices)
+        self.frozen_genes = np.unique(self.frozen_genes) #TODO: is this the worst way of doing this?
+
+    def thaw(self, gene_indices):
+        self.frozen_genes = np.setdiff1d(self.frozen_genes, gene_indices)
 
     def fit(self):
         self.fitness = self.fitness_function(self.genes)
@@ -56,4 +64,6 @@ class Individual:
         copied_fitness_function = self.fitness_function
         copied_individual = Individual(copied_genes, copied_fitness_function)
         copied_individual.fitness = self.fitness
+        copied_individual.frozen_genes = self.frozen_genes
+
         return copied_individual

@@ -1,7 +1,8 @@
 import turtle
 from Finch.genetics import genepools as gp
 from Finch.environmental.environments import *
-from Finch.environmental.layers import *
+from Finch.environmental.layers.standard_layers import *
+from Finch.environmental.layers.mutation_layers import *
 import matplotlib.pyplot as plt
 from time import sleep
 

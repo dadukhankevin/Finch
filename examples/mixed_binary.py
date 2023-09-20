@@ -1,4 +1,6 @@
-from Finch.environmental import environments, layers
+from Finch.environmental import environments
+from Finch.environmental.layers import standard_layers as layers
+from Finch.environmental.layers import mutation_layers
 from Finch.genetics import genepools
 from Finch.tools.fitness_functions import MeanSquaredErrorLoss as MSE
 from Finch.functions import selection
@@ -23,7 +25,7 @@ pool = genepools.BinaryPool(10000, fit)
 
 strict_env = environments.Sequential(layers=[
     layers.Populate(pool, 100),
-    layers.MutateAmount(2, 300, pool, 1, rank),
+    mutation_layers.MutateAmount(2, 300, pool, 1, rank),
     layers.ParentSinglePointCrossover(4, 2, selection_function=strict_rank),
     layers.SortByFitness(),
     layers.CapPopulation(99),
@@ -31,7 +33,7 @@ strict_env = environments.Sequential(layers=[
 strict_env.compile(verbose_every=500)
 pure_strict_env = environments.Sequential(layers=[
     layers.Populate(pool, 100),
-    layers.MutateAmount(2, 300, pool, 1, rank),
+    mutation_layers.MutateAmount(2, 300, pool, 1, rank),
     layers.ParentSinglePointCrossover(4, 2, selection_function=strict_rank),
     layers.SortByFitness(),
     layers.CapPopulation(99),
@@ -40,7 +42,7 @@ pure_strict_env.compile(verbose_every=500)
 
 v_low_c = environments.Sequential(layers=[
     layers.Populate(pool, 2),
-    layers.MutateAmount(2, 5, pool, 1, rank),
+    mutation_layers.MutateAmount(2, 5, pool, 1, rank),
     layers.ParentSinglePointCrossover(4, 2, selection_function=rank),
     layers.SortByFitness(),
     layers.CapPopulation(3),
@@ -49,7 +51,7 @@ v_low_c.compile(verbose_every=500)
 
 default = environments.Sequential(layers=[
     layers.Populate(pool, 2),
-    layers.MutateAmount(2, 5, pool, 1, rank),
+    mutation_layers.MutateAmount(2, 5, pool, 1, rank),
     layers.ParentSinglePointCrossover(4, 2, selection_function=rank),
     layers.SortByFitness(),
     layers.CapPopulation(3),

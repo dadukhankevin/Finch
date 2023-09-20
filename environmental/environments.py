@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 import time
 from tabulate import tabulate
-from Finch.environmental.layers import Layer
+from Finch.environmental.layers.standard_layers import Layer
 
 from Finch.genetics.population import Individual
 
@@ -215,6 +215,7 @@ class AdaptiveEnvironment(Environment):
     def smart_evolve(self):
         for i in self.environments:
             if i.fitness < 1:
+                print("Deactivating ", i.name)
                 i.deactivate()
         if self.iteration % self.switch_every == 0:
             weights = [x.fitness for x in self.environments]
