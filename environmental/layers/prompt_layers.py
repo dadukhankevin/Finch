@@ -31,14 +31,14 @@ from Finch.functions import selection
 
 class PromptParenting(Layer):
 
-    def __init__(self, llm, num_children, selection_function=selection.rank):
+    def __init__(self, llm, num_children, selection_function=rank):
         super().__init__()
         self.llm = llm
-        self.num_children = num_children
+        self.num_children = make_callable(num_children)
         self.selection_function = selection_function
 
     def run(self, individuals, environment):
-        parents = self.selection_function(individuals, 2)
+        parents = self.selection_function(individuals, self.num_children())
 
         parent1_prompt = parents[0].genes
         parent2_prompt = parents[1].genes
