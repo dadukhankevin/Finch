@@ -111,8 +111,10 @@ class PromptPool:
         self.message = user_message
         self.instructions = instructions
         self.llm.temperature = temperature
+        self.temperature = temperature
         self.fitness_function = fitness_funtion
 
     def generate(self):
         self.llm.system_prompt = self.instructions # ensure it always stays the same in this context
+        self.llm.temperature = self.temperature
         return Individual(self.llm.run(self.message), fitness_function=self.fitness_function, as_array=False)
