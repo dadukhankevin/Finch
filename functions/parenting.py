@@ -35,7 +35,6 @@ class BestChild(Parent):
         :param baseline: The individual without any mutations, like a first generation that was not randomly initialized
         :return:
         """
-
         parent1_genes = np.array(parent1.genes)
         parent2_genes = np.array(parent2.genes)
         new_genes = np.zeros_like(parent1_genes)  # create an array of zeros with the same shape as parent1_genes
@@ -56,6 +55,50 @@ class BestChild(Parent):
     def crossover(self, parent1, parent2, environment, layer):
         if environment.iteration > 0:
             return self.best_child(parent1, parent2, environment.original)
+        return [parent1, parent2]  # TODO: come up with a better way to ignore this error here and in Binary
+
+
+class BestChildBinary(Parent):
+    def __init__(self, num_families, selection_function):
+        super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
+                         parent_function=self.crossover)
+
+    def best_child(self, parent1, parent2, baseline):
+        """
+        Takes the most mutated (and therefore best) genes from each parent to create a new individual.
+        Novel to Finch
+        :param parent1:
+        :param parent2:
+        :param baseline: The individual without any mutations, like a first generation that was not randomly initialized
+        :return:
+        """
+        # convert the genes from integer arrays to binary arrays
+        parent1_genes = np.unpackbits(np.array(parent1.genes, dtype=np.uint8))
+        parent2_genes = np.unpackbits(np.array(parent2.genes, dtype=np.uint8))
+        baseline = np.unpackbits(np.array(baseline, dtype=np.uint8))
+        new_genes = np.zeros_like(parent1_genes)  # create an array of zeros with the same shape as parent1_genes
+        # find the 50% indices of parent1_genes that are the most different from the baseline
+        diff1 = np.bitwise_and(np.bitwise_xor(parent1_genes, baseline), np.bitwise_or(parent1_genes,
+                                                                                      baseline))  # calculate the bit-wise difference between parent1_genes and baseline
+        indices1 = np.argsort(diff1)[-len(diff1) // 2:]  # get the indices of the 50% largest differences
+        # do the same thing for parent2_genes but make sure NONE of the indices are the same as the ones selected from parent1
+        diff2 = np.bitwise_and(np.bitwise_xor(parent2_genes, baseline), np.bitwise_or(parent2_genes,
+                                                                                      baseline))  # calculate the bit-wise difference between parent2_genes and baseline
+        mask = np.ones_like(diff2, dtype=bool)  # create a boolean mask of ones with the same shape as diff2
+        mask[indices1] = False  # set the mask to False for the indices selected from parent1
+        indices2 = np.argsort(diff2[mask])[
+                   -len(diff2) // 4:]  # get the indices of the 50% largest differences among the remaining ones
+        # Place the values of the genes into the new_genes using these indices
+        new_genes[indices1] = parent1_genes[indices1]  # copy the genes from parent1 using indices1
+        new_genes[indices2] = parent2_genes[indices2]  # copy the genes from parent2 using indices2
+        # convert the new_genes back to integer array
+        new_genes = np.packbits(new_genes)
+        return [Individual(new_genes, parent1.fitness_function)]
+
+    def crossover(self, parent1, parent2, environment, layer):
+        if environment.iteration > 0:
+            return self.best_child(parent1, parent2, environment.original)
+        return [parent1, parent2]
 
 
 class SinglePointCrossover(Parent):

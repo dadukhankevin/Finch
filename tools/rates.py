@@ -1,6 +1,6 @@
 import random
 import matplotlib.pyplot as plt
-
+from typing import Union
 
 class Rate:
     def __init__(self, start, end, epochs, return_int=False):
@@ -10,6 +10,7 @@ class Rate:
         :param epochs: The number of epochs to reach the target value
         :param return_int: Whether to return only integers
         """
+        self.start = start
         self.value = start  # use a more descriptive name than start
         self.end = end
         self.epochs = epochs
@@ -18,8 +19,13 @@ class Rate:
 
     def next(self):
         # return the current value and update it by the change rate
+        if self.value < self.end < self.start:
+            return self.end
+        if self.value > self.end > self.start:
+            return self.end
         result = self.value
         self.value += self.change_rate
+
         if self.return_int:
             return int(result)
         return result
@@ -45,7 +51,7 @@ class Rate:
         self.value = temp  # restore the current value
 
 
-def make_switcher(x):
+def make_switcher(x) -> callable(any):
     x = make_callable(x)
     n = x()
 
@@ -56,10 +62,10 @@ def make_switcher(x):
     return r
 
 
-def make_callable(x):
+def make_callable(x: Union[callable, int, float]) -> callable:
     if not callable(x):
         # return a function that always returns x
-        def constant():
+        def constant() -> int | float:
             return x
 
         return constant

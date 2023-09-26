@@ -1,10 +1,20 @@
 import random
+from Finch.genetics.population import Individual
 
+from typing import Union
 
-class TournamentSelection:
-    # Removed the num_selections and tournament_size parameters from the init
+class Select:
     def __init__(self):
         pass
+
+    def select(self, individuals: list[Individual], amount: callable(any)):
+        pass
+
+
+class TournamentSelection(Select):
+    # Removed the num_selections and tournament_size parameters from the init
+    def __init__(self):
+        super().__init__()
 
     # Added an amount parameter to the select function
     def select(self, individuals, amount):
@@ -20,10 +30,10 @@ class TournamentSelection:
         return selected_individuals
 
 
-class RandomSelection:
+class RandomSelection(Select):
     # Removed the num_selections parameter from the init
     def __init__(self):
-        pass
+        super().__init__()
 
     # Added an amount parameter to the select function
     def select(self, individuals, amount):
@@ -31,9 +41,10 @@ class RandomSelection:
         return selected_individuals
 
 
-class RankBasedSelection:
+class RankBasedSelection(Select):
     # Keep the factor parameter in the init
     def __init__(self, factor):
+        super().__init__()
         self.factor = factor
 
     # Add an amount parameter to the select function
@@ -53,4 +64,3 @@ class RankBasedSelection:
         selected_individuals = [individuals[i] for i in selected_indices]
 
         return selected_individuals
-

@@ -1,11 +1,13 @@
 from Finch.environmental import environments
-from Finch.environmental import layers
+from Finch.environmental.layers import standard_layers as layers
+from Finch.environmental.layers import mutation_layers
 from Finch.genetics import genepools
 from textblob import TextBlob
 import matplotlib.pyplot as plt
 from Finch.functions import selection
 rank = selection.RankBasedSelection(2)
 history = {}
+
 def fit(individual):
     global history
     score = 0
@@ -22,17 +24,18 @@ def fit(individual):
     return score
 
 
-gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=100, fitness_function=fit)
+gene_pool = genepools.StringPool("qwertyuiopasdfghjklzxcvbnm      ", length=10, fitness_function=fit)
 
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool=gene_pool, population=4),
-    layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
-    layers.ParentSinglePointCrossover(2, 2, rank.select),
+    mutation_layers.MutateAmount(amount_individuals=10, amount_genes=2, gene_pool=gene_pool, selection_function=rank.select),
+    layers.ParentSinglePointCrossover(5, 2, rank.select),
     layers.SortByFitness(),
     layers.CapPopulation(max_population=39),
 ])
 
-environment.evolve(50000, verbose_every=50)
+environment.compile(verbose_every=500)
+environment.evolve(50000)
 
 print(environment.individuals[0].genes)
 print("VOCAB SIZE:")
