@@ -9,12 +9,12 @@ from keras.models import Model
 
 
 def get_model_weights_as_array(model):
-    weights = []
+    weights = np.array([])
     for layer in model.layers:
         if isinstance(layer, Model):  # Handle nested models
-            weights.extend(get_model_weights_as_array(layer))
+            weights += get_model_weights_as_array(layer)
         else:
-            weights.extend(layer.get_weights())
+            weights += layer.get_weights()
 
     flattened_weights = np.concatenate([w.flatten() for w in weights], axis=0)
     return flattened_weights
