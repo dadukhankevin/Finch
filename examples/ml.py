@@ -9,7 +9,6 @@ from Finch.functions import selection
 from Finch.ml import neuro_pools
 import matplotlib.pyplot as plt
 
-# Generate some synthetic data for binary classification
 data = np.random.random((1000, 2))  # 1000 samples with 2 features
 labels = (data[:, 0] + data[:, 1] > 1).astype(int)  # Binary labels based on a simple rule
 
