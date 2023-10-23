@@ -2,6 +2,7 @@ import torch
 import tensorflow as tf
 from Finch.genetics.population import Individual
 from Finch.genetics.population import NPCP as np
+import numpy
 from Finch.ml.llm import LLM
 from keras.layers import Layer
 
@@ -9,13 +10,13 @@ from keras.models import Model
 
 
 def get_model_weights_as_array(model):
-    weights = np.array([])
+    weights = numpy.array([])
     for layer in model.layers:
         if isinstance(layer, Model):  # Handle nested models
-            weights += np.append(weights, np.asarray(get_model_weights_as_array(layer)))
+            weights += numpy.append(weights, numpy.asarray(get_model_weights_as_array(layer)))
         else:
-            weights = np.append(weights, np.asarray(layer.get_weights()))
-    flattened_weights = np.concatenate([w.flatten() for w in weights], axis=0)
+            weights = numpy.append(weights, numpy.asarray(layer.get_weights()))
+    flattened_weights = numpy.concatenate([w.flatten() for w in weights], axis=0)
     return flattened_weights
 
 
