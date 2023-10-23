@@ -23,32 +23,37 @@ evo = keras.Sequential([
 evo.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 evo.summary()
 
+
 def fitness_function(model):
-    # Generate two random numbers between 0 and 1
-    feature1 = np.random.random()
-    feature2 = np.random.random()
+    feature1 = np.random.random(5)
+    feature2 = np.random.random(5)
+    input_data = np.column_stack((feature1, feature2))
 
-    # Create input data with the generated numbers
-    input_data = np.array([[feature1, feature2]])
+    predictions = model.predict(input_data)
+    correct_labels = (feature1 + feature2 > 1).astype(int)
+    mae = np.abs(correct_labels - predictions[:, 0])
 
-    # Make a prediction using the model
-    prediction = model.predict(input_data)
+    scores = 1 - mae
+    min_score = min(scores)
 
-    # Calculate Mean Absolute Error (MAE) between prediction and ground truth label
-    # We assume the correct label based on the same rule used earlier.
-    correct_label = int(feature1 + feature2 > 1)
-    mae = abs(correct_label - prediction[0][0])
-
-    return 1 - mae
-
+    return min_score
 gene_pool = neuro_pools.KerasPool(evo, fitness_function)
 environment = environments.Sequential(layers=[
-    layers.Populate(gene_pool, 5),
-    mutation_layers.FloatMutateAmount(amount_individuals = 3,amount_genes=4, gene_pool = gene_pool),
+    layers.Populate(gene_pool, 20),
+    mutation_layers.FloatOverPoweredMutation(10, 3, gene_pool, tries=3),
     layers.ParentNPointCrossover(2, 2, n = 2),
     layers.SortByFitness(),
     layers.CapPopulation(20)
 ])
 
-environment.evolve(10)
-evo = neuro_pools.set_model_weights_from_array(evo, environment.individuals[-1].genes)
+environment.evolve(20)
+evo = neuro_pools.set_model_weights_from_array(evo, environment.individuals[-1].genes)[0]
+for i in range(10):
+    try:
+        feature1 = float(input("Enter the first feature: "))
+        feature2 = float(input("Enter the second feature: "))
+        input_data = np.array([[feature1, feature2]])
+        prediction = evo.predict(input_data)
+        print(f"Model prediction: {prediction[0][0]:.4f}")
+    except ValueError:
+        print("Please enter valid numerical values.")
