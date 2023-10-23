@@ -10,6 +10,7 @@ can change quickly
 import math
 import numpy as np
 from Finch.functions import parenting, selection
+from Finch.genetics import Pool
 from Finch.genetics.population import NPCP, Individual
 from Finch.tools import rates
 from Finch.functions.selection import Select
@@ -45,7 +46,7 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
         change = self.after_m - self.before_m
         self.total += change
         self.runs += 1
-        self.layer_history.append(change)
+        self.layer_history.append(self.total)
         return self.total
 
     def run(self, individuals: list[Individual], environment: any):
@@ -53,7 +54,7 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
 
 
 class Populate(Layer):
-    def __init__(self, gene_pool, population):
+    def __init__(self, gene_pool: Pool, population: int):
         super().__init__()
         self.gene_pool = gene_pool
         self.population = rates.make_callable(population)
@@ -69,7 +70,7 @@ class Populate(Layer):
 
 
 class KillRandom(Layer):
-    def __init__(self, num_kill, selection_function):
+    def __init__(self, num_kill: int, selection_function: selection.RandomSelection().select):
         super().__init__()
         self.num_kill = rates.make_callable(num_kill)
         self.selection_function = selection_function
@@ -84,7 +85,7 @@ class KillRandom(Layer):
 
 
 class Kill(Layer):
-    def __init__(self, percent):
+    def __init__(self, percent: float):
         """
         :param percent: The percent to kill (picks from the worst)
         """
@@ -100,7 +101,7 @@ class Kill(Layer):
 
 
 class DuplicateRandom(Layer):
-    def __init__(self, num_duplicate, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_duplicate: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.num_duplicate = rates.make_callable(num_duplicate)
         self.selection_function = selection_function
@@ -115,7 +116,7 @@ class DuplicateRandom(Layer):
 
 
 class RemoveDuplicatesFromTop(Layer):
-    def __init__(self, top_n):
+    def __init__(self, top_n: int):
         super().__init__()
         self.top_n = rates.make_callable(top_n)
 
@@ -141,7 +142,7 @@ class SortByFitness(Layer):
 
 
 class CapPopulation(Layer):
-    def __init__(self, max_population):
+    def __init__(self, max_population: int):
         super().__init__()
         self.max_population = rates.make_callable(max_population)
 
@@ -161,7 +162,7 @@ class Function(Layer):
 
 
 class Controller(Layer):
-    def __init__(self, layer, execute_every=1, repeat=1, delay=0, stop_at=math.inf):
+    def __init__(self, layer: Layer, execute_every=1, repeat=1, delay=0, stop_at=math.inf):
         super().__init__()
         self.layer = layer
         self.every = rates.make_callable(execute_every)
@@ -181,7 +182,7 @@ class Controller(Layer):
 
 
 class ParentBestChild(Layer):
-    def __init__(self, num_families, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.BestChild(num_families, selection_function)
 
@@ -193,7 +194,7 @@ class ParentBestChild(Layer):
 
 
 class ParentBestChildBinary(Layer):
-    def __init__(self, num_families, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
 
@@ -205,10 +206,10 @@ class ParentBestChildBinary(Layer):
 
 
 class ParentSinglePointCrossover(Layer):
-    def __init__(self, num_families, num_childrem, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
-                                                               num_childrem)
+                                                               num_children)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -218,7 +219,7 @@ class ParentSinglePointCrossover(Layer):
 
 
 class ParentUniformCrossover(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
 
@@ -230,7 +231,7 @@ class ParentUniformCrossover(Layer):
 
 
 class ParentNPointCrossover(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select,
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select,
                  n=2):
         super().__init__()
         self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
@@ -243,7 +244,7 @@ class ParentNPointCrossover(Layer):
 
 
 class ParentUniformCrossoverMultiple(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int = 2, num_children: int = 2, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
 
@@ -255,8 +256,8 @@ class ParentUniformCrossoverMultiple(Layer):
 
 
 class ParentByGeneSegmentation(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select,
-                 gene_size=2):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select,
+                 gene_size: int = 2):
         super().__init__()
         self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
                                                                    num_children)
@@ -269,7 +270,7 @@ class ParentByGeneSegmentation(Layer):
 
 
 class Parent(Layer):
-    def __init__(self, num_families, num_children, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
@@ -290,7 +291,7 @@ class RemoveAllButBest(Layer):
 
 
 class FreezeRandom(Layer):
-    def __init__(self, amount_select, amount_genes, selection_function: callable = randomSelect.select):
+    def __init__(self, amount_select: int, amount_genes: int, selection_function: callable = randomSelect.select):
         super().__init__()
         self.amount_select = rates.make_callable(amount_select)
         self.amount_genes = rates.make_callable(amount_genes)
@@ -305,7 +306,7 @@ class FreezeRandom(Layer):
         return individuals
 
 class KillByFitnessPercentile(Layer):
-    def __init__(self, percentile):
+    def __init__(self, percentile: float):
         super().__init__()
         self.percentile = rates.make_callable(percentile)
 

@@ -3,12 +3,14 @@ from Finch.functions.selection import Select
 from Finch.tools import rates
 from Finch.functions import selection
 from Finch.genetics.population import NPCP
+from Finch.genetics.genepools import Pool
+from typing import Union
 
 randomSelect = selection.RandomSelection()
 
 
 class MutateAmount(Layer):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, refit=True,
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, refit=True,
                  selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.amount_individuals = rates.make_callable(amount_individuals)
@@ -37,7 +39,7 @@ class MutateAmount(Layer):
 
 
 class FloatMutateAmountUniform(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_mutation=0.1
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, max_mutation=0.1
                  , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
         self.max_mutation = rates.make_callable(max_mutation)
@@ -53,7 +55,7 @@ class FloatMutateAmountUniform(MutateAmount):
 
 
 class OverPoweredMutation(MutateAmount):  # TODO: determine if genes are frozen correctly in this
-    def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, tries=1,
                  selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, False)
         self.tries = rates.make_callable(tries)
@@ -73,7 +75,7 @@ class OverPoweredMutation(MutateAmount):  # TODO: determine if genes are frozen 
 
 
 class FloatMutateAmount(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
                  , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, refit, selection_function)
@@ -104,7 +106,7 @@ class FloatMutateAmount(MutateAmount):
 
 
 class IntMutateAmount(MutateAmount):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, min_mutation=-1, max_mutation=1
+    def __init__(self, amount_individuals: Pool, amount_genes: Pool, gene_pool: Pool, min_mutation=-1, max_mutation=1
                  , refit=True, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(rates.make_callable(amount_individuals), amount_genes, gene_pool, refit, selection_function)
         self.min_mutation = rates.make_callable(min_mutation)
@@ -133,7 +135,7 @@ class IntMutateAmount(MutateAmount):
 
 
 class IntOverPoweredMutation(OverPoweredMutation):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, tries=1,
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, tries=1,
                  selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
 
@@ -160,7 +162,7 @@ class IntOverPoweredMutation(OverPoweredMutation):
 
 
 class FloatOverPoweredMutation(OverPoweredMutation):
-    def __init__(self, amount_individuals, amount_genes, gene_pool, max_negative_mutation=-0.1,
+    def __init__(self, amount_individuals: int, amount_genes: int, gene_pool: Pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
                  , tries=1, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__(amount_individuals, amount_genes, gene_pool, tries, selection_function)
@@ -192,7 +194,7 @@ class FloatOverPoweredMutation(OverPoweredMutation):
 
 
 class FloatMomentumMutation(Layer):  # TODO: de-deprecate
-    def __init__(self, divider, amount_individuals: None, amount_genes, execute_every=1,
+    def __init__(self, divider: float, amount_individuals: None, amount_genes: int, execute_every=1,
                  selection_function: callable(Select.select) = randomSelect.select, reset_baseline=False):
         super().__init__()
         self.divider = rates.make_callable(divider)

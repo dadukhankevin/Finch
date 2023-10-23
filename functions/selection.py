@@ -3,6 +3,7 @@ from Finch.genetics.population import Individual
 
 from typing import Union
 
+
 class Select:
     def __init__(self):
         pass

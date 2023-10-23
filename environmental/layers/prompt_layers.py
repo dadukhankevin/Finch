@@ -4,9 +4,10 @@ from Finch.tools.rates import make_callable
 from typing import Union
 from Finch.genetics.population import Individual
 from Finch.functions.selection import RankBasedSelection
+from Finch.genetics.genepools import Pool
+
 
 rank = RankBasedSelection(2).select
-
 
 class LlmPromptMutation(Layer):
     def __init__(self, llm: LLM, temperature = .8, amount=2, selection_function: callable = rank, adjective: str =
