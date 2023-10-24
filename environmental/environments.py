@@ -23,6 +23,8 @@ class Environment(Layer):
         self.history = []
         self.compiled = False
         self.deactivated = False
+        self.best_ever = None
+
 
     def deactivate(self):
         self.deactivated = True
@@ -54,7 +56,11 @@ class Environment(Layer):
         if len(self.individuals) == 0:
             raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
         fitness = self.individuals[-1].fitness
+        if self.best_ever:
+            if fitness > self.best_ever.fitness:
+                self.best_ever = self.individuals[-1].copy()
         if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:
+            print(
             print(
                 f"{self.name}: generation {self.iteration + 1}/{self.generations}. Max fitness: {fitness}. Population: "
                 f"{len(self.individuals)}")
