@@ -8,7 +8,7 @@ from Finch.environmental.layers import mutation_layers
 from Finch.functions import selection
 from Finch.ml import neuro_pools
 import matplotlib.pyplot as plt
-
+s = selection.RankBasedSelection(5)
 # Generate some synthetic data for binary classification
 data = np.random.random((1000, 2))  # 1000 samples with 2 features
 labels = (data[:, 0] + data[:, 1] > 1).astype(int)  # Binary labels based on a simple rule
@@ -41,11 +41,11 @@ gene_pool = neuro_pools.KerasPool(evo, fitness_function)
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool, 20),
     mutation_layers.FloatOverPoweredMutation(10, 3, gene_pool, tries=3),
-    layers.ParentNPointCrossover(2, 2, n = 2),
+    layers.ParentNPointCrossover(2, 2, n = 2, selection_function=s),
     layers.SortByFitness(),
     layers.CapPopulation(20)
 ])
-
+environment
 environment.evolve(20)
 evo = neuro_pools.set_model_weights_from_array(evo, environment.individuals[-1].genes)[0]
 for i in range(10):
