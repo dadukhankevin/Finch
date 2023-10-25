@@ -59,9 +59,7 @@ class Environment(Layer):
         if self.best_ever:
             if fitness > self.best_ever.fitness:
                 self.best_ever = self.individuals[-1].copy()
-        if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:
-            print(
-            print(
+        if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:            print(
                 f"{self.name}: generation {self.iteration + 1}/{self.generations}. Max fitness: {fitness}. Population: "
                 f"{len(self.individuals)}")
         self.history.append(fitness)
