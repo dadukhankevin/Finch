@@ -56,16 +56,29 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
 class Populate(Layer):
     def __init__(self, gene_pool: Pool, population: int):
         super().__init__()
+        print("a")
         self.gene_pool = gene_pool
+        print("b")
+
         self.population = rates.make_callable(population)
 
     @Layer.Measure
     def run(self, individuals, environment):
+        print("c")
+
         individuals = list(individuals)  # TODO fix the need for this... Is this fixed???? I have no idea
         while len(individuals) < self.population():
+            print("d")
+
             new = self.gene_pool.generate()
+            print("e")
+
             new.fit()
+            print("f")
+
             individuals += [new]
+            print("g")
+
         return individuals
 
 
