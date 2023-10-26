@@ -1,6 +1,8 @@
+import copy
+
 import numpy as np
 from Finch.exceptions.population_exceptions import IndividualGenesNotArrayType
-
+from copy import deepcopy
 cp = None
 set = False
 
@@ -45,6 +47,7 @@ def can_use_cupy(array):
 class Individual:
     def __init__(self, genes, fitness_function, as_array=True):
         self.as_array = as_array
+        self.ar = NPCP
         if not as_array:
             self.genes = genes
         else:
@@ -69,9 +72,12 @@ class Individual:
         self.fitness = self.fitness_function(self.genes)
 
     def copy(self):  # this wont work with mutable fitness functions!!!
-        copied_genes = NPCP.copy(self.genes)
+        if self.as_array:
+            copied_genes = NPCP.copy(self.genes)
+        else:
+            copied_genes = copy.deepcopy(self.genes)
         copied_fitness_function = self.fitness_function
-        copied_individual = Individual(copied_genes, copied_fitness_function)
+        copied_individual = Individual(copied_genes, copied_fitness_function, as_array=self.as_array)
         copied_individual.fitness = self.fitness
         copied_individual.frozen_genes = self.frozen_genes
 

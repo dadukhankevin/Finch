@@ -21,7 +21,7 @@ randomSelect = selection.RandomSelection()
 class Layer(Individual):  # Layers are individuals, environments are layers,
     # thus environments and layers both have fitness
     def __init__(self):
-        super().__init__(self, self.fit_func)
+        super().__init__(self, self.fit_func, as_array=False)
         self.fitness = 1
         self.before_m = 1
         self.after_m = 1
@@ -64,20 +64,13 @@ class Populate(Layer):
 
     @Layer.Measure
     def run(self, individuals, environment):
-        print("c")
 
         individuals = list(individuals)  # TODO fix the need for this... Is this fixed???? I have no idea
         while len(individuals) < self.population():
-            print("d")
 
             new = self.gene_pool.generate()
-            print("e")
-
             new.fit()
-            print("f")
-
             individuals += [new]
-            print("g")
 
         return individuals
 
