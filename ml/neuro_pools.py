@@ -13,10 +13,11 @@ def get_model_weights_as_array(model):
     weights = np.array([])
     for layer in model.layers:
         if isinstance(layer, Model):  # Handle nested models
-            weights += np.append(weights, numpy.asarray(get_model_weights_as_array(layer)))
+            weights += np.append(weights, np.asarray(get_model_weights_as_array(layer)))
         else:
-            weights = np.append(weights, numpy.asarray(layer.get_weights()))
+            weights = np.append(weights, np.asarray(layer.get_weights()))
     flattened_weights = np.concatenate([w.flatten() for w in weights], axis=0)
+    print('past this part')
     return flattened_weights
 
 
