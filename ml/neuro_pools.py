@@ -69,7 +69,8 @@ class KerasPool:
                 new_weights = [np.random.randn(*w.shape) for w in layer_weights]
                 layer.set_weights(new_weights)
                 flat_weights.extend([w.flatten() for w in new_weights])
-                total_weights += len(flat_weights[-1])
+                if flat_weights:
+                    total_weights += len(flat_weights[-1])
 
         return np.concatenate(flat_weights)
     def generate_genes(self, num_genes):
