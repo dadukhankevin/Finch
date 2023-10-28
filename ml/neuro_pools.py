@@ -2,33 +2,32 @@ import torch
 import tensorflow as tf
 from Finch.genetics.population import Individual
 from Finch.genetics.population import NPCP as np
-import numpy
 from Finch.ml.llm import LLM
 from keras.layers import Layer
 
 from keras.models import Model
 
+def to_numpy_generic(arr):
+    try:
+        import cupy as cp
+        if isinstance(arr, (cp.ndarray, np.ndarray)):
+            return cp.asnumpy(arr)
+    except ImportError:
+        pass
 
+    if isinstance(arr, np.ndarray):
+        return arr
+    else:
+        raise ValueError("Input is not a CuPy or NumPy array.")
 def get_model_weights_as_array(model):
-    print('past this part')
     weights = np.array([])
-    print('past this part')
-
     for layer in model.layers:
-        print('past this part')
-
         if isinstance(layer, Model):  # Handle nested models
-            print('past this part')
-
             weights += np.append(weights, np.asarray(get_model_weights_as_array(layer)))
         else:
-            print('past this part')
-
             weights = np.append(weights, np.asarray(layer.get_weights()))
-            print('past this part')
 
     flattened_weights = np.concatenate([w.flatten() for w in weights], axis=0)
-    print('past this part')
     return flattened_weights
 
 
@@ -47,7 +46,7 @@ def set_model_weights_from_array(model, weights_array, index=0):
                 new_weights.append(new_weight)
                 index += size
 
-            layer.set_weights(new_weights)
+            layer.set_weights(to_numpy_generic(new_weights))
 
     return model, index
 
@@ -79,7 +78,7 @@ class KerasPool:
             elif isinstance(layer, Layer):
                 layer_weights = layer.get_weights()
                 new_weights = [np.random.randn(*w.shape) for w in layer_weights]
-                layer.set_weights(new_weights)
+                layer.set_weights(to_numpy_generic(new_weights))
                 flat_weights.extend([w.flatten() for w in new_weights])
                 if flat_weights:
                     total_weights += len(flat_weights[-1])
