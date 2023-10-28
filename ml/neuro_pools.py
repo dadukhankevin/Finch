@@ -78,7 +78,7 @@ class KerasPool:
                 if flat_weights:
                     total_weights += len(flat_weights[-1])
 
-        return np.concatenate(flat_weights)
+        return numpy.concatenate(flat_weights)
     def generate_genes(self, num_genes):
         return self.randomize_model_weights(self.model)
 
