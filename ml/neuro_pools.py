@@ -9,13 +9,9 @@ from keras.models import Model
 
 def to_numpy_generic(arr):
     try:
-        import cupy as cp
-        if isinstance(arr, (cp.ndarray, np.ndarray)):
-            return cp.asnumpy(arr)
-    except ImportError:
-        pass
-
-    return arr
+        return arr.get()
+    except:
+        return arr
 def get_model_weights_as_array(model):
     weights = np.array([])
     for layer in model.layers:
