@@ -15,10 +15,7 @@ def to_numpy_generic(arr):
     except ImportError:
         pass
 
-    if isinstance(arr, np.ndarray):
-        return arr
-    else:
-        raise ValueError("Input is not a CuPy or NumPy array.")
+    return arr
 def get_model_weights_as_array(model):
     weights = np.array([])
     for layer in model.layers:
