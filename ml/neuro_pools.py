@@ -41,7 +41,7 @@ def set_model_weights_from_array(model, weights_array, index=0):
                 new_weights.append(new_weight)
                 index += size
 
-            layer.set_weights(new_weights)
+            layer.set_weights(to_numpy_generic(new_weights))
 
     return model, index
 
