@@ -10,12 +10,23 @@ from keras.models import Model
 
 
 def get_model_weights_as_array(model):
+    print('past this part')
     weights = np.array([])
+    print('past this part')
+
     for layer in model.layers:
+        print('past this part')
+
         if isinstance(layer, Model):  # Handle nested models
+            print('past this part')
+
             weights += np.append(weights, np.asarray(get_model_weights_as_array(layer)))
         else:
+            print('past this part')
+
             weights = np.append(weights, np.asarray(layer.get_weights()))
+            print('past this part')
+
     flattened_weights = np.concatenate([w.flatten() for w in weights], axis=0)
     print('past this part')
     return flattened_weights
