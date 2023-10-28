@@ -36,12 +36,12 @@ def set_model_weights_from_array(model, weights_array, index=0):
 
             for w in layer_weights:
                 shape = w.shape
-                size = np.prod(shape)
+                size = numpy.prod(shape)
                 new_weight = weights_array[index:index + size].reshape(shape)
                 new_weights.append(new_weight)
                 index += size
 
-            layer.set_weights(to_numpy_generic(new_weights))
+            layer.set_weights(new_weights)
 
     return model, index
 
