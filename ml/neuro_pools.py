@@ -4,7 +4,7 @@ from Finch.genetics.population import Individual
 from Finch.genetics.population import NPCP as np
 from Finch.ml.llm import LLM
 from keras.layers import Layer
-
+import numpy
 from keras.models import Model
 
 def to_numpy_generic(arr):
@@ -72,8 +72,8 @@ class KerasPool:
                 total_weights += num_weights
             elif isinstance(layer, Layer):
                 layer_weights = layer.get_weights()
-                new_weights = [np.random.randn(*w.shape) for w in layer_weights]
-                layer.set_weights(to_numpy_generic(new_weights))
+                new_weights = [numpy.random.randn(*w.shape) for w in layer_weights]
+                layer.set_weights(new_weights)
                 flat_weights.extend([w.flatten() for w in new_weights])
                 if flat_weights:
                     total_weights += len(flat_weights[-1])
