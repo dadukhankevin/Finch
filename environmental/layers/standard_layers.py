@@ -260,10 +260,10 @@ class ParentUniformCrossover(Layer):
 
 
 class ParentMeanCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect, probability=.5):
         super().__init__()
         self.parenting_object = parenting.ParentMean(num_children=num_children, num_families=num_families,
-                                                     selection_function=selection_function)
+                                                     selection_function=selection_function, probability=probability)
 
     @Layer.Measure
     def run(self, individuals, environment):
