@@ -123,7 +123,6 @@ class UniformCrossover(Parent):
         probability = rates.make_callable(probability)
         self.probability = probability
 
-
     def crossover(self, parent1, parent2, environment, layer):
         genes1 = []
         genes2 = []
@@ -212,3 +211,31 @@ class ParentByGeneSegmentation(Parent):
         child = np.concatenate(segments)
 
         return Individual(child, parent1.fitness_function)
+
+
+class ParentMean(Parent):
+    def __init__(self, num_children, num_families, selection_function):
+        super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
+                         parent_function=self.mean_crossover)
+
+    def mean_crossover(self, parent1, parent2, environment, layer):
+        """
+        Modify parent1 by replacing genes with the mean of their corresponding genes in parent2.
+        Args:
+            parent1 (Individual): The first parent.
+            parent2 (Individual): The second parent.
+            environment: The environment object.
+            layer: The layer object.
+        Returns: Individual: The modified parent1.
+        """
+        num_genes = len(parent1.genes)
+        parents = [parent1, parent2]
+        random.shuffle(parents)
+        parent1, parent2 = parents
+
+        selected_indices = np.random.choice(num_genes, num_genes, replace=False)
+        child = parent1.copy()
+        child.genes[selected_indices] = (parent1.genes[selected_indices] + parent2.genes[selected_indices]) / 2
+        child.fit()
+
+        return child
