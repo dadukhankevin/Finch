@@ -1,5 +1,7 @@
 import torch
 import tensorflow as tf
+
+from Finch.genetics import Pool
 from Finch.genetics.population import Individual
 from Finch.genetics.population import NPCP as np
 from Finch.ml.llm import LLM
@@ -46,7 +48,7 @@ def set_model_weights_from_array(model, weights_array, index=0):
     return model, index
 
 
-class KerasPool:
+class KerasPool(Pool):
     def __init__(self, model, fitness_function):
         self.model = model
         self.fitness_function = fitness_function

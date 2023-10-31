@@ -64,7 +64,7 @@ class KerasTrain(Layer):
         self.gene_pool = gene_pool
     @Layer.Measure
     def run(self, individuals, environment):
-        selected = self.selection_function(individuals)
+        selected = self.selection_function.select(individuals)
         for individual in selected:
             model = set_model_weights_from_array(self.gene_pool.model, individual.genes)[0]
             model.fit(self.x_data, self.y_data, batch_size=self.batch_size, epochs=self.epochs)
@@ -97,7 +97,7 @@ class KillBySelection(Layer):
     @Layer.Measure
     def run(self, individuals, environment):
         # select some individuals to kill using the selection function
-        to_kill = self.selection_function(individuals)
+        to_kill = self.selection_function.select(individuals)
         # remove the selected individuals from the population
         individuals = [ind for ind in individuals if ind not in to_kill]
         return individuals

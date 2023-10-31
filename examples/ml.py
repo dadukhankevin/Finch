@@ -9,6 +9,7 @@ from Finch.functions import selection
 from Finch.ml import neuro_pools
 import matplotlib.pyplot as plt
 
+rank = selection.RankBasedSelection(1, .2)
 data = np.random.random((1000, 2))  # 1000 samples with 2 features
 labels = (data[:, 0] + data[:, 1] > 1).astype(int)  # Binary labels based on a simple rule
 
@@ -27,6 +28,8 @@ print(len(ws))
 evo = neuro_pools.set_model_weights_from_array(evo, ws)[0]
 print(evo)
 input()
+
+
 def fitness_function(m):
     # Generate two random numbers between 0 and 1
     feature1 = np.random.random()
@@ -44,10 +47,12 @@ def fitness_function(m):
     mae = abs(correct_label - prediction[0][0])
 
     return 1 - mae
+
+
 gene_pool = neuro_pools.KerasPool(evo, fitness_function)
 environment = environments.Sequential(layers=[
     layers.Populate(gene_pool, 5),
-    mutation_layers.FloatMutateAmount(3, amount_genes=3, gene_pool=gene_pool),
+    mutation_layers.FloatMutateAmount(3, gene_pool=gene_pool, selection_function=rank),
     layers.ParentNPointCrossover(2, 2, n=2),
     layers.SortByFitness(),
     layers.CapPopulation(10)
