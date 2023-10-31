@@ -1,16 +1,14 @@
 from .mutation_layers import Layer
 from Finch.ml.llm import LLM
 from Finch.tools.rates import make_callable
-from typing import Union
 from Finch.genetics.population import Individual
 from Finch.functions.selection import RankBasedSelection
-from Finch.genetics.genepools import Pool
 
+rank = RankBasedSelection(2, amount_to_select=3)
 
-rank = RankBasedSelection(2).select
 
 class LlmPromptMutation(Layer):
-    def __init__(self, llm: LLM, temperature = .8, amount=2, selection_function: callable = rank, adjective: str =
+    def __init__(self, llm: LLM, temperature=.8, amount=2, selection_function: callable = rank, adjective: str =
     'one or two words'):
         super().__init__()
         self.adjective = adjective
@@ -25,12 +23,13 @@ class LlmPromptMutation(Layer):
         self.llm.temperature = temperature
 
     def run(self, individuals: list[Individual], environment: any):
-        selected_individuals = self.selection_function(individuals, self.amount())
+        selected_individuals = self.selection_function.select(individuals)
         for individual in selected_individuals:
             self.llm.system_prompt = self.instructions
             self.llm.temperature = self.temperature
             individual.genes = self.llm.run(individual.genes)
         return individuals
+
 
 class PromptParenting(Layer):
 
@@ -43,7 +42,7 @@ class PromptParenting(Layer):
         self.selection_function = selection_function
 
     def run(self, individuals, environment):
-        parents = self.selection_function(individuals, self.num_children())
+        parents = self.selection_function.select(individuals)
 
         parent1_prompt = parents[0].genes
         parent2_prompt = parents[1].genes
@@ -61,4 +60,3 @@ class PromptParenting(Layer):
             individuals.append(child)
 
         return individuals
-

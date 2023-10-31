@@ -13,7 +13,7 @@ class Parent:
     def parent(self, individuals, environment, layer):
         kids = []
         for i in range(self.num_families):
-            parents = self.selection_function(individuals, 2)
+            parents = self.selection_function.select(individuals)
             for j in range(self.num_children):
                 kids += self.parent_function(parents[0], parents[1], environment, layer)
         for kid in kids:

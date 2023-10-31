@@ -63,6 +63,8 @@ def make_switcher(x) -> callable(any):
 
 
 def make_callable(x: Union[callable, int, float]) -> callable:
+    if x is None:
+        return None
     if not callable(x):
         # return a function that always returns x
         def constant() -> int | float:

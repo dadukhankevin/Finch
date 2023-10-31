@@ -99,6 +99,7 @@ keras_compatible = [
   standard_layers.RemoveDuplicatesFromTop,
   standard_layers.CapPopulation,
   standard_layers.RemoveAllButBest,
+  standard_layers.KerasTrain,
   mutation_layers.FloatMutateAmount,
   mutation_layers.FloatOverPoweredMutation,
   mutation_layers.FloatMutateAmountUniform,

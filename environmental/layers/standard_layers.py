@@ -14,8 +14,9 @@ from Finch.genetics import Pool
 from Finch.genetics.population import NPCP, Individual
 from Finch.tools import rates
 from Finch.functions.selection import Select
+from Finch.ml.neuro_pools import set_model_weights_from_array, KerasPool
 
-randomSelect = selection.RandomSelection()
+randomSelect = selection.RandomSelection(percent_to_select=.2)
 
 
 class Layer(Individual):  # Layers are individuals, environments are layers,
@@ -52,6 +53,22 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
     def run(self, individuals: list[Individual], environment: any):
         pass
 
+class KerasTrain(Layer):
+    def __init__(self, x_data, y_data, batch_size, gene_pool: KerasPool,epochs=1, selection_function=randomSelect.select):
+        super().__init__()
+        self.epochs = epochs
+        self.x_data = x_data
+        self.y_data = y_data
+        self.batch_size = batch_size
+        self.selection_function = selection_function
+        self.gene_pool = gene_pool
+    @Layer.Measure
+    def run(self, individuals, environment):
+        selected = self.selection_function(individuals)
+        for individual in selected:
+            model = set_model_weights_from_array(self.gene_pool.model, individual.genes)[0]
+            model.fit(self.x_data, self.y_data, batch_size=self.batch_size, epochs=self.epochs)
+            individual.fit()
 
 class Populate(Layer):
     def __init__(self, gene_pool: Pool, population: int):
@@ -72,16 +89,15 @@ class Populate(Layer):
         return individuals
 
 
-class KillRandom(Layer):
-    def __init__(self, num_kill: int, selection_function: selection.RandomSelection().select):
+class KillBySelection(Layer):
+    def __init__(self, selection_function: selection.RandomSelection().select):
         super().__init__()
-        self.num_kill = rates.make_callable(num_kill)
         self.selection_function = selection_function
 
     @Layer.Measure
     def run(self, individuals, environment):
         # select some individuals to kill using the selection function
-        to_kill = self.selection_function(individuals, self.num_kill())
+        to_kill = self.selection_function(individuals)
         # remove the selected individuals from the population
         individuals = [ind for ind in individuals if ind not in to_kill]
         return individuals
@@ -103,18 +119,18 @@ class Kill(Layer):
         return data
 
 
-class DuplicateRandom(Layer):
-    def __init__(self, num_duplicate: int, selection_function: callable(Select.select) = randomSelect.select):
+class DuplicateSelection(Layer):
+    def __init__(self, selection_function: callable(Select.select) = randomSelect):
         super().__init__()
-        self.num_duplicate = rates.make_callable(num_duplicate)
         self.selection_function = selection_function
 
     @Layer.Measure
     def run(self, individuals, environment):
         # select some individuals to duplicate using the selection function
-        duplicates = self.selection_function(individuals, self.num_duplicate())
-        # append the duplicates to the population
+        duplicates = self.selection_function.select(individuals)
+        duplicates = [d.copy() for d in duplicates] # make them different (:
         individuals = np.append(individuals, duplicates)
+
         return individuals
 
 
@@ -185,10 +201,11 @@ class Controller(Layer):
 
 
 class ParentBestChild(Layer):
-    def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, selection_function: callable(Select) = randomSelect):
         super().__init__()
         self.parenting_object = parenting.BestChild(num_families, selection_function)
-
+        if selection_function.amount_to_select != 2:
+            raise ValueError("The Selection you are using must select 2 individuals")
     @Layer.Measure
     def run(self, individuals, environment):
         individuals += self.parenting_object.parent(individuals=individuals,
@@ -200,6 +217,8 @@ class ParentBestChildBinary(Layer):
     def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select):
         super().__init__()
         self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
+        if selection_function.amount_to_select != 2:
+            raise ValueError("The Selection you are using must select 2 individuals")
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -209,7 +228,7 @@ class ParentBestChildBinary(Layer):
 
 
 class ParentSinglePointCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
                                                                num_children)
@@ -222,7 +241,7 @@ class ParentSinglePointCrossover(Layer):
 
 
 class ParentUniformCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
         super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
 
@@ -234,7 +253,7 @@ class ParentUniformCrossover(Layer):
 
 
 class ParentNPointCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select,
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
                  n=2):
         super().__init__()
         self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
@@ -247,7 +266,7 @@ class ParentNPointCrossover(Layer):
 
 
 class ParentUniformCrossoverMultiple(Layer):
-    def __init__(self, num_families: int = 2, num_children: int = 2, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int = 2, num_children: int = 2, selection_function: callable(Select) = randomSelect):
         super().__init__()
         self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
 
@@ -259,7 +278,7 @@ class ParentUniformCrossoverMultiple(Layer):
 
 
 class ParentByGeneSegmentation(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select,
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
                  gene_size: int = 2):
         super().__init__()
         self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
@@ -273,7 +292,7 @@ class ParentByGeneSegmentation(Layer):
 
 
 class Parent(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
 
@@ -294,15 +313,14 @@ class RemoveAllButBest(Layer):
 
 
 class FreezeRandom(Layer):
-    def __init__(self, amount_select: int, amount_genes: int, selection_function: callable = randomSelect.select):
+    def __init__(self, amount_genes: int, selection_function: callable = randomSelect):
         super().__init__()
-        self.amount_select = rates.make_callable(amount_select)
         self.amount_genes = rates.make_callable(amount_genes)
         self.selection_function = selection_function
 
     @Layer.Measure
     def run(self, individuals, environment):
-        selected_individuals = self.selection_function(individuals, self.amount_select())
+        selected_individuals = self.selection_function.select(individuals)
         for individual in selected_individuals:
             random_indices = NPCP.random.choice(individual.genes.size, self.amount_genes(), replace=False)
             individual.freeze(random_indices)

@@ -8,9 +8,9 @@ import inspect
 
 
 def gen_select(mn, mx):  # generate a random selection functions
-    selection_functions = [selection.RandomSelection().select, selection.Select().select,
-                           selection.TournamentSelection().select,
-                           selection.RankBasedSelection(random.randint(mn, mx)).select]
+    selection_functions = [selection.RandomSelection(random.uniform(mn, mx)).select,
+                           selection.TournamentSelection(random.uniform(mn, mx)).select,
+                           selection.RankBasedSelection(random.uniform(mn, mx)).select]
     return random.choice(selection_functions)
 
 
@@ -79,7 +79,7 @@ def mutate_arg(arg, mn=1, mx=5):
 
 
 class DynamicLayerArgs(standard_layers.Layer):
-    def __init__(self, pool: Pool, layer: standard_layers.Layer.__class__, args: list = None, kwargs: dict = None):
+    def __init__(self, pool: Pool, layer: standard_layers.Layer.__class__):
         super().__init__()
         self.layer = layer
         self.pool = pool
