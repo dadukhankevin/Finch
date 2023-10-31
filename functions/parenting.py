@@ -2,6 +2,8 @@ from Finch.genetics.population import Individual
 from Finch.genetics.population import NPCP as np
 import random
 
+from Finch.tools import rates
+
 
 class Parent:
     def __init__(self, num_children, num_families, selection_function, parent_function):
@@ -118,14 +120,16 @@ class UniformCrossover(Parent):
     def __init__(self, num_families, selection_function, num_children, probability=0.5):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
+        probability = rates.make_callable(probability)
         self.probability = probability
+
 
     def crossover(self, parent1, parent2, environment, layer):
         genes1 = []
         genes2 = []
 
         for gene1, gene2 in zip(parent1.genes, parent2.genes):
-            if random.random() < self.probability:
+            if random.random() < self.probability():
                 genes1.append(gene2)
                 genes2.append(gene1)
             else:

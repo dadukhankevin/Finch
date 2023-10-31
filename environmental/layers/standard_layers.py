@@ -243,9 +243,9 @@ class ParentSinglePointCrossover(Layer):
 
 
 class ParentUniformCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect, probability=.5):
         super().__init__()
-        self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children)
+        self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children, probability=probability)
 
     @Layer.Measure
     def run(self, individuals, environment):
