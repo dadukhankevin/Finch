@@ -215,9 +215,10 @@ class ParentByGeneSegmentation(Parent):
 
 
 class ParentMean(Parent):
-    def __init__(self, num_children, num_families, selection_function):
+    def __init__(self, num_children, num_families, selection_function, probability=.5):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
                          parent_function=self.crossover)
+        self.probability = probability
 
     def crossover(self, parent1, parent2, environment, layer):
         """
@@ -230,11 +231,14 @@ class ParentMean(Parent):
         Returns: Individual: The modified parent1.
         """
         num_genes = len(parent1.genes)
-        parents = [parent1, parent2]
-        random.shuffle(parents)
-        parent1, parent2 = parents
 
-        selected_indices = np.random.choice(num_genes, num_genes, replace=False)
+        # Determine the number of genes to choose based on the given percentage
+        num_genes_to_choose = int(num_genes * self.probability)
+
+        # Randomly select which genes to choose
+        selected_indices = np.random.choice(num_genes, num_genes_to_choose, replace=False)
+
+        # Perform mean crossover on the selected genes
         child = parent1.copy()
         child.genes[selected_indices] = (parent1.genes[selected_indices] + parent2.genes[selected_indices]) / 2
         child.fit()
