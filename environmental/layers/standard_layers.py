@@ -68,8 +68,8 @@ class KerasTrain(Layer):
         for individual in selected:
             model = set_model_weights_from_array(self.gene_pool.model, individual.genes)[0]
             model.fit(self.x_data, self.y_data, batch_size=self.batch_size, epochs=self.epochs)
-            individual.fit()
             individual.genes = get_model_weights_as_array(model)
+            individual.fit()
         return individuals
 
 class Populate(Layer):
