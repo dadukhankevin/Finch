@@ -14,7 +14,7 @@ from Finch.genetics import Pool
 from Finch.genetics.population import NPCP, Individual
 from Finch.tools import rates
 from Finch.functions.selection import Select
-from Finch.ml.neuro_pools import set_model_weights_from_array, KerasPool
+from Finch.ml.neuro_pools import set_model_weights_from_array, KerasPool, get_model_weights_as_array
 
 randomSelect = selection.RandomSelection(percent_to_select=.2)
 
@@ -69,6 +69,8 @@ class KerasTrain(Layer):
             model = set_model_weights_from_array(self.gene_pool.model, individual.genes)[0]
             model.fit(self.x_data, self.y_data, batch_size=self.batch_size, epochs=self.epochs)
             individual.fit()
+            individual.genes = get_model_weights_as_array(model)
+        return individuals
 
 class Populate(Layer):
     def __init__(self, gene_pool: Pool, population: int):
