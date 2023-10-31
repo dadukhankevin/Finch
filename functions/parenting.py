@@ -17,7 +17,8 @@ class Parent:
         for i in range(self.num_families):
             parents = self.selection_function.select(individuals)
             for j in range(self.num_children):
-                kids += self.parent_function(parents[0], parents[1], environment, layer)
+                new = self.parent_function(parents[0], parents[1], environment, layer)
+                kids += new
         for kid in kids:
             kid.fit()
         return kids
@@ -210,15 +211,15 @@ class ParentByGeneSegmentation(Parent):
         # Concatenate gene segments to form offspring
         child = np.concatenate(segments)
 
-        return Individual(child, parent1.fitness_function)
+        return [Individual(child, parent1.fitness_function)]
 
 
 class ParentMean(Parent):
     def __init__(self, num_children, num_families, selection_function):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.mean_crossover)
+                         parent_function=self.crossover)
 
-    def mean_crossover(self, parent1, parent2, environment, layer):
+    def crossover(self, parent1, parent2, environment, layer):
         """
         Modify parent1 by replacing genes with the mean of their corresponding genes in parent2.
         Args:
@@ -238,4 +239,4 @@ class ParentMean(Parent):
         child.genes[selected_indices] = (parent1.genes[selected_indices] + parent2.genes[selected_indices]) / 2
         child.fit()
 
-        return child
+        return [child]

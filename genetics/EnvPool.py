@@ -8,9 +8,9 @@ import inspect
 
 
 def gen_select(mn, mx):  # generate a random selection functions
-    selection_functions = [selection.RandomSelection(random.uniform(mn, mx)).select,
-                           selection.TournamentSelection(random.uniform(mn, mx)).select,
-                           selection.RankBasedSelection(random.uniform(mn, mx)).select]
+    selection_functions = [selection.RandomSelection(random.uniform(mn, mx)),
+                           selection.TournamentSelection(random.uniform(mn, mx)),
+                           selection.RankBasedSelection(random.uniform(mn, mx))]
     return random.choice(selection_functions)
 
 
