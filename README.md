@@ -1,7 +1,9 @@
 # Finch
 
 Finch is a genetic algorithm library for Python focused on flexibility and ease of use.
-
+## Docs
+These are very much a work in progress but should be helpful!
+- https://finch-1.gitbook.io/finch/
 ## Key Features
 
 - Layer-based environments for composable evolution
