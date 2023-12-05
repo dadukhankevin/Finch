@@ -5,7 +5,7 @@ cp = None
 set = False
 
 do_gpu = False
-
+NPCP = np
 if do_gpu:
     try:
         import cupy as cp
