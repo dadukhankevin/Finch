@@ -23,13 +23,16 @@ class Parent:
         if self.refit:
             for kid in kids:
                 kid.fit()
+        else:
+            for kid in kids:
+                kid.fitness = (individuals[-1].fitness + individuals[0].fitness)/2
         return kids
 
 
 class BestChild(Parent):
-    def __init__(self, num_families, selection_function):
+    def __init__(self, num_families, selection_function, refit=0):
         super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
 
     def best_child(self, parent1, parent2, baseline):
         """
@@ -64,9 +67,9 @@ class BestChild(Parent):
 
 
 class BestChildBinary(Parent):
-    def __init__(self, num_families, selection_function):
+    def __init__(self, num_families, selection_function, refit=0):
         super().__init__(num_children=1, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
 
     def best_child(self, parent1, parent2, baseline):
         """
@@ -107,9 +110,9 @@ class BestChildBinary(Parent):
 
 
 class SinglePointCrossover(Parent):
-    def __init__(self, num_families, selection_function, num_children):
+    def __init__(self, num_families, selection_function, num_children, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
 
     def crossover(self, parent1, parent2, environment, layer):
         point = random.randint(1, len(parent1.genes) - 1)
@@ -120,9 +123,9 @@ class SinglePointCrossover(Parent):
 
 
 class UniformCrossover(Parent):
-    def __init__(self, num_families, selection_function, num_children, probability=0.5):
+    def __init__(self, num_families, selection_function, num_children, probability=0.5, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
         probability = rates.make_callable(probability)
         self.probability = probability
 
@@ -144,9 +147,9 @@ class UniformCrossover(Parent):
 
 
 class NPointCrossover(Parent):
-    def __init__(self, num_families, selection_function, num_children, n):
+    def __init__(self, num_families, selection_function, num_children, n, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
         self.n = n
 
     def crossover(self, parent1, parent2, environment, layer):
@@ -174,9 +177,9 @@ class NPointCrossover(Parent):
 
 
 class UniformCrossoverMultiple(Parent):
-    def __init__(self, num_families, selection_function, num_children):
+    def __init__(self, num_families, selection_function, num_children, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
 
     def crossover(self, parent1, parent2, environment, layer):
         parents = [parent1, parent2]
@@ -192,9 +195,9 @@ class UniformCrossoverMultiple(Parent):
 
 
 class ParentByGeneSegmentation(Parent):
-    def __init__(self, num_families, selection_function, num_children, gene_size=2):
+    def __init__(self, num_families, selection_function, num_children, gene_size=2, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
         self.gene_size = gene_size
 
     def crossover(self, parent1, parent2, environment, layer):
@@ -217,9 +220,9 @@ class ParentByGeneSegmentation(Parent):
 
 
 class ParentMean(Parent):
-    def __init__(self, num_children, num_families, selection_function, probability=.5):
+    def __init__(self, num_children, num_families, selection_function, probability=.5, refit=0):
         super().__init__(num_children=num_children, num_families=num_families, selection_function=selection_function,
-                         parent_function=self.crossover)
+                         parent_function=self.crossover, refit=refit)
         self.probability = probability
 
     def crossover(self, parent1, parent2, environment, layer):
