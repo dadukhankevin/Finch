@@ -56,7 +56,7 @@ class Layer(Individual):  # Layers are individuals, environments are layers,
 
 class KerasTrain(Layer):
     def __init__(self, x_data, y_data, batch_size, gene_pool: KerasPool, epochs=1,
-                 selection_function=randomSelect.select):
+                 selection_function=randomSelect):
         super().__init__()
         self.epochs = epochs
         self.x_data = x_data

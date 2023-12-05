@@ -6,11 +6,12 @@ from Finch.tools import rates
 
 
 class Parent:
-    def __init__(self, num_children, num_families, selection_function, parent_function):
+    def __init__(self, num_children, num_families, selection_function, parent_function, refit=0):
         self.num_children = num_children
         self.num_families = num_families
         self.selection_function = selection_function
         self.parent_function = parent_function
+        self.refit = refit
 
     def parent(self, individuals, environment, layer):
         kids = []
@@ -19,8 +20,9 @@ class Parent:
             for j in range(self.num_children):
                 new = self.parent_function(parents[0], parents[1], environment, layer)
                 kids += new
-        for kid in kids:
-            kid.fit()
+        if self.refit:
+            for kid in kids:
+                kid.fit()
         return kids
 
 

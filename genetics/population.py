@@ -1,27 +1,27 @@
 import copy
-
 import numpy as np
 from Finch.exceptions.population_exceptions import IndividualGenesNotArrayType
-from copy import deepcopy
 cp = None
 set = False
 
+do_gpu = False
 
-try:
-    import cupy as cp
+if do_gpu:
+    try:
+        import cupy as cp
 
-    # Check if GPU is available
-    if cp.cuda.runtime.getDeviceCount() > 0:
-        print("GPU detected. Using CuPy.")
-        NPCP = cp
-    else:
-        print("GPU not detected. Using NumPy.")
-        cp = np
+        # Check if GPU is available
+        if cp.cuda.runtime.getDeviceCount() > 0:
+            print("GPU detected. Using CuPy.")
+            NPCP = cp
+        else:
+            print("GPU not detected. Using NumPy.")
+            cp = np
+            NPCP = np
+
+    except ImportError:
+        print("CuPy not found. Using NumPy.")
         NPCP = np
-
-except ImportError:
-    print("CuPy not found. Using NumPy.")
-    NPCP = np
 
 
 def force_gpu_off():

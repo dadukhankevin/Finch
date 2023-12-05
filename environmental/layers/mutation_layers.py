@@ -77,7 +77,7 @@ class OverPoweredMutation(MutateAmount):  # TODO: determine if genes are frozen 
 class FloatMutateAmount(MutateAmount):
     def __init__(self, amount_genes: int, gene_pool: Pool, max_negative_mutation=-0.1,
                  max_positive_mutation=0.1
-                 , refit=True, selection_function: callable(Select.select) = randomSelect.select):
+                 , refit=True, selection_function: callable(Select.select) = randomSelect):
         super().__init__(amount_genes, gene_pool, refit, selection_function)
         self.max_negative_mutation = rates.make_callable(max_negative_mutation)
         self.max_positive_mutation = rates.make_callable(max_positive_mutation)
