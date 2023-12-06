@@ -34,6 +34,7 @@ These are very much a work in progress but should be helpful!
 - **FloatPool**: Generate genes as float values
 - **BinaryPool**: Generate binary integer genes 
 - **StringPool**: Generate string genes
+- **OutlinesPool**: Generate guided text using the Outlines library
 
 ## AI Features (very early)
 
