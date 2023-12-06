@@ -205,9 +205,9 @@ class Controller(Layer):
 
 
 class ParentBestChild(Layer):
-    def __init__(self, num_families: int, selection_function: callable(Select) = randomSelect):
+    def __init__(self, num_families: int, selection_function: callable(Select) = randomSelect, refit=False):
         super().__init__()
-        self.parenting_object = parenting.BestChild(num_families, selection_function)
+        self.parenting_object = parenting.BestChild(num_families, selection_function, refit)
         if selection_function.amount_to_select != 2:
             raise ValueError("The Selection you are using must select 2 individuals")
 
@@ -219,9 +219,9 @@ class ParentBestChild(Layer):
 
 
 class ParentBestChildBinary(Layer):
-    def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select):
+    def __init__(self, num_families: int, selection_function: callable(Select.select) = randomSelect.select, refit=False):
         super().__init__()
-        self.parenting_object = parenting.BestChildBinary(num_families, selection_function)
+        self.parenting_object = parenting.BestChildBinary(num_families, selection_function, refit)
         if selection_function.amount_to_select != 2:
             raise ValueError("The Selection you are using must select 2 individuals")
 
@@ -233,10 +233,10 @@ class ParentBestChildBinary(Layer):
 
 
 class ParentSinglePointCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect, refit=False):
         super().__init__()
         self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function,
-                                                               num_children)
+                                                               num_children, refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -247,10 +247,10 @@ class ParentSinglePointCrossover(Layer):
 
 class ParentUniformCrossover(Layer):
     def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
-                 probability=.5):
+                 probability=.5, refit=False):
         super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children,
-                                                           probability=probability)
+                                                           probability=probability, refit=refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -260,10 +260,12 @@ class ParentUniformCrossover(Layer):
 
 
 class ParentMeanCrossover(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect, probability=.5):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
+                 probability=.5, refit=False):
         super().__init__()
         self.parenting_object = parenting.ParentMean(num_children=num_children, num_families=num_families,
-                                                     selection_function=selection_function, probability=probability)
+                                                     selection_function=selection_function, probability=probability,
+                                                     refit=refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -274,9 +276,9 @@ class ParentMeanCrossover(Layer):
 
 class ParentNPointCrossover(Layer):
     def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
-                 n=2):
+                 n=2, refit=False):
         super().__init__()
-        self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n)
+        self.parenting_object = parenting.NPointCrossover(num_families, selection_function, num_children, n, refit=refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -287,9 +289,9 @@ class ParentNPointCrossover(Layer):
 
 class ParentUniformCrossoverMultiple(Layer):
     def __init__(self, num_families: int = 2, num_children: int = 2,
-                 selection_function: callable(Select) = randomSelect):
+                 selection_function: callable(Select) = randomSelect, refit=False):
         super().__init__()
-        self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children)
+        self.parenting_object = parenting.UniformCrossoverMultiple(num_families, selection_function, num_children, refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -300,10 +302,10 @@ class ParentUniformCrossoverMultiple(Layer):
 
 class ParentByGeneSegmentation(Layer):
     def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
-                 gene_size: int = 2):
+                 gene_size: int = 2, refit=False):
         super().__init__()
         self.parenting_object = parenting.ParentByGeneSegmentation(num_families, selection_function, gene_size,
-                                                                   num_children)
+                                                                   num_children, refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
@@ -313,9 +315,11 @@ class ParentByGeneSegmentation(Layer):
 
 
 class Parent(Layer):
-    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect):
+    def __init__(self, num_families: int, num_children: int, selection_function: callable(Select) = randomSelect,
+                 refit=False):
         super().__init__()
-        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children)
+        self.parenting_object = parenting.SinglePointCrossover(num_families, selection_function, num_children,
+                                                               refit=refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
