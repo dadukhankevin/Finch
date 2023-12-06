@@ -1,7 +1,7 @@
-from Finch.genetics.population import Individual
-from Finch.genetics.population import NPCP as np
 import random
 
+from Finch.genetics.population import NPCP as np
+from Finch.genetics.population import Individual
 from Finch.tools import rates
 
 
@@ -161,19 +161,9 @@ class NPointCrossover(Parent):
              n (int): The number of crossover points.
          Returns: tuple: A tuple containing the offspring generated from the crossover.
          """
-        points = sorted(random.sample(range(1, len(parent1.genes)), self.n))
-        offspring1 = parent1
-        offspring2 = parent2
-
-        for i in range(0, len(points), 2):
-            start = points[i]
-            end = points[i + 1] if i + 1 < len(points) else len(parent1.genes)
-            offspring1.genes[start:end], offspring2.genes[start:end] = offspring2.genes[start:end], offspring1.genes[
-                                                                                                    start:end]
-        offspring1.fit()
-        offspring2.fit()
-
-        return offspring1, offspring2
+        # Use the GeneticAlgorithm to generate new individuals
+        offspring = layer.ga.crossover(parent1, parent2)
+        return offspring
 
 
 class UniformCrossoverMultiple(Parent):
@@ -212,6 +202,8 @@ class ParentByGeneSegmentation(Parent):
                 segments.append(parent1.genes[i:i + self.gene_size])
             else:
                 segments.append(parent2.genes[i:i + self.gene_size])
+        # Import the GeneticAlgorithm class from genetic_algorithm.py
+        from genetic_algorithm import GeneticAlgorithm
 
         # Concatenate gene segments to form offspring
         child = np.concatenate(segments)
