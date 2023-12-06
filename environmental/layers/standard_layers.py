@@ -250,7 +250,7 @@ class ParentUniformCrossover(Layer):
                  probability=.5, refit=False):
         super().__init__()
         self.parenting_object = parenting.UniformCrossover(num_families, selection_function, num_children,
-                                                           probability=probability, refit)
+                                                           probability=probability, refit=refit)
 
     @Layer.Measure
     def run(self, individuals, environment):
