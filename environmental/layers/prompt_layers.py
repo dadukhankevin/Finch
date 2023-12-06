@@ -7,7 +7,38 @@ from Finch.functions.selection import RankBasedSelection
 rank = RankBasedSelection(2, amount_to_select=3)
 
 
-class LlmPromptMutation(Layer):
+class LlmPromptMutation(Layer): 
+    def __init__(self, llm: LLM, temperature=.8, amount=2, selection_function: callable = rank, adjective: str =
+ 'one or two words'):
+        super().__init__()
+        self.adjective = adjective
+        self.llm = llm
+
+        self.instructions = "You are the mutation layer in a genetic algorithm, simply change a given text by " +                             adjective
+        self.llm.system_prompt = self.instructions
+        self.amount = make_callable(amount)
+        self.selection_function = selection_function
+        self.temperature = temperature
+        self.llm.temperature = temperature
+
+    def run(self, individuals, environment):
+        selected_individuals = self.selection_function.select(individuals)
+        for individual in selected_individuals:
+            self.llm.system_prompt = self.instructions
+            self.llm.temperature = self.temperature
+            individual.genes = self.llm.run(individual.genes)
+        return individuals
+
+class ClipTrickLayer(Layer):
+    def __init__(self, llm, adjective: str = 'one or two words'):
+        super().__init__()
+        self.adjective = adjective
+        self.llm = llm
+
+    def run(self, individuals, environment):
+        new_individuals = []  # use the GeneticAlgorithm to generate new individuals
+        return new_individuals
+(Layer):
     def __init__(self, llm: LLM, temperature=.8, amount=2, selection_function: callable = rank, adjective: str =
     'one or two words'):
         super().__init__()
