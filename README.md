@@ -53,3 +53,8 @@ Finch includes tools for evolving AI models and prompts:
 - **PromptPool**: Generate prompt genes with a language model
 
 Finch makes it easy to customize and combine predefined building blocks into a tailored evolutionary algorithm. The adversarial and adaptive environments provide automated optimization not found in other libraries. With CuPy support and fitness analysis tools, Finch enables scaling up experiments and tracking progress.
+# Detailed Documentation
+
+Detailed documentation for Finch provides comprehensive insights into its design principles, architecture, functionalities, and usage examples. The detailed documentation includes specifics on the genepools, layers, selection and mutation functions, and guidance on how to optimize and evolve AI models using the library. It is an essential resource for practitioners looking to harness the power of genetic algorithms for scalable and flexible solutions.
+
+For more detailed documentation, please refer to the `DOCS.md` file.
