@@ -8,59 +8,46 @@ try:
 except ImportError:
     pass
 
-
 class GeneSelector:
     def __init__(self):
+        """
+        Base class for gene selectors.
+        """
         pass
 
-    def select(self, individual: Individual) -> Union[np.ndarray]:
+    def select(self, individual: Individual) -> np.ndarray:
+        """
+        Abstract method to be implemented by subclasses.
+
+        Parameters:
+        - individual: An instance of Individual from which genes will be selected.
+
+        Returns:
+        - np.ndarray: An array containing the selected genes.
+        """
         pass
 
 
 class PercentSelector(GeneSelector):
-    """
-    A gene selector that randomly selects a certain percentage of genes from an individual.
-
-    Parameters:
-    - percent: The percentage of genes to be selected. It can be a float, int, or a callable (function) that takes an individual as an argument.
-
-    Example Usage:
-    ```
-    selector = PercentSelector(percent=0.3)
-    selected_genes = selector.select(individual)
-    ```
-
-    or
-
-    ```
-    def dynamic_percent(individual):
-        # Some custom logic to calculate the percentage dynamically
-        return 0.5
-
-    selector = PercentSelector(percent=dynamic_percent)
-    selected_genes = selector.select(individual)
-    ```
-    """
-
     def __init__(self, percent: Union[float, int, Callable]):
+        """
+        Initialize PercentSelector with the specified percentage.
+
+        Parameters:
+        - percent: The percentage of genes to be selected. It can be a float, int, or a callable (function) that takes an individual as an argument.
+        """
         super().__init__()
         self.percent = percent
 
-    def select(self, individual: Individual) -> Union[np.ndarray]:
+    def select(self, individual: Individual) -> np.ndarray:
         """
         Select a certain percentage of genes from an individual.
 
         Parameters:
-        - individual: An instance of genetics.Individual from which genes will be selected.
+        - individual: An instance of Individual from which genes will be selected.
 
         Returns:
-        - Union[np.ndarray, cp.ndarray]: A NumPy or Cupy array containing the selected genes.
-
-        Example Usage:
-        ```
-        selector = PercentSelector(percent=0.3)
-        selected_genes = selector.select(individual)
-        ```
+        - np.ndarray: An array containing the indices of the selected genes.
         """
         device = individual.device
         genes = individual.genes
@@ -71,54 +58,36 @@ class PercentSelector(GeneSelector):
             percent = float(self.percent)
 
         amount = int(len(genes) * percent)
+        indices = np.arange(len(genes))
 
         if device == 'gpu':
-            selected_genes = cp.random.choice(genes, size=amount, replace=True)
-        if device == 'cpu':
-            selected_genes = np.random.choice(genes, size=amount, replace=True)
+            selected_indices = cp.random.choice(indices, size=amount, replace=True)
+        elif device == 'cpu':
+            selected_indices = np.random.choice(indices, size=amount, replace=True)
 
-        return selected_genes
+        return selected_indices
 
 
 class AmountSelector(GeneSelector):
-    """
-    A gene selector that randomly selects a specified number of genes from an individual.
-
-    Parameters:
-    - amount: The number of genes to be selected.
-
-    Example Usage:
-    ```
-    selector = AmountSelector(amount=5) # amount can be a rate
-    selected_genes = selector.select(individual)
-    ```
-    """
-
     def __init__(self, amount: Union[int, Callable]):
         """
-        Initialize the AmountSelector.
+        Initialize AmountSelector with the specified number of genes to be selected.
 
         Parameters:
-        - amount: The number of genes to be selected.
+        - amount: The number of genes to be selected. It can be an int or a callable (function) that takes an individual as an argument.
         """
         super().__init__()
         self.amount = amount
 
-    def select(self, individual: Individual) -> Union[np.ndarray]:
+    def select(self, individual: Individual) -> np.ndarray:
         """
         Select a specified number of genes from an individual.
 
         Parameters:
-        - individual: An instance of genetics.Individual from which genes will be selected.
+        - individual: An instance of Individual from which genes will be selected.
 
         Returns:
-        - Union[np.ndarray, cp.ndarray]: A NumPy or Cupy array containing the selected genes.
-
-        Example Usage:
-        ```
-        selector = AmountSelector(amount=5)
-        selected_genes = selector.select(individual)
-        ```
+        - np.ndarray: An array containing the indices of the selected genes.
         """
         if callable(self.amount):
             amount = self.amount()
@@ -126,11 +95,17 @@ class AmountSelector(GeneSelector):
             amount = self.amount
         device = individual.device
         genes = individual.genes
+        indices = np.arange(len(genes))
 
         if device == 'gpu':
-            selected_genes = cp.random.choice(genes, size=amount, replace=True)
+            selected_indices = cp.random.choice(indices, size=amount, replace=True)
         elif device == 'cpu':
-            selected_genes = np.random.choice(genes, size=amount, replace=True)
+            selected_indices = np.random.choice(indices, size=amount, replace=True)
 
-        return selected_genes
+        return selected_indices
 
+# Example usage:
+# individual = Individual(genes=np.arange(10), device='cpu')
+# selector = PercentSelector(percent=0.3)
+# selected_indices = selector.select(individual)
+# print(selected_indices)

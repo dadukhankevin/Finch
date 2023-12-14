@@ -23,8 +23,8 @@ class Mutate(layer.Mutate):
         :param individual: the individual to mutate
         :return: None
         """
-        genes_to_change = self.gene_selection(individual)
-        genes_to_change[:] = individual.gene_pool.generate_genes(len(genes_to_change))
+        idx = self.gene_selection(individual)
+        individual.genes[idx] = individual.gene_pool.generate_genes(idx.size)
 
 
 class FloatMutateRange(layer.Mutate):
@@ -33,19 +33,22 @@ class FloatMutateRange(layer.Mutate):
     This can allow for more fine-grained mutations.
     """
 
-    def __init__(self, max_mutation: Union[float, int], min_mutation: Union[float, int],
-                 individual_selection: Union[float, int, Callable], gene_selection: Union[float, int, Callable],
-                 refit=True):
+    def __init__(self, individual_selection: Union[float, int, Callable], gene_selection: Union[float, int, Callable],
+                 max_mutation: Union[float, int] = 1.0, min_mutation: Union[float, int] = -1.0,
+                 refit=True, keep_within_genepool_bounds=False):
         """
         :param max_mutation: maximum mutation
         :param min_mutation: minimum mutation
         :param individual_selection: individual selection method
         :param gene_selection: gene selection method
+        :param keep_within_genepool_bounds: keeps the values of the floats within the max
+        and min set in their gene pools
         """
         super().__init__(individual_selection=individual_selection, gene_selection=gene_selection,
                          refit=refit)
         self.max_mutation = make_callable(max_mutation)
         self.min_mutation = make_callable(min_mutation)
+        self.keep_within_genepool_bounds = keep_within_genepool_bounds
 
     def mutate_one(self, individual, environment):
         """
@@ -55,13 +58,16 @@ class FloatMutateRange(layer.Mutate):
         :return: None
         """
         genes_to_change = self.gene_selection(individual)
-
-        if individual.device == 'cpu':
-            genes_to_change += np.random.uniform(self.max_mutation(), self.min_mutation(),
-                                                 size=genes_to_change.size)
         if individual.device == 'gpu':
-            genes_to_change += cp.random.uniform(self.max_mutation(), self.min_mutation(),
-                                                 size=genes_to_change.size)
+            npcp = cp
+        else:
+            npcp = np
+
+        individual.genes[genes_to_change] += npcp.random.uniform(self.max_mutation(), self.min_mutation(),
+                                                                 size=genes_to_change.size)
+        if self.keep_within_genepool_bounds:
+            individual.genes[individual.genes > individual.gene_pool.maximum] = individual.gene_pool.maximum
+            individual.genes[individual.genes < individual.gene_pool.minimum] = individual.gene_pool.minimum
 
 
 class IntMutateRange(FloatMutateRange):
@@ -91,14 +97,19 @@ class IntMutateRange(FloatMutateRange):
         :param individual: the individual to mutate
         :return: None
         """
+        if individual.device == 'gpu':
+            npcp = cp
+        else:
+            npcp = np
+
         genes_to_change = self.gene_selection(individual)
 
-        if individual.device == 'cpu':
-            genes_to_change += np.random.randint(self.min_mutation(), self.max_mutation() + 1,
-                                                 size=genes_to_change.size)
-        if individual.device == 'gpu':
-            genes_to_change += cp.random.randint(self.min_mutation(), self.max_mutation() + 1,
-                                                 size=genes_to_change.size)
+        individual[genes_to_change] += npcp.random.randint(self.min_mutation(), self.max_mutation() + 1,
+                                                           size=genes_to_change.size)
+
+        if self.keep_within_genepool_bounds:
+            individual.genes[individual.genes > individual.gene_pool.maximum] = individual.gene_pool.maximum
+            individual.genes[individual.genes < individual.gene_pool.minimum] = individual.gene_pool.minimum
 
 
 class BinaryMutate(layer.Mutate):

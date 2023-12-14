@@ -18,17 +18,17 @@ def fit(individual):
 
 
 # Config section
-length = 30
+length = 100
 pool_minimum = ord('a')
 pool_maximum = ord('z')
-population_size = 200
-mutate_amount = 5
-gene_selection = 5
-parent_count = 8
-selection_rank_factor = .5
-children_count = 2
-max_population = 300
-evolution_steps = 1000
+population_size = 101
+mutate_amount = 70
+gene_selection = 2
+parent_count = 20
+selection_rank_factor = 40
+children_count = 4
+max_population = 100
+evolution_steps = 2000
 
 selector = selectors.RankBasedSelection(selection_rank_factor, amount_to_select=parent_count)
 
@@ -38,14 +38,14 @@ pool = IntPool(length=length, minimum=pool_minimum, maximum=pool_maximum)
 # Creating the Sequential environment
 environment = Sequential(layers=[
     Populate(pool, population=population_size),
-    IntMutateRange(individual_selection=mutate_amount, gene_selection=gene_selection),
-    ParentSimple(selector.select, children=children_count, refit=True),#, points=10),
+    Mutate(individual_selection=mutate_amount, gene_selection=gene_selection),
+    ParentNPoint(selector.select, children=children_count, refit=True, points=4),
     SortByFitness(),
     CapPopulation(max_population=max_population),
 ])
 
 # Compiling the environment with the fitness function
-environment.compile(fitness_function=fit, verbose_every=1)
+environment.compile(fitness_function=fit, verbose_every=100)
 environment.evolve(evolution_steps)
 
 # Printing the best individual
