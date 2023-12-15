@@ -1,28 +1,35 @@
-
-
-tools.rates
+Module Finch3.tools.rates
 =========================
 
 Functions
 ---------
 
-``make_callable(x: Union[<built-in function callable>, int, float]) ‑> <built-in function callable>``
+
+`make_callable(x: Union[<built-in function callable>, int, float]) ‑> <built-in function callable>`
 :   
 
-``make_switcher(x) ‑> True``
+
+`make_switcher(x) ‑> True`
 :   
 
 Classes
 -------
 
-``Rate(start, end, epochs, return_int=False)``
-:   :param start: The starting value (int or float):param end: The target value after epochs:param epochs: The number of epochs to reach the target value:param return_int: Whether to return only integers
+`Rate(start, end, epochs, return_int=False)`
+:   :param start: The starting value (int or float)
+:param end: The target value after epochs
+:param epochs: The number of epochs to reach the target value
+:param return_int: Whether to return only integers
+
 ### Methods
-``get(self)``:
+
+`get(self)`
+:
 
 
-``graph(self)``:
+`graph(self)`
+:
 
 
-``next(self)``:
-
+`next(self)`
+:

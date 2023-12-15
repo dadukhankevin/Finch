@@ -1,6 +1,4 @@
-
-
-exceptions
+Module Finch3.exceptions
 ========================
 
 Sub-modules

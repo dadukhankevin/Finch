@@ -1,13 +1,13 @@
-
-
-examples.string_example
+Module Finch3.examples.string_example
 =====================================
 
 Functions
 ---------
 
-``fit(individual)``
+
+`fit(individual)`
 :   
 
-``translate(array)``
+
+`translate(array)`
 :

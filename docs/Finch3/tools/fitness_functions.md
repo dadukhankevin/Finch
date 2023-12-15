@@ -1,10 +1,9 @@
-
-
-tools.fitness_functions
+Module Finch3.tools.fitness_functions
 =====================================
 
 Functions
 ---------
 
-``layer_fitness(before, after)``
+
+`layer_fitness(before, after)`
 :

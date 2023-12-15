@@ -1,15 +1,14 @@
-
-
-environments
+Module Finch3.environments
 ==========================
 
 Classes
 -------
 
-``AdaptiveEnvironment(environments, switch_every=10, go_for=0, name='AdaptiveEnvironment')``
+`AdaptiveEnvironment(environments, switch_every=10, go_for=0, name='AdaptiveEnvironment')`
 :   Represents an adaptive evolutionary environment that switches between different sub-environments.
 
 Args:
+
 - environments: List of sub-environments.
 - switch_every: Frequency of environment switching.
 - go_for: Number of generations to run each sub-environment before switching.
@@ -29,25 +28,45 @@ Args:
 
 ### Methods
 
-``compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)``
-:   Compiles the adaptive environment with necessary parameters for evolution.familiesfamiliesArgs:families- fitness_function: The fitness function for evaluating individuals.families- individuals (list[Individual]): List of individuals to start evolution with.families- callback (callable): Callback function to be executed after each generation.families- verbose_every (int): Frequency of verbose output during evolution.
+`compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)`
+:   Compiles the adaptive environment with necessary parameters for evolution.
+    
+    Args:
 
-``evolve(self, generations: int)``
-:   Evolves the population over a specified number of generations with adaptive switching between sub-environments.familiesfamiliesArgs:families- generations (int): Number of generations for evolution.familiesfamiliesReturns:familiesTuple containing the final population and the fitness history.
+    - fitness_function: The fitness function for evaluating individuals.
+    - individuals (list[Individual]): List of individuals to start evolution with.
+    - callback (callable): Callback function to be executed after each generation.
+    - verbose_every (int): Frequency of verbose output during evolution.
 
-``plot(self)``
+`evolve(self, generations: int)`
+:   Evolves the population over a specified number of generations with adaptive switching between sub-environments.
+    
+    Args:
+
+    - generations (int): Number of generations for evolution.
+    
+    Returns:
+
+    Tuple containing the final population and the fitness history.
+
+`plot(self)`
 :   Plots the fitness history of the current sub-environment.
 
-``smart_evolve(self)``
-:   Implements adaptive evolution by intelligently switching between sub-environments.familiesfamiliesReturns:familiesThe selected sub-environment for the next generation.
+`smart_evolve(self)`
+:   Implements adaptive evolution by intelligently switching between sub-environments.
+    
+    Returns:
 
-``switch_environment(self)``
+    The selected sub-environment for the next generation.
+
+`switch_environment(self)`
 :   Switches to the sub-environment with the highest fitness increase.
 
-``Adversarial(environments, name='Adversarial Environment')``
+`Adversarial(environments, name='Adversarial Environment')`
 :   Represents an adversarial evolutionary environment managing multiple sub-environments.
 
 Args:
+
 - environments: List of sub-environments.
 - name: Name of the adversarial environment.
 
@@ -65,19 +84,39 @@ Args:
 
 ### Methods
 
-``compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)``
-:   Compiles the adversarial environment with necessary parameters for evolution.familiesfamiliesArgs:families- fitness_function: The fitness function for evaluating individuals.families- individuals (list[Individual]): List of individuals to start evolution with.families- callback (callable): Callback function to be executed after each generation.families- verbose_every (int): Frequency of verbose output during evolution.
+`compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)`
+:   Compiles the adversarial environment with necessary parameters for evolution.
+    
+    Args:
 
-``evolve(self, generations: int = 1)``
-:   Evolves the population over a specified number of generations for each sub-environment.familiesfamiliesArgs:families- generations (int): Number of generations for evolution.familiesfamiliesReturns:familiesTuple containing information about the best-performing sub-environment.
+    - fitness_function: The fitness function for evaluating individuals.
+    - individuals (list[Individual]): List of individuals to start evolution with.
+    - callback (callable): Callback function to be executed after each generation.
+    - verbose_every (int): Frequency of verbose output during evolution.
 
-``plot_fitness_histories(self, results)``
-:   Plots the fitness histories of multiple sub-environments.familiesfamiliesArgs:families- results: List containing information about each sub-environment's evolution.
+`evolve(self, generations: int = 1)`
+:   Evolves the population over a specified number of generations for each sub-environment.
+    
+    Args:
 
-``ChronologicalEnvironment(environments_and_generations, name='mixed_environment')``
+    - generations (int): Number of generations for evolution.
+    
+    Returns:
+
+    Tuple containing information about the best-performing sub-environment.
+
+`plot_fitness_histories(self, results)`
+:   Plots the fitness histories of multiple sub-environments.
+    
+    Args:
+
+    - results: List containing information about each sub-environment's evolution.
+
+`ChronologicalEnvironment(environments_and_generations, name='mixed_environment')`
 :   Represents a chronological evolutionary environment with varying sub-environments.
 
 Args:
+
 - environments_and_generations: List of tuples containing sub-environments and their corresponding generations.
 - name: Name of the chronological environment.
 
@@ -95,25 +134,42 @@ Args:
 
 ### Methods
 
-``compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)``
-:   Compiles the chronological environment with necessary parameters for evolution.familiesfamiliesArgs:families- fitness_function: The fitness function for evaluating individuals.families- individuals (list[Individual]): List of individuals to start evolution with.families- callback (callable): Callback function to be executed after each generation.families- verbose_every (int): Frequency of verbose output during evolution.
+`compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)`
+:   Compiles the chronological environment with necessary parameters for evolution.
+    
+    Args:
 
-``evolve(self, generations=1)``
-:   Evolves the population over a specified number of generations, using different sub-environments for each period.familiesfamiliesArgs:families- generations (int): Number of generations for evolution.familiesfamiliesReturns:familiesTuple containing the final population and the combined fitness history.
+    - fitness_function: The fitness function for evaluating individuals.
+    - individuals (list[Individual]): List of individuals to start evolution with.
+    - callback (callable): Callback function to be executed after each generation.
+    - verbose_every (int): Frequency of verbose output during evolution.
 
-``plot(self)``
+`evolve(self, generations=1)`
+:   Evolves the population over a specified number of generations, using different sub-environments for each period.
+    
+    Args:
+
+    - generations (int): Number of generations for evolution.
+    
+    Returns:
+
+    Tuple containing the final population and the combined fitness history.
+
+`plot(self)`
 :   Plots the combined fitness history of sub-environments over time.
 
-``Environment(layers: list[Finch3.layers.layer.Layer] = None, name='Environment', verbose_every=1, device='cpu')``
+`Environment(layers: list[Finch3.layers.layer.Layer] = None, name='Environment', verbose_every=1, device='cpu')`
 :   Represents an evolutionary environment that manages the evolution of a population of individuals over generations.
 
 Args:
+
 - layers (list[layer.Layer]): List of layers in the environment.
 - name (str): Name of the environment.
 - verbose_every (int): Frequency of verbose output during evolution (aka print every n times)
 - device (str): Device to run the environment on. 'gpu' or 'cpu'
 
 Attributes:
+
 - fitness_function: The fitness function used for evaluating individuals.
 - generations: Number of generations to evolve for.
 - callback: Callback function to be executed after each generation. Set this in .compile()
@@ -145,28 +201,53 @@ Attributes:
 
 ### Methods
 
-``compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)``
-:   Compiles the environment with necessary parameters for evolution.familiesfamiliesArgs:families- fitness_function: The fitness function for evaluating individuals.families- individuals (list[Individual]): List of individuals to start evolution with.families- callback (callable): Callback function to be executed after each generation.families- verbose_every (int): Frequency of verbose output during evolution.
+`compile(self, fitness_function, individuals: list[Finch.genetics.population.Individual] = None, callback: <built-in function callable> = None, verbose_every: int = 1)`
+:   Compiles the environment with necessary parameters for evolution.
+    
+    Args:
 
-``deactivate(self)``
+    - fitness_function: The fitness function for evaluating individuals.
+    - individuals (list[Individual]): List of individuals to start evolution with.
+    - callback (callable): Callback function to be executed after each generation.
+    - verbose_every (int): Frequency of verbose output during evolution.
+
+`deactivate(self)`
 :   Deactivates the environment, preventing further evolution.
 
-``evolve(self, generations)``
-:   Evolves the population over a specified number of generations.familiesfamiliesArgs:families- generations (int): Number of generations for evolution.familiesfamiliesReturns:familiesTuple containing the final population and the fitness history.
+`evolve(self, generations)`
+:   Evolves the population over a specified number of generations.
+    
+    Args:
 
-``execute(self, individuals: list[Finch.genetics.population.Individual])``
-:   Executes one generation of evolution.familiesfamiliesArgs:families- individuals (list[Individual]): List of individuals in the population.familiesfamiliesRaises:families- NoIndividualsAtEndOfRun: If the environment has a population of 0 after running.
+    - generations (int): Number of generations for evolution.
+    
+    Returns:
 
-``get_fitness_metric(self)``
+    Tuple containing the final population and the fitness history.
+
+`execute(self, individuals: list[Finch.genetics.population.Individual])`
+:   Executes one generation of evolution.
+    
+    Args:
+
+    - individuals (list[Individual]): List of individuals in the population.
+    
+    Raises:
+
+    - NoIndividualsAtEndOfRun: If the environment has a population of 0 after running.
+
+`get_fitness_metric(self)`
 :   Returns the fitness metric of the best individual observed so far.
 
-``plot(self)``
+`plot(self)`
 :
 
-``Sequential(layers, name='default')``
+
+`Sequential(layers, name='default')`
 :   Represents a sequential evolutionary environment.
 
 Args:
+
 - layers: List of layers in the environment.
 - name: Name of the environment.
 
@@ -184,5 +265,5 @@ Args:
 
 ### Methods
 
-``reset(self)``
+`reset(self)`
 :

@@ -1,6 +1,4 @@
-
-
-layers
+Module Finch3.layers
 ====================
 
 Sub-modules
