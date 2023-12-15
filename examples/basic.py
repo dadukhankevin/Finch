@@ -35,12 +35,14 @@ environment = Sequential(layers=[
     CapPopulation(max_population=max_population),
 ])
 
-# Compiling the environment with the fitness function
-environment.compile(fitness_function=fit)
-environment.evolve(evolution_steps)
 
-# Printing the best individual
-print("Here is the best individual:\n", environment.best_ever.genes)
+if __name__ == "__main__":
+    # Compiling the environment with the fitness function
+    environment.compile(fitness_function=fit)
+    environment.evolve(evolution_steps)
 
-# Plotting the environment
-environment.plot()
+    # Printing the best individual
+    print("Here is the best individual:\n", environment.best_ever.genes)
+
+    # Plotting the environment
+    environment.plot()

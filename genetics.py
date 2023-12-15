@@ -1,4 +1,8 @@
+"""
+Something here
+"""
 import numpy as np
+
 cp = None
 try:
     import cupy as cp
@@ -7,12 +11,19 @@ except ImportError:
 
 
 class Individual:
-    def __init__(self, gene_pool, genes: np.array, fitness: float = 0, device="cpu",):
-        """
-        Defines an individual in a population. This can be anything from an image to a book to a vector.
-        :param genes: individual genes
-        :param fitness: the default fitness for this individual
-        """
+    """
+    Represents an individual in a population.
+
+    This class can be used to model various types of individuals, such as images, books, or vectors.
+
+    Attributes:
+        genes (Any): The genetic information or characteristics of the individual.
+        fitness (float): The default fitness value for this individual.
+    Example:
+        >>> individual = Individual(genes=[0, 1, 1, 0], fitness=0.75)
+    """
+
+    def __init__(self, gene_pool, genes: np.array, fitness: float = 0, device="cpu", ):
         self.genes = genes
         self.fitness = fitness
         self.device = device

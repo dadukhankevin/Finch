@@ -1,6 +1,6 @@
 import random
 import warnings
-
+import pydoc
 import matplotlib.pyplot as plt
 from Finch3.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 import time
