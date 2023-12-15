@@ -1,9 +1,9 @@
-Module Finch3.examples.basic
-============================
+Module Finch.examples.basic
+===========================
 
 Functions
 ---------
 
-
+    
 `fit(individual)`
 :

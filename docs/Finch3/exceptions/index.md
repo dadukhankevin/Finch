@@ -1,6 +1,6 @@
-Module Finch3.exceptions
-========================
+Module Finch.exceptions
+=======================
 
 Sub-modules
 -----------
-* Finch3.exceptions.environment_exceptions
+* Finch.exceptions.environment_exceptions

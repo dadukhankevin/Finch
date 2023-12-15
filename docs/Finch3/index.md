@@ -1,12 +1,12 @@
-Namespace Finch3
-================
+Namespace Finch
+===============
 
 Sub-modules
 -----------
-* Finch3.environments
-* Finch3.examples
-* Finch3.exceptions
-* Finch3.genepools
-* Finch3.genetics
-* Finch3.layers
-* Finch3.tools
+* Finch.environments
+* Finch.examples
+* Finch.exceptions
+* Finch.genepools
+* Finch.genetics
+* Finch.layers
+* Finch.tools

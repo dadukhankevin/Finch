@@ -1,194 +1,184 @@
-Module Finch3.layers.generic
-============================
+Module Finch.layers.generic
+===========================
 
 Classes
 -------
 
 `CapPopulation(max_population: int)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
+    `execute(self, individuals)`
+    :
 
-`execute(self, individuals)`
-:
-
-
-`Controller(layer: Finch3.layers.layer.Layer, execute_every=1, repeat=1, delay=0, stop_at=inf)`
+`Controller(layer: Finch.layers.layer.Layer, execute_every=1, repeat=1, delay=0, stop_at=inf)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `DuplicateSelection(individual_selection)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param individual_selection:
 
-:param individual_selection:
+    ### Ancestors (in MRO)
 
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-### Ancestors (in MRO)
+    ### Methods
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
-
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `Function(function, individual_selection=None)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `KillByFitnessPercentile(percentile: float)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `KillBySelection(individual_selection)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param individual_selection: the method by witch to select the individuals for death
 
-:param individual_selection: the method by witch to select the individuals for death
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
+    `execute(self, individuals)`
+    :
 
-`execute(self, individuals)`
-:
-
-
-`Populate(gene_pool: Finch3.genepools.GenePool, population: int)`
+`Populate(gene_pool: Finch.genepools.GenePool, population: int)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param gene_pool: any GenePool
+    :param population: amount of individuals to ensure the population has
 
-:param gene_pool: any GenePool
-:param population: amount of individuals to ensure the population has
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `RemoveAllButBest()`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `RemoveDuplicatesFromTop(top_n: int)`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
-
+    `execute(self, individuals)`
+    :
 
 `SortByFitness()`
 :   A Layer is a building block for an Environment and modifies or sorts the individuals in some way
+    
+    :param execution_function: retrieved from a higher class
+    :param gene_selection: gene selection method: float, int, Callable
+    :param individual_selection: individual selection method: float, int, Callable
+    :param fitness: set to 0
+    :param device: 'cpu' or 'gpu'
 
-:param execution_function: retrieved from a higher class
-:param gene_selection: gene selection method: float, int, Callable
-:param individual_selection: individual selection method: float, int, Callable
-:param fitness: set to 0
-:param device: 'cpu' or 'gpu'
+    ### Ancestors (in MRO)
 
-### Ancestors (in MRO)
+    * Finch.layers.layer.Layer
+    * Finch.genetics.Individual
 
-* Finch3.layers.layer.Layer
-* Finch3.genetics.Individual
+    ### Methods
 
-### Methods
-
-`execute(self, individuals)`
-:
+    `execute(self, individuals)`
+    :

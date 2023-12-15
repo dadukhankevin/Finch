@@ -1,7 +1,7 @@
-Namespace Finch3.examples
-=========================
+Namespace Finch.examples
+========================
 
 Sub-modules
 -----------
-* Finch3.examples.basic
-* Finch3.examples.string_example
+* Finch.examples.basic
+* Finch.examples.string_example

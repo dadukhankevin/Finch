@@ -1,9 +1,9 @@
-Module Finch3.layers
-====================
+Module Finch.layers
+===================
 
 Sub-modules
 -----------
-* Finch3.layers.generic
-* Finch3.layers.layer
-* Finch3.layers.mutation
-* Finch3.layers.parenting
+* Finch.layers.generic
+* Finch.layers.layer
+* Finch.layers.mutation
+* Finch.layers.parenting
