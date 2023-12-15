@@ -15,7 +15,7 @@ Classes:
 Author: Daniel Losey
 Year: 2023
 """
-from Finch3 import genetics
+from Finch import genetics
 import numpy as np
 
 cp = None

@@ -1,7 +1,7 @@
-from Finch3.environments import Sequential
-from Finch3.genepools import IntPool
-from Finch3.layers import *
-from Finch3.tools import individualselectors as selectors
+from Finch.environments import Sequential
+from Finch.genepools import IntPool
+from Finch.layers import *
+from Finch.tools import individualselectors as selectors
 import random as r
 import numpy.random as nr
 

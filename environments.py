@@ -2,12 +2,12 @@ import random
 import warnings
 import pydoc
 import matplotlib.pyplot as plt
-from Finch3.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
+from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 import time
 from tabulate import tabulate
-from Finch3.layers import layer
+from Finch.layers import layer
 
-from Finch.genetics.population import Individual
+from Finch.genetics import Individual
 
 
 class Environment(layer.Layer):

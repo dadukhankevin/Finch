@@ -1,11 +1,11 @@
 import random
 
-from Finch3.genetics import Individual
-from Finch3.tools.fitness_functions import layer_fitness
+from Finch.genetics import Individual
+from Finch.tools.fitness_functions import layer_fitness
 from typing import Callable, Union
-from Finch3.tools.individualselectors import RandomSelection
-from Finch3.tools.geneselectors import PercentSelector, AmountSelector
-from Finch3.tools.rates import make_callable
+from Finch.tools.individualselectors import RandomSelection
+from Finch.tools.geneselectors import PercentSelector, AmountSelector
+from Finch.tools.rates import make_callable
 
 cp = None
 try:

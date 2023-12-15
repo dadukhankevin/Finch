@@ -1,6 +1,6 @@
-from Finch3.environments import Sequential
-from Finch3.genepools import FloatPool
-from Finch3.layers import *
+from Finch.environments import Sequential
+from Finch.genepools import FloatPool
+from Finch.layers import *
 
 
 def fit(individual):

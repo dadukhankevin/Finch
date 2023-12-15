@@ -20,9 +20,9 @@ This example demonstrates the usage of Finch3, a genetic programming library, to
 
 1. Import Finch:
     ```python
-    from Finch3.environments import Sequential
-    from Finch3.genepools import FloatPool
-    from Finch3.layers import *
+    from Finch.environments import Sequential
+    from Finch.genepools import FloatPool
+    from Finch.layers import *
     ```
 
 2. Define a fitness function `fit` that evaluates the performance of an individual. This is a very simple fitness function, and will essentially help us evolve a list floats to slowly become higher and higher numbers. The fitness function *could* also simply turn the floats into weights in a neural network and then evaluate their performance, this concept is called neuroevolution.

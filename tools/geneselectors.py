@@ -1,6 +1,6 @@
 from typing import Union, Callable
 import numpy as np
-from Finch3.genetics import Individual
+from Finch.genetics import Individual
 
 cp = None
 try:

@@ -1,7 +1,7 @@
 import math
-from Finch3.layers.layer import Layer
-from Finch3.tools.rates import make_callable
-from Finch3.genepools import GenePool
+from Finch.layers.layer import Layer
+from Finch.tools.rates import make_callable
+from Finch.genepools import GenePool
 import numpy as np
 
 try:

@@ -1,6 +1,6 @@
 import numpy as np
-from Finch3.genetics import Individual
-from Finch3.layers import layer
+from Finch.genetics import Individual
+from Finch.layers import layer
 import random
 
 cp = None

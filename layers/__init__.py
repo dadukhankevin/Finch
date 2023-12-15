@@ -1,3 +1,3 @@
-from Finch3.layers.mutation import *
-from Finch3.layers.parenting import *
-from Finch3.layers.generic import *
+from Finch.layers.mutation import *
+from Finch.layers.parenting import *
+from Finch.layers.generic import *

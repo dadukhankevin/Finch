@@ -1,7 +1,7 @@
 import numpy as np
-import Finch3.layers.layer as layer
+import Finch.layers.layer as layer
 from typing import Union, Callable
-from Finch3.tools.rates import make_callable
+from Finch.tools.rates import make_callable
 
 cp = None
 try:

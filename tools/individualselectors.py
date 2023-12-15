@@ -1,6 +1,6 @@
 import random
-from Finch3.genetics import Individual
-from Finch3.tools.rates import make_callable
+from Finch.genetics import Individual
+from Finch.tools.rates import make_callable
 
 
 class Select:
