@@ -1,8 +1,10 @@
-Module Finch3.examples.basic
+
+
+examples.basic
 ============================
 
 Functions
 ---------
 
---->`fit(individual)--->`
+``fit(individual)``
 :
