@@ -103,6 +103,22 @@ class ZeroShotImage:
         """
         return -self.suppress_fit(individual)
 
+    def show(self, individual):
+        if individual.device == 'gpu':
+            image_array = cp.asnumpy(individual.genes)
+        else:
+            image_array = individual.genes
+        if self.denormalize:
+            image_array *= 255
+        if self.base_image:
+            image_array += self.base_image
+
+        image_array = image_array.reshape(self.shape).astype(np.uint8)
+        image = Image.fromarray(image_array)
+        image.show()
+        return image
+
+
 
 class ObjectDetection:
     def __init__(self, target_labels, shape, denormalize=False, model="hustvl/yolos-tiny", criteria=sum, base_image=None):
@@ -186,3 +202,18 @@ class ObjectDetection:
         - float: The negative score indicating the fitness of the individual.
         """
         return -self.suppress_fit(individual)
+
+    def show(self, individual):
+        if individual.device == 'gpu':
+            image_array = cp.asnumpy(individual.genes)
+        else:
+            image_array = individual.genes
+        if self.denormalize:
+            image_array *= 255
+        if self.base_image:
+            image_array += self.base_image
+
+        image_array = image_array.reshape(self.shape).astype(np.uint8)
+        image = Image.fromarray(image_array)
+        image.show()
+        return image
