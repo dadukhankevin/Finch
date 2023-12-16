@@ -1,6 +1,7 @@
 from typing import Union
+from Finch.tools.individualselectors import RankBasedSelection
 
-
+RankBasedSelection(factor=10, amount_to_select=)
 class Fitness:
     def __init__(self):
         """Initialize a generic Fitness object."""
