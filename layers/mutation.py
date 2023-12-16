@@ -132,6 +132,6 @@ class BinaryMutate(layer.Mutate):
         genes_to_change = self.gene_selection(individual)
 
         if individual.device == 'cpu':
-            genes_to_change[:] = np.random.randint(2, size=len(genes_to_change))
+            genes_to_change[:] = np.random.randint(2, size=genes_to_change.size)
         if individual.device == 'gpu':
-            genes_to_change[:] = cp.random.randint(2, size=len(genes_to_change))
+            genes_to_change[:] = cp.random.randint(2, size=genes_to_change.size)
