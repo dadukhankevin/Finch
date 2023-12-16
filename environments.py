@@ -1,6 +1,5 @@
 import random
 import warnings
-import pydoc
 import matplotlib.pyplot as plt
 from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 import time
@@ -32,8 +31,9 @@ class Environment(layer.Layer):
         - deactivated: Indicates whether the environment is deactivated.
         - best_ever: The best individual observed during evolution.
         """
+
     def __init__(self, layers: list[layer.Layer] = None, name="Environment", verbose_every=1, device='cpu'):
-        super().__init__( device=device, refit=False, individual_selection=None)
+        super().__init__(device=device, refit=False, individual_selection=None)
         self.fitness_function = None
 
         self.generations = 0
@@ -145,11 +145,13 @@ class Sequential(Environment):
         - layers: List of layers in the environment.
         - name: Name of the environment.
         """
+
     def __init__(self, layers, name="default"):
         super().__init__(layers, name)
         self.layers = layers
 
-    def compile(self,fitness_function, individuals: list[Individual] = None, callback: callable = None, verbose_every: int = 1):
+    def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
+                verbose_every: int = 1):
         super().compile(individuals=individuals, callback=callback, verbose_every=verbose_every,
                         fitness_function=fitness_function)
 
@@ -175,7 +177,8 @@ class Adversarial(Environment):
         super().__init__(environments, name)
         self.environments = environments
 
-    def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None, verbose_every: int = 1):
+    def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
+                verbose_every: int = 1):
         """
          Compiles the adversarial environment with necessary parameters for evolution.
 
@@ -341,6 +344,7 @@ class AdaptiveEnvironment(Environment):
     - go_for: Number of generations to run each sub-environment before switching.
     - name: Name of the adaptive environment.
     """
+
     def __init__(self, environments, switch_every=10, go_for=0, name="AdaptiveEnvironment"):
         super().__init__(name=name)
         self.environments = environments
@@ -349,7 +353,8 @@ class AdaptiveEnvironment(Environment):
         self.current_generation = 0
         self.go_for = go_for
 
-    def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None, verbose_every: int = 1):
+    def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
+                verbose_every: int = 1):
         """
         Compiles the adaptive environment with necessary parameters for evolution.
 

@@ -3,12 +3,7 @@ import Finch.layers.layer as layer
 from typing import Union, Callable
 from Finch.tools.rates import make_callable
 
-cp = None
-try:
-    import cupy as cp
-except ImportError:
-    pass
-
+s
 
 class Mutate(layer.Mutate):
     def __init__(self, individual_selection: Union[float, int, Callable], gene_selection: Union[float, int, Callable],
@@ -132,6 +127,6 @@ class BinaryMutate(layer.Mutate):
         genes_to_change = self.gene_selection(individual)
 
         if individual.device == 'cpu':
-            genes_to_change[:] = np.random.randint(2, size=len(genes_to_change))
+            genes_to_change[:] = np.random.randint(2, size=genes_to_change.size)
         if individual.device == 'gpu':
-            genes_to_change[:] = cp.random.randint(2, size=len(genes_to_change))
+            genes_to_change[:] = cp.random.randint(2, size=genes_to_change.size)
