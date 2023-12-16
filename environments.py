@@ -65,9 +65,11 @@ class Environment(layer.Layer):
             return self.best_ever.fitness
         else:
             return 0
+
     def batch(self, individual):
         individual.check_fitness = True
         return individual.fitness
+
     def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
                 verbose_every: int = 1):
         """
@@ -126,12 +128,12 @@ class Environment(layer.Layer):
             self.callback(self.individuals, self)
         if len(self.individuals) == 0:
             raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
-        fitness = self.individuals[-1].fitness
+        fitness = self.individuals[0].fitness
         if self.best_ever:
             if fitness > self.best_ever.fitness:
-                self.best_ever = self.individuals[-1].copy()
+                self.best_ever = self.individuals[0].copy()
         else:
-            self.best_ever = self.individuals[-1].copy()
+            self.best_ever = self.individuals[0].copy()
         if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:            print(
             f"{self.name}: generation {self.iteration + 1}/{self.generations}. Max fitness: {fitness}. Population: "
             f"{len(self.individuals)}")
