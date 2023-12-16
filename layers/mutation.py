@@ -3,7 +3,12 @@ import Finch.layers.layer as layer
 from typing import Union, Callable
 from Finch.tools.rates import make_callable
 
-s
+cp = None
+try:
+    import cupy as cp
+except ImportError:
+    pass
+
 
 class Mutate(layer.Mutate):
     def __init__(self, individual_selection: Union[float, int, Callable], gene_selection: Union[float, int, Callable],

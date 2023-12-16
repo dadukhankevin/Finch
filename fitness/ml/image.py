@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from transformers import pipeline
 from PIL import Image
@@ -13,17 +14,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class ZeroShotImage:
-    def __init__(self, target_labels, other_labels, model="openai/clip-vit-large-patch14", criteria=sum,
-                 base_image=None):
+    def __init__(self, target_labels, other_labels, shape, model="openai/clip-vit-large-patch14", criteria=sum,
+                 base_image=None, denormalize=False):
         """
         Initializes a ZeroShotImage object.
 
         Parameters:
         - target_labels (list): List of target labels for zero-shot image classification.
         - other_labels (list): List of additional labels for zero-shot image classification.
+        - shape: (tuple): The shape the image should become
         - model (str): The name or path of the model to be used for zero-shot image classification.
         - criteria (function): The aggregation function used to calculate the overall score for labels.
         - base_image (PIL.Image.Image): An optional base image to be combined with generated images.
+        - denormalize (bool): If true will multiply by 255
         """
         self.model = model
         self.target_labels = target_labels
@@ -31,6 +34,8 @@ class ZeroShotImage:
         self.pipe = pipeline("zero-shot-image-classification", model=model, device=device)
         self.criteria = criteria
         self.base_image = base_image
+        self.shape = shape
+        self.denormalize = denormalize
 
     def run(self, image, candidate_labels):
         """
@@ -72,9 +77,15 @@ class ZeroShotImage:
             image_array = cp.asnumpy(individual.genes)
         else:
             image_array = individual.genes
-        image = Image.fromarray(image_array)
+        if self.denormalize:
+            image_array *= 255
         if self.base_image:
-            image += self.base_image
+            image_array += self.base_image
+
+        image_array = image_array.reshape(self.shape).astype(np.uint8)
+
+        image = Image.fromarray(image_array)
+
         labels = self.run(image, self.target_labels + self.other_labels)
         return -self.search(self.target_labels, labels)
 
@@ -92,13 +103,15 @@ class ZeroShotImage:
 
 
 class ObjectDetection:
-    def __init__(self, target_labels, model="hustvl/yolos-tiny", criteria=sum, base_image=None):
+    def __init__(self, target_labels, shape, denormalize=False, model="hustvl/yolos-tiny", criteria=sum, base_image=None):
         """
         Initializes an ObjectDetection object.
 
         Parameters:
         - target_labels (list): List of target labels for object detection.
+        - shape (tuple): The shape the image should conform to
         - model (str): The name or path of the model to be used for object detection.
+        - denormalize (bool): If true will multiply by 255
         - criteria (function): The aggregation function used to calculate the overall score for labels.
         - base_image (PIL.Image.Image): An optional base image to be combined with input images.
         """
@@ -106,6 +119,8 @@ class ObjectDetection:
         self.criteria = criteria
         self.target_labels = target_labels
         self.base_image = base_image
+        self.denormalize = denormalize
+        self.shape = shape
 
     def search(self, terms, scores):
         """
@@ -146,9 +161,15 @@ class ObjectDetection:
             image_array = cp.asnumpy(individual.genes)
         else:
             image_array = individual.genes
-        image = Image.fromarray(image_array)
+        if self.denormalize:
+            image_array *= 255
         if self.base_image:
-            image += self.base_image
+            image_array += self.base_image
+
+        image_array = image_array.reshape(self.shape).astype(np.uint8)
+
+        image = Image.fromarray(image_array)
+
         labels = self.run(image)
         return -self.search(self.target_labels, labels)
 
