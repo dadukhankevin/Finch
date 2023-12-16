@@ -15,7 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ZeroShotImage:
     def __init__(self, target_labels, other_labels, shape, model="openai/clip-vit-large-patch14", criteria=sum,
-                 base_image=None, denormalize=False):
+                 base_image=None, denormalize=False, batch_size=1):
         """
         Initializes a ZeroShotImage object.
 
@@ -27,6 +27,7 @@ class ZeroShotImage:
         - criteria (function): The aggregation function used to calculate the overall score for labels.
         - base_image (PIL.Image.Image): An optional base image to be combined with generated images.
         - denormalize (bool): If true will multiply by 255
+        - batch_size (int): passed to pipe(...)
         """
         self.model = model
         self.target_labels = target_labels
@@ -36,6 +37,7 @@ class ZeroShotImage:
         self.base_image = base_image
         self.shape = shape
         self.denormalize = denormalize
+        self.batch_size = batch_size
 
     def run(self, image, candidate_labels):
         """
@@ -48,7 +50,7 @@ class ZeroShotImage:
         Returns:
         - dict: Dictionary containing classification results.
         """
-        return self.pipe(image, candidate_labels=candidate_labels)
+        return self.pipe(image, candidate_labels=candidate_labels, batch_size=self.batch_size)
 
     def search(self, terms, scores):
         """
