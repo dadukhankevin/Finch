@@ -1,6 +1,7 @@
 from typing import Union
 from Finch.tools.individualselectors import RankBasedSelection
 
+
 class Fitness:
     def __init__(self):
         """Initialize a generic Fitness object."""
@@ -33,22 +34,25 @@ class FitnessChain(Fitness):
             self.index += 1
 
 
-class MixFitness(Fitness):
+class MixFitnessByFactor(Fitness):
     """
     Combine fitness functions with weights (summing up to one) to calculate individual fitness.
     """
 
-    def __init__(self, functions, weights):
+    def __init__(self, functions, weights, track_fitness=False):
         """
         Initialize a MixFitness object.
 
         Parameters:
         - functions: List of fitness functions to be combined.
         - weights: List of weights corresponding to each fitness function (must add up to one).
+        - track_fitness: Bool, if true will track each functions fitness histories
         """
         super().__init__()
         self.functions = functions
         self.weights = weights
+        self.track_fitness = track_fitness
+        self.history = [[0] * len(functions)]
 
     def fit(self, individual):
         """
@@ -64,7 +68,50 @@ class MixFitness(Fitness):
             raise ValueError("Number of functions must be equal to the number of weights.")
 
         total_fitness = 0.0
+        ind = 0
         for func, weight in zip(self.functions, self.weights):
-            total_fitness += weight * func(individual)
+            new_fitness = weight * func(individual)
+            if self.track_fitness:
+                self.history[ind].append(new_fitness)
+            total_fitness += new_fitness
+            ind += 1
 
         return total_fitness
+
+
+class MixFitness(Fitness):
+    def __init__(self, functions, criteria=min, track_fitness=False):
+        """
+        Initialize a MixFitness object.
+
+        Parameters:
+        - functions: List of fitness functions to be combined.
+        - criteria: The aggregation criteria to combine fitness values, either `min` or `max`.
+                    Defaults to `min`.
+        - track_fitness: Bool, if true will track each function's fitness histories.
+        """
+        super().__init__()
+        self.functions = functions
+        self.criteria = criteria
+        self.track_fitness = track_fitness
+        self.history = [[] for _ in range(len(functions))] if track_fitness else None
+
+    def fit(self, individual):
+        """
+        Calculate the combined fitness of an individual using provided functions and aggregation criteria.
+
+        Parameters:
+        - individual: The individual for which combined fitness is calculated.
+
+        Returns:
+        - float: The combined fitness value.
+        """
+        scores = [function(individual) for function in self.functions]
+
+        if self.track_fitness:
+            for i, score in enumerate(scores):
+                self.history[i].append(score)
+
+        return self.criteria(scores)
+
+
