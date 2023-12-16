@@ -21,7 +21,7 @@ class Layer(Individual):
 
     def __init__(self, individual_selection: Union[float, int, Callable, None] = None,
                  gene_selection: [float, int, Callable, None] = None,
-                 refit=True, fitness: int = 0, device: str = 'cpu'):
+                 refit=False, fitness: int = 0, device: str = 'cpu'):
         """
         :param execution_function: retrieved from a higher class
         :param gene_selection: gene selection method: float, int, Callable
