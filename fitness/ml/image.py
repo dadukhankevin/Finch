@@ -103,7 +103,7 @@ class ZeroShotImage:
         """
         return -self.suppress_fit(individual)
 
-    def show(self, individual):
+    def get_image(self, individual):
         if individual.device == 'gpu':
             image_array = cp.asnumpy(individual.genes)
         else:
@@ -115,13 +115,29 @@ class ZeroShotImage:
 
         image_array = image_array.reshape(self.shape).astype(np.uint8)
         image = Image.fromarray(image_array)
+        return image
+
+    def batch_enhance(self, individuals):
+        raw_images = [self.get_image(im) for im in individuals]
+        scores = self.run(raw_images, candidate_labels=self.target_labels + self.other_labels)
+        ind = 0
+        for score in scores:
+            individuals[ind].fitness = self.search(self.target_labels, score)
+
+    def batch_supress(self, individuals):
+        self.batch_enhance(individuals)
+        for individual in individuals:
+            individual.fitness *= -1
+
+    def show(self, individual):
+        image = self.get_image(individual)
         image.show()
         return image
 
 
-
 class ObjectDetection:
-    def __init__(self, target_labels, shape, denormalize=False, model="hustvl/yolos-tiny", criteria=sum, base_image=None):
+    def __init__(self, target_labels, shape, denormalize=False, model="hustvl/yolos-tiny", criteria=sum,
+                 base_image=None):
         """
         Initializes an ObjectDetection object.
 

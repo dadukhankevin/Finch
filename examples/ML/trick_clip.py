@@ -1,8 +1,10 @@
 from Finch.fitness.ml import image
 from Finch.fitness.fitness_tools import MixFitness
 from Finch.environments import Sequential
-from Finch.genepools import BinaryPool
+from Finch.genepools import BinaryPool, FloatPool
 from Finch.layers import BinaryMutate, ParentNPoint, Populate, CapPopulation, SortByFitness
+
+
 
 size = (320, 240)
 length = size[0] * size[1] * 3
@@ -29,6 +31,7 @@ clip2 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
 
 clip3 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
                             model='patrickjohncyh/fashion-clip', shape=shape, denormalize=1)
+
 
 fitness_function = MixFitness([
     clip1.enhance_fit,

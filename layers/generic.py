@@ -1,4 +1,6 @@
 import math
+
+from Finch.genetics import Individual
 from Finch.layers.layer import Layer
 from Finch.tools.rates import make_callable
 from Finch.genepools import GenePool
@@ -41,7 +43,6 @@ class KillBySelection(Layer):
         # remove the selected individuals from the population
         individuals = [ind for ind in self.environment.individuals if ind not in individuals]
         self.environment.individuals = individuals
-
 
 class DuplicateSelection(Layer):
     def __init__(self, individual_selection):
@@ -95,6 +96,16 @@ class CapPopulation(Layer):
                                        0:self.max_population()]  # kills only the worst ones assuming they are sorted
 
 
+class BatchFitness(Layer):
+    def __init__(self, batch_fitness_function):
+        super().__init__()
+        self.batch_fitness_function = batch_fitness_function
+
+    def execute(self, individuals: list[Individual]):
+        selected = [individual for individual in individuals if individual.check_fitness]
+        self.batch_fitness_function(selected)
+        for i in selected:
+            i.check_fitness = False
 class Function(Layer):
     def __init__(self, function, individual_selection=None):
         super().__init__(individual_selection=individual_selection)

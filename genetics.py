@@ -23,11 +23,12 @@ class Individual:
         >>> individual = Individual(genes=[0, 1, 1, 0], fitness=0.75)
     """
 
-    def __init__(self, gene_pool, genes: np.array, fitness: float = 0, device="cpu", ):
+    def __init__(self, gene_pool, genes: np.array, fitness: float = 0, device="cpu"):
         self.genes = genes
         self.fitness = fitness
         self.device = device
         self.gene_pool = gene_pool
+        self.check_fitness = False
 
     def copy(self):
         """

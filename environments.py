@@ -65,7 +65,9 @@ class Environment(layer.Layer):
             return self.best_ever.fitness
         else:
             return 0
-
+    def batch(self, individual):
+        individual.check_fitness = True
+        return individual.fitness
     def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
                 verbose_every: int = 1):
         """
@@ -78,6 +80,10 @@ class Environment(layer.Layer):
         - verbose_every (int): Frequency of verbose output during evolution.
         """
         self.fitness_function = fitness_function
+
+        if self.fitness_function == 'batch':
+            self.fitness_function = self.batch
+
         self.individuals = individuals
         self.compiled = True
         if self.individuals is None:
