@@ -78,17 +78,18 @@ class IntMutateRange(FloatMutateRange):
 
     def __init__(self, gene_selection: Union[float, int, Callable], individual_selection: Union[float, int, Callable],
                  max_mutation: Union[int, Callable] = 1, min_mutation: Union[int, Callable] = -1,
-                 refit=True):
+                 refit=True, keep_within_genepool_bounds=False):
         """
         :param max_mutation: maximum mutation
         :param min_mutation: minimum mutation
         :param individual_selection: individual selection method
         :param gene_selection: gene selection method
+        :param keep_within_genepool_bounds: keep within bounds of possible genes
         """
         super().__init__(max_mutation=max_mutation, min_mutation=min_mutation,
                          individual_selection=individual_selection,
                          gene_selection=gene_selection,
-                         refit=refit)
+                         refit=refit, keep_within_genepool_bounds=keep_within_genepool_bounds)
 
     def mutate_one(self, individual, environment):
         """
@@ -104,7 +105,7 @@ class IntMutateRange(FloatMutateRange):
 
         genes_to_change = self.gene_selection(individual)
 
-        individual[genes_to_change] += npcp.random.randint(self.min_mutation(), self.max_mutation() + 1,
+        individual.genes[genes_to_change] += npcp.random.randint(self.min_mutation(), self.max_mutation() + 1,
                                                            size=genes_to_change.size)
 
         if self.keep_within_genepool_bounds:
