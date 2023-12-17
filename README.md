@@ -17,7 +17,10 @@ https://finch-1.gitbook.io/finch3/
 Note: They are accurate but horribly formatted (will fix this soon)
 ### Colab Notebooks
 1: [Simple Finch  Colab Demo](https://colab.research.google.com/drive/1QK7zYTBSkud4V6QQQRCi0ofkJ9bFp9B9?usp=sharing)
+- Very simple genetic algorithm
 
+2: [Trick Clip](https://colab.research.google.com/drive/1q_MDZAqofAbj-wkZHoWoWSP_6osymLGK?usp=sharing)
+- A genetic algorithm built to create 'adversarial images' against the Clip image recognition model.
 
 Many Google Colab notebooks will be added here soon!
 ### Installation 
