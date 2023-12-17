@@ -44,6 +44,7 @@ class KillBySelection(Layer):
         individuals = [ind for ind in self.environment.individuals if ind not in individuals]
         self.environment.individuals = individuals
 
+
 class DuplicateSelection(Layer):
     def __init__(self, individual_selection):
         """
@@ -97,15 +98,40 @@ class CapPopulation(Layer):
 
 
 class BatchFitness(Layer):
+    """
+    Layer applying a batch fitness function to selected individuals.
+
+    Parameters:
+    - batch_fitness_function: Callable, batch fitness function to be applied.
+
+    Attributes:
+    - batch_fitness_function: Callable, the batch fitness function.
+
+    Methods:
+    - execute(individuals: List[Individual]) -> None:
+        Apply batch fitness function to selected individuals.
+    """
+
     def __init__(self, batch_fitness_function):
         super().__init__()
         self.batch_fitness_function = batch_fitness_function
 
-    def execute(self, individuals: list[Individual]):
+    def execute(self, individuals: list) -> None:
+        """
+        Apply batch fitness function to selected individuals.
+
+        Parameters:
+        - individuals: List[Individual], individuals to process.
+
+        Returns:
+        - None
+        """
         selected = [individual for individual in individuals if individual.check_fitness]
         self.batch_fitness_function(selected)
         for i in selected:
             i.check_fitness = False
+
+
 class Function(Layer):
     def __init__(self, function, individual_selection=None):
         super().__init__(individual_selection=individual_selection)

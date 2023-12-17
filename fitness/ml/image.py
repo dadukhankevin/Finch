@@ -123,6 +123,7 @@ class ZeroShotImage:
         ind = 0
         for score in scores:
             individuals[ind].fitness = self.search(self.target_labels, score)
+            ind += 1
 
     def batch_supress(self, individuals):
         self.batch_enhance(individuals)
