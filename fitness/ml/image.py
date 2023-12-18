@@ -205,7 +205,7 @@ class ObjectDetection:
 
 class ImageGenerator:
     def __init__(self, recognizer: ZeroShotImage, model='stabilityai/sd-turbo', variant='fp16',
-                 batch_size=1, guidance_scale=0.0, num_inference_steps=1):
+                 batch_size=1, guidance_scale=0.0, num_inference_steps=1, repeat_fitness=1, criteria=sum):
         self.pipe = AutoPipelineForText2Image.from_pretrained(model, torch_dtype=torch.float16,
                                                               variant=variant)
         self.pipe.to("cuda")
@@ -213,7 +213,8 @@ class ImageGenerator:
         self.recognizer = recognizer
         self.guidance_scale = guidance_scale
         self.num_inference_steps = num_inference_steps
-
+        self.repeat_fitness = repeat_fitness
+        self.criteria = sum
     def generate(self, prompt):
         image = self.pipe(prompt=prompt, num_inference_steps=self.num_inference_steps,
                           guidance_scale=self.guidance_scale,
@@ -221,11 +222,13 @@ class ImageGenerator:
         return image
 
     def fit(self, individual: Individual):
-        prompt = "".join(str(individual.genes))
+        prompt = "".join(str(i) for i in individual.genes)
         image = self.generate(prompt)[0]
         return self.recognizer.enhance_pil_image(image)
 
+    def repeated_fit(self, individual, Individual):
+        return self.criteria([self.fit(individual) for i in range(self.repeat_fitness)])
     def batch_fit(self, individuals: list[Individual]):
-        prompts = ["".join(str(individual.genes)) for individual in individuals]
+        prompts = ["".join(str(i) for i in individual.genes) for individual in individuals]
         images = self.generate(prompts)
         self.recognizer.batch_enhance(individuals, pil_images=images)
