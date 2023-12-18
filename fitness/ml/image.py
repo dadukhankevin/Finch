@@ -226,7 +226,7 @@ class ImageGenerator:
         image = self.generate(prompt)[0]
         return self.recognizer.enhance_pil_image(image)
 
-    def repeated_fit(self, individual, Individual):
+    def repeated_fit(self, individual: Individual):
         return self.criteria([self.fit(individual) for i in range(self.repeat_fitness)])
     def batch_fit(self, individuals: list[Individual]):
         prompts = ["".join(str(i) for i in individual.genes) for individual in individuals]
