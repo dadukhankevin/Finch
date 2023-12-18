@@ -217,7 +217,7 @@ class ImageGenerator:
     def generate(self, prompt):
         image = self.pipe(prompt=prompt, num_inference_steps=self.num_inference_steps,
                           guidance_scale=self.guidance_scale,
-                          batch_size=self.batch_size)
+                          batch_size=self.batch_size)[0]
         return image
 
     def fit(self, individual: Individual):
