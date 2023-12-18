@@ -207,7 +207,8 @@ class ImageGenerator:
     def __init__(self, recognizer: ZeroShotImage, model='stabilityai/sd-turbo', variant='fp16',
                  batch_size=1, guidance_scale=0.0, num_inference_steps=1):
         self.pipe = AutoPipelineForText2Image.from_pretrained(model, torch_dtype=torch.float16,
-                                                              variant=variant, device=device)
+                                                              variant=variant)
+        self.pipe.to("cuda")
         self.batch_size = batch_size
         self.recognizer = recognizer
         self.guidance_scale = guidance_scale
