@@ -2,56 +2,63 @@ from Finch.fitness.ml import image
 from Finch.fitness.fitness_tools import MixFitness
 from Finch.environments import Sequential
 from Finch.genepools import BinaryPool, FloatPool
-from Finch.layers import BinaryMutate, ParentNPoint, Populate, CapPopulation, SortByFitness
+from Finch.layers import Mutate, ParentNPoint, Populate, CapPopulation, SortByFitness, BinaryMutate, BatchFitness, \
+    ParentSimple, FloatMutateRange
+from Finch.tools.individualselectors import RankBasedSelection
 
-
-
-size = (320, 240)
+size = (300, 300)
 length = size[0] * size[1] * 3
-population = 100
-new_individuals = 1
+shape = (size[1], size[0], 3)
+print(length)
 
-parents = 3
+batch_size = 100  # How many concerrent images to test on the GPU at a time
+target = ["dog"]
+other_labels = ["random noise", "white", "black"]  # Our goal is for 'dog' to outscore any of these true labels
+clip1 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
+                            shape=shape, denormalize=True, batch_size=batch_size)  # Default Clip model
+
+# Optionally you can define a different model!
+# clip2 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
+#                             model='patrickjohncyh/fashion-clip', shape=shape, denormalize=True, batch_size=batch_size)
+
+fit = clip1.batch_enhance
+
+# CONFIG
+max_population = 40
+start_pop = 2
+
+parents = 6
+factor = 10
+parents = RankBasedSelection(factor=factor, amount_to_select=parents).select
+
 children = 2
-parent_points = 4
+parent_points = 1
 
-individual_selection = 5
+individual_selection = 20
 gene_selection = 10
 
-generations = 1000
+generations = 600
 
-shape = (size[1], size[0], 3)
+# ENVIRONMENT
 
-target = ["dog"]
-other_labels = ["random noise", "black", "other"]
-clip1 = image.ZeroShotImage(target_labels=target, other_labels=other_labels, shape=shape, denormalize=1)
+if __name__ == "__main__":
+    pool = BinaryPool(length=length, device='cpu', default=1)
 
-clip2 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
-                            model='laion/CLIP-ViT-H-14-laion2B-s32B-b79K', shape=shape, denormalize=1)
-
-clip3 = image.ZeroShotImage(target_labels=target, other_labels=other_labels,
-                            model='patrickjohncyh/fashion-clip', shape=shape, denormalize=1)
-
-
-fitness_function = MixFitness([
-    clip1.enhance_fit,
-    clip2.enhance_fit,
-    clip3.enhance_fit,
-], weights=[.35, .3, .35])
-
-pool = BinaryPool(length=length)
-
-
-environment = Sequential([
-    Populate(pool, population+new_individuals),
-    ParentNPoint(families=parents, points=parent_points, children=children),
-    BinaryMutate(individual_selection=individual_selection, gene_selection=gene_selection),
-    SortByFitness(),
-    CapPopulation(max_population=population)
-])
-
-environment.compile(fitness_function=fitness_function)
-environment.evolve(generations=generations)
-environment.plot()
-
-
+    environment = Sequential([
+        Populate(pool, start_pop),
+        BinaryMutate(individual_selection=individual_selection,
+                     gene_selection=gene_selection, refit=True),
+        ParentNPoint(families=parents, points=parent_points, children=children,
+                     refit=True),
+        BatchFitness(batch_fitness_function=fit),
+        # Calls the fitness function on every individual that has been modified
+        SortByFitness(),
+        CapPopulation(max_population=max_population)
+    ])
+    # evolve
+    environment.compile(fitness_function='batch')
+    _ = environment.evolve(generations=generations)
+    # show the image
+    clip1.show(environment.best_ever)
+    # plot our progress
+    environment.plot()

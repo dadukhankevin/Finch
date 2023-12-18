@@ -1,5 +1,5 @@
 from Finch.environments import Sequential
-from Finch.genepools import FloatPool
+from Finch.genepools import FloatPool, IntPool
 from Finch.layers import *
 
 
