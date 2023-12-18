@@ -214,7 +214,8 @@ class ImageGenerator:
         self.guidance_scale = guidance_scale
         self.num_inference_steps = num_inference_steps
         self.repeat_fitness = repeat_fitness
-        self.criteria = sum
+        self.criteria = criteria
+
     def generate(self, prompt):
         image = self.pipe(prompt=prompt, num_inference_steps=self.num_inference_steps,
                           guidance_scale=self.guidance_scale,
@@ -227,8 +228,22 @@ class ImageGenerator:
         return self.recognizer.enhance_pil_image(image)
 
     def repeated_fit(self, individual: Individual):
-        return self.criteria([self.fit(individual) for i in range(self.repeat_fitness)])
+        return self.criteria([self.fit(individual) for _ in range(self.repeat_fitness)])
+
     def batch_fit(self, individuals: list[Individual]):
         prompts = ["".join(str(i) for i in individual.genes) for individual in individuals]
         images = self.generate(prompts)
         self.recognizer.batch_enhance(individuals, pil_images=images)
+
+    def batch_repeated_fit(self, individuals):
+        fitness_values_list = []
+
+        for _ in range(self.repeat_fitness):
+            self.batch_fit(individuals)
+            fitness_values = [individual.fitness for individual in individuals]
+            fitness_values_list.append(fitness_values)
+
+        aggregated_fitness_values = [self.criteria(values) for values in zip(*fitness_values_list)]
+
+        for i, individual in enumerate(individuals):
+            individual.fitness = aggregated_fitness_values[i]
