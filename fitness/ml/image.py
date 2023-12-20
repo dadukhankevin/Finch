@@ -24,6 +24,7 @@ class ZeroShotImage:
         self.criteria = criteria
         self.base_image = base_image
         self.shape = shape
+        self.size = (shape[0], shape[1])
         self.denormalize = denormalize
         self.batch_size = batch_size
 
@@ -220,7 +221,7 @@ class ImageGenerator:
     def generate(self, prompt):
         image = self.pipe(prompt=prompt, num_inference_steps=self.num_inference_steps,
                           guidance_scale=self.guidance_scale,
-                          batch_size=self.batch_size, seed=self.seed)[0]
+                          batch_size=self.batch_size, seed=self.seed, size=self.recognizer.size)[0]
         return image
 
     def fit(self, individual: Individual):
