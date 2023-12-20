@@ -205,7 +205,7 @@ class ObjectDetection:
 
 class ImageGenerator:
     def __init__(self, recognizer: ZeroShotImage, model='stabilityai/sd-turbo', variant='fp16',
-                 batch_size=1, guidance_scale=0.0, num_inference_steps=1, repeat_fitness=1, criteria=sum):
+                 batch_size=1, guidance_scale=0.0, num_inference_steps=1, repeat_fitness=1, criteria=sum, seed=-1):
         self.pipe = AutoPipelineForText2Image.from_pretrained(model, torch_dtype=torch.float16,
                                                               variant=variant)
         self.pipe.to("cuda")
@@ -215,11 +215,12 @@ class ImageGenerator:
         self.num_inference_steps = num_inference_steps
         self.repeat_fitness = repeat_fitness
         self.criteria = criteria
+        self.seed = seed
 
     def generate(self, prompt):
         image = self.pipe(prompt=prompt, num_inference_steps=self.num_inference_steps,
                           guidance_scale=self.guidance_scale,
-                          batch_size=self.batch_size)[0]
+                          batch_size=self.batch_size, seed=self.seed)[0]
         return image
 
     def fit(self, individual: Individual):
@@ -228,6 +229,7 @@ class ImageGenerator:
         return self.recognizer.enhance_pil_image(image)
 
     def repeated_fit(self, individual: Individual):
+        assert self.seed == -1, "Repeated_fit should only be used when seed is randomized, please set it to -1"
         return self.criteria([self.fit(individual) for _ in range(self.repeat_fitness)])
 
     def batch_fit(self, individuals: list[Individual]):
