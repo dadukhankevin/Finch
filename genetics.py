@@ -19,6 +19,8 @@ class Individual:
     Attributes:
         genes (Any): The genetic information or characteristics of the individual.
         fitness (float): The default fitness value for this individual.
+        parents (list): The parents of the individual
+        children (list): Any children the parents have had.
     Example:
         >>> individual = Individual(genes=[0, 1, 1, 0], fitness=0.75)
     """
@@ -29,6 +31,10 @@ class Individual:
         self.device = device
         self.gene_pool = gene_pool
         self.check_fitness = False
+
+        self.children = []
+        self.parents = []
+        self.age = 0
 
     def copy(self):
         """

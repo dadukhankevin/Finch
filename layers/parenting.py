@@ -132,7 +132,7 @@ class ParentSimple(layer.Parent):
 
 
 class ParentNPoint(layer.Parent):
-    def __init__(self, families, points=1, children=2, refit=True):
+    def __init__(self, families, points=1, children=2, refit=True, track_genealogies = False):
         """
         Initialize an n-point parent with crossover.
 
@@ -141,9 +141,10 @@ class ParentNPoint(layer.Parent):
             points (int): Number of crossover points.
             children (int): Number of children to generate.
             refit (bool): If true will retest fitness in new children
+            track_genealogies (bool): If true will have individuals remember their parents
         """
         self.points = points
-        super().__init__(families=families,  children=children, refit=refit)
+        super().__init__(families=families,  children=children, refit=refit, track_genealogies=track_genealogies)
 
     def parent(self, parent1: Individual, parent2: Individual, environment) -> list:
         """
@@ -157,4 +158,6 @@ class ParentNPoint(layer.Parent):
         Returns:
             list of Individual: Offspring resulting from the crossover.
         """
-        return n_point_crossover(parent1=parent1, parent2=parent2, n=self.points)
+
+        children =  n_point_crossover(parent1=parent1, parent2=parent2, n=self.points)
+        return children

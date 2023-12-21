@@ -41,6 +41,9 @@ class KillBySelection(Layer):
     def execute(self, individuals):
         # select some individuals to kill using the selection function
         # remove the selected individuals from the population
+        for ind in individuals:
+            ind.genes = []
+            self.environment.dead_individuals.append(ind)
         individuals = [ind for ind in self.environment.individuals if ind not in individuals]
         self.environment.individuals = individuals
 
@@ -95,6 +98,10 @@ class CapPopulation(Layer):
     def execute(self, individuals):
         self.environment.individuals = individuals[
                                        0:self.max_population()]  # kills only the worst ones assuming they are sorted
+
+        for i in individuals[self.max_population():-1]:
+            i.genes = []
+            self.environment.dead_individuals.append(i)
 
 
 class BatchFitness(Layer):
@@ -165,6 +172,9 @@ class RemoveAllButBest(Layer):
         super().__init__(individual_selection=None)
 
     def execute(self, individuals):
+        for individual in individuals[1:-1]:
+            individual.genes = [] # saves on memory, but retains everything else important about individuals
+            self.environment.dead_individuals.append(individual)
         self.environment.individuals = [individuals[0]]
 
 
@@ -186,13 +196,3 @@ class RemoveAllButBest(Layer):
 #         return individuals
 
 
-class KillByFitnessPercentile(Layer):
-    def __init__(self, percentile: float):
-        super().__init__(individual_selection=None)
-        self.percentile = make_callable(percentile)
-
-    def execute(self, individuals):
-        num_to_kill = int(len(individuals) * self.percentile())
-        sorted_individuals = sorted(individuals, key=lambda x: x.fitness)
-        remaining_individuals = sorted_individuals[num_to_kill:]
-        self.environment.individuals = remaining_individuals

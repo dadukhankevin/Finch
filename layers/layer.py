@@ -119,14 +119,16 @@ class Parent(Layer):
     Base parenting/crossover layer, not to be used directly.
     """
 
-    def __init__(self, families, children=1, device='cpu', refit=True):
+    def __init__(self, families, children=1, device='cpu', refit=True, track_genealogies=False):
         """
         :param individual_selection: individual selection method
         :param execution_function:
         :param device: 'cpu' or 'gpu'
+        :param track_genealogies: bool
         """
         self.families = families
         self.children = make_callable(children)
+        self.track_genealogies = track_genealogies
         super().__init__(device=device, fitness=0, individual_selection=families,
                          refit=refit)
 
@@ -138,4 +140,8 @@ class Parent(Layer):
         parents = list(zip(individuals[::2], individuals[1::2]))
         for parent1, parent2 in parents:
             children = self.parent(parent1=parent1, parent2=parent2, environment=self.environment)
+            if self.track_genealogies:
+                for child in children:
+                    child.parents.append(parent1)
+                    child.parents.append(parent2)
             self.environment.individuals += children

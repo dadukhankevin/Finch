@@ -49,6 +49,7 @@ class Environment(layer.Layer):
         self.compiled = False
         self.deactivated = False
         self.best_ever = None
+        self.dead_individuals = []
 
     def deactivate(self):
         """
