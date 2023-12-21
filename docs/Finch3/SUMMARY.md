@@ -3,7 +3,7 @@
 * [About](README.md)
 * [The Basics](the-basics.md)
 * [Layers](layers/README.md)
-  * [Page 1](layers/page-1.md)
+  * [generic layers](layers/generic-layers.md)
 * [GenePools](genepools.md)
 * [ML](ml.md)
 * [Tools](tools.md)
