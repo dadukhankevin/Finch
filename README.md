@@ -1,6 +1,6 @@
-## Finch3
+## Finch
 ### About
-Finch3 is a genetic algorithm framework. It aims to be:
+Finch 3 is a genetic algorithm framework. It aims to be:
 - understandable
 - fast
 - and capable
@@ -12,7 +12,7 @@ This is a very early version but here are some things you can expect:
 ### Docs
 Here are the docs:
 
-https://finch-1.gitbook.io/finch3/
+https://Finch-1.gitbook.io/Finch3/
 
 Note: They are accurate but horribly formatted (will fix this soon)
 ### Colab Notebooks
@@ -24,6 +24,9 @@ Note: They are accurate but horribly formatted (will fix this soon)
 
 Many Google Colab notebooks will be added here soon!
 ### Installation 
+#### From Pip
+`pip install finch-genetics`
+#### From Git
 run `git clone https://github.com/dadukhankevin/Finch`
 
 ### Example
