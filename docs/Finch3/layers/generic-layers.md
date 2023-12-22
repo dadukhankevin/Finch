@@ -102,3 +102,47 @@ If you are using an ML model as a fitness function, you may want to run multiple
 
 * `execute...` executes the batch\_fitness\_function and realigns the `fitness` score if each individual. It will only work on individuals that have `check_fitness=True`. The environment must also specify `fitness_function='batch'` &#x20;
 
+
+
+### Function
+
+Given a selection function, and a custom function, it will supply the custom function with the individuals selected. This is useful if you are building custom mutation functions or anything of that sort.
+
+**params:**
+
+* `function: callable`. The function that you define.
+* `individual_selection: callable`. The selection function with which to select individuals from an environment.
+
+**methods:**
+
+* `execute...` Supplies your function with selected individuals
+
+
+
+### Controller
+
+Allows for fine-grained control over the execution of a specific layer. You can:
+
+* repeat the layer x times
+* delay the use of the layer until after x epochs
+* stop the layer after x epochs
+* or only execute the layer every x epochs
+
+**params:**
+
+* `layer: Layer` Place any other layer here.
+* `execute_every: int` Executes the layer only every x times.
+* `repeat: int` Repeat the layer x times per epoch.
+* `delay: int` Delays the execution of this layer until after x epochs.
+* `stop_at: int` Stops the layer from executing after x epochs.
+
+**methods:**
+
+* `execute...` Executes the `layer` that you specified in the manner defined above.
+
+**example:**
+
+```
+layer = Controller(layer=DuplicateSelection(...), execute_every=10)
+```
+
