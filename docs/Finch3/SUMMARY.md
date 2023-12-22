@@ -2,6 +2,7 @@
 
 * [About](README.md)
 * [The Basics](the-basics.md)
+* [Individuals](individuals.md)
 * [Environments](environments.md)
 * [Layers](layers/README.md)
   * [generic layers](layers/generic-layers.md)
