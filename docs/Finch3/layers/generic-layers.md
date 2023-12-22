@@ -8,7 +8,7 @@ description: overview of generic Finch layers
 
 Base class, not to be used independently. All other Layers inherit it.
 
-**params/attributes:**
+**params/attributes: (some are optional)**
 
 * `execution_function` retrieved from a higher class.
 * `gene_selection` gene selection method: float (percent), int (amount), or callable.
@@ -16,7 +16,7 @@ Base class, not to be used independently. All other Layers inherit it.
 * `fitness` set to 0 (layers count as Individuals, this will matter only in later versions).
 * `device` 'cpu' or 'gpu'.
 
-**Methods:**
+**methods:**
 
 * `set_environment(environment: Environment)` Allows any Layer to access the Environment it is in. This is automatically completed in the host Environment.
 * `run(self, individuals: list, environment)` This is what an Environment calls, which in turn calls `self.execution_function`. This allows individuals to be mutated, added, killed, or any number of other things.
@@ -32,6 +32,73 @@ Populates your environment until it reaches a population.
 * `gene_pool: GenePool.` Whichever GenePool type you want to have to generate individuals
 * `population: int.` The minimum population you would like your environment to maintain.
 
-**Methods:**
+**methods:**
 
 * `execute(individuals: list[Individual]).` Populates the self.environment with new individuals.
+
+### KillBySelection:
+
+Give it a selection function, and it will terminate those individuals that are selected. Terminated individuals will have their genes erased however all other associated data will be transferred to `environment.dead_individuals`.
+
+**params:**
+
+* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions.md](../selection-functions.md "mention") page)
+
+**methods:**
+
+* `execute...` (identical to every other Layer) Kills selected individuals
+
+
+
+
+
+### DuplicateSelection:
+
+Give it a selection function, and it will duplicate those individuals that are selected.&#x20;
+
+**params:**
+
+* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions.md](../selection-functions.md "mention") page)
+
+**Methods:**
+
+* `execute...` (identical to every other Layer) Duplicate selected individuals
+
+
+
+### SortByFitness:
+
+This is one of the most important layers. It sorts the `environment.individuals` list so that individuals with higher fitness scores are close to index 0, and lower fitness scores -1. This allows other layers like `CapPopulation` to kill individuals lower on the ranking list, without checking fitness individually. **This layer is almost a requirement in every environment you create, and should generally be placed second to last.**&#x20;
+
+**params:**
+
+* None
+
+**methods:**
+
+* `execute...`&#x20;
+
+### CapPopulation:
+
+Keeps only the top `n` ranked individuals in the environment, killing the rest and placing them in `environment.dead_individuals`. **This layer (or another Kill layer) is almost a requirement in every environment you create, and should generally be placed last (after a fitness sort).**
+
+**params:**
+
+* `max_population: int`  The maximum number of individuals you specify in your environment, the rest will be killed. This may also be a function that returns an int.
+
+**methods:**
+
+* &#x20;`execute...`
+
+### BatchFitness:
+
+If you are using an ML model as a fitness function, you may want to run multiple fitness functions concurrently on the GPU. This can speed things up a lot!
+
+**params:**
+
+* `batch_fitness_function` The fitness function, which must take a list of individuals, rather than a singular individual, and pass them to the GPU however you specify.&#x20;
+
+**methods:**
+
+* `execute...` executes the batch\_fitness\_function and realigns the `fitness` score if each individual. It will only work on individuals that have `check_fitness=True`. The environment must also specify `fitness_function='batch'` &#x20;
+

@@ -7,3 +7,4 @@
 * [GenePools](genepools.md)
 * [ML](ml.md)
 * [Tools](tools.md)
+* [Selection Functions](selection-functions.md)
