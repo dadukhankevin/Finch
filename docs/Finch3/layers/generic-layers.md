@@ -42,7 +42,7 @@ Give it a selection function, and it will terminate those individuals that are s
 
 **params:**
 
-* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions.md](../selection-functions.md "mention") page)
+* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions](../selection-functions/ "mention") page)
 
 **methods:**
 
@@ -58,7 +58,7 @@ Give it a selection function, and it will duplicate those individuals that are s
 
 **params:**
 
-* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions.md](../selection-functions.md "mention") page)
+* `individual_selection`  : A function with which to select individuals. (see more on the[selection-functions](../selection-functions/ "mention") page)
 
 **Methods:**
 
