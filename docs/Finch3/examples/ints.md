@@ -44,7 +44,7 @@ min_mutation = -2
 max_mutation = 2
 </code></pre>
 
-### Create a FloatPool:
+### Create a IntPool:
 
 Here, our `GenePool` is a `IntPool`, which simply means it is meant to generate individuals containing large amounts of floats.
 
