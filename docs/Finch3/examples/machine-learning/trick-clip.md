@@ -6,7 +6,7 @@ description: >-
 
 # Trick Clip
 
-port libraries
+### Import libraries
 
 ```python
 from Finch.fitness.ml import image
