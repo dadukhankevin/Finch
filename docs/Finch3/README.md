@@ -1,8 +1,8 @@
 ---
-description: about Finch
+description: Genetic algorithms for everyone
 ---
 
-# About
+# 🐦 About
 
 ### #Finch
 
