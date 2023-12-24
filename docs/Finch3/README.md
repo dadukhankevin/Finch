@@ -4,9 +4,9 @@ description: Genetic algorithms for everyone
 
 # 🐦 About
 
-### #Finch
+## Finch 3
 
-#### About
+### About:
 
 Finch 3 is a genetic algorithm framework. It aims to be:
 
@@ -20,14 +20,6 @@ This is a very early version but here are some things you can expect:
 * Much better documentation than Finch2 (although this is a work in progress)
 * Overall much faster, more consistent, and far less bugs.
 
-#### Docs
-
-Here are the docs:
-
-https://Finch-1.gitbook.io/Finch3/
-
-Note: They are accurate but horribly formatted (will fix this soon)
-
 #### Colab Notebooks
 
 1: [Simple Finch Colab Demo](https://colab.research.google.com/drive/1QK7zYTBSkud4V6QQQRCi0ofkJ9bFp9B9?usp=sharing)
@@ -40,13 +32,13 @@ Note: They are accurate but horribly formatted (will fix this soon)
 
 Many Google Colab notebooks will be added here soon!
 
-#### Installation
+### Installation
 
-**From Pip**
+* **From Pip:**
 
 `pip install finch-genetics`
 
-**From Git**
+* **From Git:**
 
 run `git clone https://github.com/dadukhankevin/Finch`
 
