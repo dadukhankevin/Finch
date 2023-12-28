@@ -61,24 +61,24 @@ class DuplicateSelection(Layer):
         duplicates = [d.copy() for d in individuals]  # make them different (:
         individuals += duplicates
 
-
-class RemoveDuplicatesFromTop(Layer):
-    def __init__(self, top_n: int):
-        super().__init__(individual_selection=None)
-        self.top_n = make_callable(top_n)
-
-    def execute(self, individuals):
-        # remove any duplicates from the top n individuals
-        unique_individuals = individuals[:self.top_n()]
-        if self.environment.device == 'cpu':
-            npcp = np
-        else:
-            npcp = cp
-
-        for i in range(self.top_n, len(individuals)):
-            if not any(npcp.array_equal(ind.genes, individuals[i].genes) for ind in unique_individuals):
-                unique_individuals.append(individuals[i])
-        return unique_individuals
+# TODO: update this to work in v 3
+# class RemoveDuplicatesFromTop(Layer):
+#     def __init__(self, top_n: int):
+#         super().__init__(individual_selection=None)
+#         self.top_n = make_callable(top_n)
+#
+#     def execute(self, individuals):
+#         # remove any duplicates from the top n individuals
+#         unique_individuals = individuals[:self.top_n()]
+#         if self.environment.device == 'cpu':
+#             npcp = np
+#         else:
+#             npcp = cp
+#
+#         for i in range(self.top_n, len(individuals)):
+#             if not any(npcp.array_equal(ind.genes, individuals[i].genes) for ind in unique_individuals):
+#                 unique_individuals.append(individuals[i])
+#         return unique_individuals
 
 
 class SortByFitness(Layer):
