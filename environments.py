@@ -5,7 +5,8 @@ from Finch.exceptions.environment_exceptions import NoIndividualsAtEndOfRun
 import time
 from tabulate import tabulate
 from Finch.layers import layer
-
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
 from Finch.genetics import Individual
 
 
@@ -33,7 +34,7 @@ class Environment(layer.Layer):
         """
 
     def __init__(self, layers: list[layer.Layer] = None, name="Environment", verbose_every=1, device='cpu'):
-        super().__init__(device=device, refit=False, individual_selection=None)
+        super().__init__(device=device, refit=False, individual_selection=None, fitness=1)
         self.fitness_function = None
 
         self.generations = 0
@@ -130,12 +131,14 @@ class Environment(layer.Layer):
         if len(self.individuals) == 0:
             raise NoIndividualsAtEndOfRun("Your environment has a population of 0 after running.")
         fitness = self.individuals[0].fitness
+        self.fitness = 1 + fitness
         if self.best_ever:
             if fitness > self.best_ever.fitness:
                 self.best_ever = self.individuals[0].copy()
         else:
             self.best_ever = self.individuals[0].copy()
-        if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:            print(
+        if self.verbose_every and self.iteration % self.verbose_every == 0 and self.iteration > 1:
+            print(
             f"{self.name}: generation {self.iteration + 1}/{self.generations}. Max fitness: {fitness}. Population: "
             f"{len(self.individuals)}")
         self.history.append(fitness)
@@ -202,7 +205,7 @@ class Adversarial(Environment):
 
         for environment in self.environments:
             if not environment.compiled:
-                environment.compile(verbose_every=verbose_every)
+                environment.compile(verbose_every=verbose_every, fitness_function=fitness_function)
 
     def evolve(self, generations: int = 1):
         """
@@ -354,13 +357,14 @@ class AdaptiveEnvironment(Environment):
     - name: Name of the adaptive environment.
     """
 
-    def __init__(self, environments, switch_every=10, go_for=0, name="AdaptiveEnvironment"):
-        super().__init__(name=name)
+    def __init__(self, environments, reset_every=20, name="AdaptiveEnvironment"):
+        super().__init__(environments, name=name)
         self.environments = environments
-        self.switch_every = switch_every
+        self.reset_every = reset_every
         self.current_environment = environments[0]
         self.current_generation = 0
-        self.go_for = go_for
+        self.weights = [[1] for _ in range(len(environments))]
+        self.total_history = []
 
     def compile(self, fitness_function, individuals: list[Individual] = None, callback: callable = None,
                 verbose_every: int = 1):
@@ -379,7 +383,7 @@ class AdaptiveEnvironment(Environment):
 
         for environment in self.environments:
             if not environment.compiled:
-                environment.compile(verbose_every=verbose_every)
+                environment.compile(verbose_every=verbose_every, fitness_function=fitness_function)
 
     def evolve(self, generations: int):
         """
@@ -391,63 +395,26 @@ class AdaptiveEnvironment(Environment):
         Returns:
         Tuple containing the final population and the fitness history.
         """
-
+        old_fitness = 1
         for i in range(generations):
-            self.iteration += 1
-            self.current_generation += 1
-            new = self.smart_evolve()
-            new.individuals = self.current_environment.individuals
-            new.history = self.current_environment.history
-            self.current_environment = new
-            self.current_environment.evolve(1)
+            weights = [max(sum(w)/len(w), 0.01) for w in self.weights]
+            environment = random.choices(self.environments, weights=weights, k=1)[0]
+            if i % self.reset_every == 0:
+                self.weights = [[1] for _ in range(len(self.environments))]
 
-        return self.individuals, self.history
+            environment.individuals = self.individuals
+            environment.evolve(1)
+            self.individuals = environment.individuals
+            new_fitness = environment.fitness
+            self.total_history.append(self.environments.index(environment))
 
-    def smart_evolve(self):
-        """
-        Implements adaptive evolution by intelligently switching between sub-environments.
-
-        Returns:
-        The selected sub-environment for the next generation.
-        """
-        for i in self.environments:
-            if i.fitness < 1:
-                print("Deactivating ", i.name)
-                i.deactivate()
-        if self.iteration % self.switch_every == 0:
-            weights = [x.fitness for x in self.environments]
-            choices = [x for x in self.environments]
-            return random.choices(choices, weights, k=1)[0]
-        else:
-            return self.current_environment
-
-    def switch_environment(self):
-        """
-        Switches to the sub-environment with the highest fitness increase.
-        """
-
-        max_fitness_increase = -float('inf')
-        best_environment = None
-        first = self.current_environment.individuals[-1].fitness
-        for environment in self.environments:
-            environment.individuals = self.current_environment.individuals
-
-            environment.evolve(self.go_for)
-            new_fitness = environment.individuals[-1].fitness
-            fitness_increase = new_fitness - first
-
-            if fitness_increase > max_fitness_increase:
-                max_fitness_increase = fitness_increase
-                best_environment = environment
-
-        if best_environment:
-            best_environment.individuals = self.current_environment.individuals
-            self.current_environment = best_environment
-            print(f"Switching to environment: {best_environment.name} (Generation {self.current_generation})")
+            dif = new_fitness - old_fitness
+            old_fitness = new_fitness
+            self.weights[self.environments.index(environment)].append(dif)
+        weights = [sum(w) / len(w) for w in self.weights]
+        print(weights)
 
     def plot(self):
-        """
-        Plots the fitness history of the current sub-environment.
-        """
-        plt.plot(self.current_environment.history)
+
+        plt.plot(self.total_history)
         plt.show()

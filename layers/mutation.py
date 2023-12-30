@@ -136,3 +136,26 @@ class BinaryMutate(layer.Mutate):
             individual.genes[genes_to_change] = np.random.randint(2, size=genes_to_change.size)
         if individual.device == 'gpu':
             individual.genes[genes_to_change] = cp.random.randint(2, size=genes_to_change.size)
+
+
+class InsertionDeletionMutation(layer.Mutate):
+    def __init__(self, individual_selection: Callable, gene_selection: Callable, refit=True):
+        super().__init__(individual_selection=individual_selection, gene_selection=gene_selection,
+                         refit=refit)
+
+    def mutate_one(self, individual, environment):
+        """
+        Mutates a single individual by either inserting or deleting genes.
+        :param environment: the environment the individuals live in
+        :param individual: the individual to mutate
+        :return: None
+        """
+        # Gene selection for insertion or deletion
+        idx = self.gene_selection(individual)
+
+        # Decide whether to insert or delete
+        if np.random.rand() < 0.5:  # 50% chance for insertion
+            new_genes = individual.gene_pool.generate_genes(1)
+            individual.genes = np.insert(individual.genes, idx, new_genes)
+        else:  # 50% chance for deletion
+            individual.genes = np.delete(individual.genes, idx)
