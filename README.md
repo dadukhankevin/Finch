@@ -12,7 +12,7 @@ This is a very early version but here are some things you can expect:
 ### Docs
 Here are the docs:
 
-https://Finch-1.gitbook.io/Finch3/
+[Finch Docs](https://finch-1.gitbook.io/finch/)
 
 Note: They are accurate but horribly formatted (will fix this soon)
 ### Colab Notebooks
