@@ -151,11 +151,12 @@ class InsertionDeletionMutation(layer.Mutate):
         :return: None
         """
         # Gene selection for insertion or deletion
-        idx = self.gene_selection(individual)
+        if individual.genes.size > 0:
+            idx = self.gene_selection(individual)
 
-        # Decide whether to insert or delete
-        if np.random.rand() < 0.5:  # 50% chance for insertion
-            new_genes = individual.gene_pool.generate_genes(1)
-            individual.genes = np.insert(individual.genes, idx, new_genes)
-        else:  # 50% chance for deletion
-            individual.genes = np.delete(individual.genes, idx)
+            # Decide whether to insert or delete
+            if np.random.rand() < 0.5:  # 50% chance for insertion
+                new_genes = individual.gene_pool.generate_genes(1)
+                individual.genes = np.insert(individual.genes, idx, new_genes)
+            else:  # 50% chance for deletion
+                individual.genes = np.delete(individual.genes, idx)
