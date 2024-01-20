@@ -149,15 +149,17 @@ class BinaryPool(GenePool):
 
 
 class ArrayPool(GenePool):
-    def __init__(self, gene_array: np.ndarray, length: int, device="cpu"):
+    def __init__(self, gene_array: np.ndarray, length: int, device="cpu", unique=False):
         """
         A GenePool meant for the creation of individuals by picking items from an array.
         :param gene_array: The array from which genes will be picked.
         :param length: Amount of genes in each individual
         :param device: Where genes in Individuals should be kept 'gpu' or 'cpu'
+        :param unique: Whether the generated genes should be unique
         """
         super().__init__(length=length, device=device)
         self.gene_array = gene_array
+        self.unique = unique
 
     def generate_genes(self, amount: int):
         """
@@ -165,8 +167,14 @@ class ArrayPool(GenePool):
         :return: numpy or cupy array containing genes picked from the array
         """
         if self.device == "cpu":
-            genes = np.random.choice(self.gene_array, size=amount)
+            if self.unique:
+                genes = np.random.choice(self.gene_array, size=amount, replace=False)
+            else:
+                genes = np.random.choice(self.gene_array, size=amount)
 
         elif self.device == "gpu":
-            genes = cp.random.choice(self.gene_array, size=amount)
+            if self.unique:
+                genes = cp.random.choice(self.gene_array, size=amount, replace=False)
+            else:
+                genes = cp.random.choice(self.gene_array, size=amount)
         return genes
