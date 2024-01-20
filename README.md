@@ -24,7 +24,8 @@ Note: They are accurate but horribly formatted (will fix this soon)
 
 3: [Backpack Problem](https://colab.research.google.com/drive/1lpza6SUWlYcIocqFZ4UCfDLuxxpdndIq?usp=sharing)
 - A simple, classic, genetic algorithm to optimize which items to place in a backpack.
-Many Google Colab notebooks will be added here soon!
+
+More Google Colab notebooks will be added here soon!
 ### Installation 
 #### From Pip
 `pip install finch-genetics`
