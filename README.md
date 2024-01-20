@@ -21,6 +21,7 @@ Note: They are accurate but horribly formatted (will fix this soon)
 
 2: [Trick Clip](https://colab.research.google.com/drive/1q_MDZAqofAbj-wkZHoWoWSP_6osymLGK?usp=sharing)
 - A genetic algorithm built to create 'adversarial images' against the Clip image recognition model.
+
 3: [Backpack Problem](https://colab.research.google.com/drive/1lpza6SUWlYcIocqFZ4UCfDLuxxpdndIq?usp=sharing)
 - A simple, classic, genetic algorithm to optimize which items to place in a backpack.
 Many Google Colab notebooks will be added here soon!
