@@ -5,6 +5,23 @@ from Finch.genepools import BinaryPool, FloatPool
 from Finch.layers import Mutate, ParentNPoint, Populate, CapPopulation, SortByFitness, BinaryMutate, BatchFitness, \
     ParentSimple, FloatMutateRange
 from Finch.tools.individualselectors import RankBasedSelection
+import requests
+from PIL import Image
+from io import BytesIO
+
+def resize_image(url, new_size=(64, 64)):
+    # Download the image from the URL
+    response = requests.get(url)
+    image = Image.open(BytesIO(response.content))
+
+    # Resize the image
+    resized_image = image.resize(new_size)
+
+    return resized_image
+
+
+base_image = resize_image("https://imagez.tmz.com/image/39/1by1/2023/07/15/39558dccad4e47ae90482f7c6a7c34d5_xl.jpg")
+base_image
 
 size = (300, 300)
 length = size[0] * size[1] * 3

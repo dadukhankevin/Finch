@@ -159,5 +159,5 @@ class ParentNPoint(layer.Parent):
             list of Individual: Offspring resulting from the crossover.
         """
 
-        children =  n_point_crossover(parent1=parent1, parent2=parent2, n=self.points)
+        children = n_point_crossover(parent1=parent1, parent2=parent2, n=self.points)
         return children
