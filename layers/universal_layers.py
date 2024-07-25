@@ -7,7 +7,7 @@ from typing import Union, Callable
 
 class Populate(Layer):
     def __init__(self, population: Union[Callable, int], gene_pool: GenePool):
-        super().__init__(application_function=self.populate, selection_function=lambda x: x, repeat=1)
+        super().__init__(application_function=self.populate, selection_function=lambda x: x, repeat=1, refit=False)
         self.population = make_callable(population)
         self.gene_pool = gene_pool
 
