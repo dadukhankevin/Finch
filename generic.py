@@ -41,7 +41,7 @@ class Layer:
 
 
 class Environment:
-    def __init__(self, layers: List[Layer], individuals, verbose_every=1, early_stopping=0):
+    def __init__(self, layers: List[Layer], individuals=[], verbose_every=1, early_stopping=0):
         self.layers = layers
         self.individuals = individuals
         self.best_ever = None
