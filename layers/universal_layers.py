@@ -21,7 +21,7 @@ class Populate(Layer):
 
 class SortByFitness(Layer):
     def __init__(self):
-        super().__init__(application_function=self.sort, selection_function=lambda x: x, repeat=1)
+        super().__init__(application_function=self.sort, selection_function=lambda x: x, repeat=1, refit=False)
 
     def sort(self, individuals):
         self.environment.individuals = list(sorted(individuals, key=lambda individual: -individual.fitness))
@@ -29,7 +29,7 @@ class SortByFitness(Layer):
 
 class CapPopulation(Layer):
     def __init__(self, max_population: Union[Callable, int]):
-        super().__init__(application_function=self.cap_population, selection_function=lambda x: x, repeat=1)
+        super().__init__(application_function=self.cap_population, selection_function=lambda x: x, repeat=1, refit=False)
         self.max_population = make_callable(max_population)
 
     def cap_population(self, individuals):
