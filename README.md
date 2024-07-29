@@ -37,24 +37,25 @@ Finch is a Python framework for implementing evolutionary algorithms. It provide
 ## Example
 
 ```python
-from Finch import (FloatPool, Environment, RandomSelection,
-                   GaussianMutation, ParentNPoint, Populate,
-                   CapPopulation, SortByFitness)
+
+import Finch.layers as layers
+from Finch.selectors import *
+from Finch.generic import *
 
 def fitness_function(individual):
     return sum(individual.item)
 
-gene_pool = FloatPool(ranges=[[-5, 5]] * 10, length=10, fitness_function=fitness_function)
+gene_pool = layers.float_arrays.FloatPool(ranges=[[-5, 5]] * 10, length=10, fitness_function=fitness_function)
 mutation_selection = RandomSelection(percent_to_select=.1)
 crossover_selection = RandomSelection(amount_to_select=2)
 
 # Set up layers
 layers = [
-    Populate(population=500, gene_pool=gene_pool),
-    ParentNPoint(selection_function=crossover_selection.select, families=4, children=4),
-    GaussianMutation(mutation_rate=0.1, sigma=0.5, selection_function=mutation_selection.select),
-    SortByFitness(),
-    CapPopulation(1000),
+    layers.universal_layers.Populate(population=500, gene_pool=gene_pool),
+    layers.array_layers.ParentNPoint(selection_function=crossover_selection.select, families=4, children=4),
+    layers.float_arrays.GaussianMutation(mutation_rate=0.1, sigma=0.5, selection_function=mutation_selection.select),
+    layers.universal_layers.SortByFitness(),
+    layers.universal_layers.CapPopulation(1000),
 ]
 
 env = Environment(layers)
