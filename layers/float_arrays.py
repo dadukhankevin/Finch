@@ -155,8 +155,8 @@ class GaussianMutation(Layer):
 
 class UniformMutation(Layer):
     def __init__(self, mutation_rate: float, lower_bound: float, upper_bound: float, selection_function: Callable,
-                 device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+                 device: str = 'cpu', overpowered: bool = False, refit=True):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.mutation_rate = mutation_rate
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound

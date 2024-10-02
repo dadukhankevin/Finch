@@ -43,8 +43,8 @@ class ArrayPool(GenePool):
 
 
 class ParentNPoint(Layer):
-    def __init__(self, selection_function: Callable, families: int, children: int, n_points: int = 3, device='cpu'):
-        super().__init__(application_function=self.parent, selection_function=selection_function, repeat=families)
+    def __init__(self, selection_function: Callable, families: int, children: int, n_points: int = 3, device='cpu', refit=True):
+        super().__init__(application_function=self.parent, selection_function=selection_function, repeat=families, refit=refit)
         self.children = make_callable(children)
         self.device = device
         self.n_points = n_points
@@ -83,8 +83,8 @@ class ParentNPoint(Layer):
 
 class ParentUniform(Layer):
     def __init__(self, selection_function: Callable, families: int, children: int, crossover_rate: float = 0.5,
-                 device='cpu'):
-        super().__init__(application_function=self.parent, selection_function=selection_function, repeat=families)
+                 device='cpu', refit=True):
+        super().__init__(application_function=self.parent, selection_function=selection_function, repeat=families, refit=refit)
         self.children = make_callable(children)
         self.device = device
         self.crossover_rate = crossover_rate
@@ -108,8 +108,8 @@ class ParentUniform(Layer):
 
 
 class SwapMutation(Layer):
-    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False, refit=True):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.device = device
         self.overpowered = overpowered
 
@@ -140,8 +140,8 @@ class SwapMutation(Layer):
 
 
 class InversionMutation(Layer):
-    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False, refit=True):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.device = device
         self.overpowered = overpowered
 
@@ -170,8 +170,8 @@ class InversionMutation(Layer):
 
 
 class ScrambleMutation(Layer):
-    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False, refit=True):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.device = device
         self.overpowered = overpowered
 
@@ -205,8 +205,8 @@ class ScrambleMutation(Layer):
 
 class ReplaceMutation(Layer):
     def __init__(self, mutation_rate: float, selection_function, possible_values: Union[List[Any], np.ndarray],
-                 device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+                 device: str = 'cpu', overpowered: bool = False, refit=True):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.mutation_rate = mutation_rate
         self.possible_values = np.array(possible_values)  # Convert to numpy array
         self.device = device
@@ -239,44 +239,26 @@ class ReplaceMutation(Layer):
 
 
 class InsertionDeletionMutation(Layer):
-    def __init__(self, selection_function, device: str = 'cpu', overpowered: bool = False):
-        super().__init__(application_function=self.mutate_all, selection_function=selection_function)
+    def __init__(self, selection_function, gene_pool: GenePool, device: str = 'cpu',
+                 overpowered: bool = False, refit=True, insert_prob: float = 0.5):
+        super().__init__(application_function=self.mutate_all, selection_function=selection_function, refit=refit)
         self.device = device
         self.overpowered = overpowered
+        self.gene_pool = gene_pool
+        self.insert_prob = insert_prob
 
     def mutate_all(self, individuals: List[Individual]):
         for individual in individuals:
             self.mutate(individual)
 
     def mutate(self, individual: Individual) -> Individual:
-        # If there's only one gene, don't perform the mutation
-        if len(individual.item) <= 1:
-            return individual
-
         original_fitness = individual.fitness if self.overpowered else None
         original_item = individual.item.copy() if self.overpowered else None
 
-        if self.device == "cpu":
-            # Select a random gene to remove
-            remove_idx = np.random.randint(0, len(individual.item))
-            # Select a random position to insert (can be the same as remove_idx)
-            insert_idx = np.random.randint(0, len(individual.item))
-
-            # Remove the gene and insert it at the new position
-            gene = individual.item[remove_idx]
-            individual.item = np.delete(individual.item, remove_idx)
-            individual.item = np.insert(individual.item, insert_idx, gene)
-
-        elif self.device == "gpu":
-            # Select a random gene to remove
-            remove_idx = ARRAY_MANAGER.random.randint(0, len(individual.item))
-            # Select a random position to insert (can be the same as remove_idx)
-            insert_idx = ARRAY_MANAGER.random.randint(0, len(individual.item))
-
-            # Remove the gene and insert it at the new position
-            gene = individual.item[remove_idx].copy()
-            individual.item = ARRAY_MANAGER.delete(individual.item, remove_idx)
-            individual.item = ARRAY_MANAGER.insert(individual.item, insert_idx, gene)
+        if random.random() < self.insert_prob:
+            self.insert_item(individual)
+        else:
+            self.delete_item(individual)
 
         if self.overpowered:
             new_fitness = individual.fit()
@@ -285,3 +267,30 @@ class InsertionDeletionMutation(Layer):
                 individual.fitness = original_fitness
 
         return individual
+
+    def insert_item(self, individual: Individual):
+        new_gene = self.gene_pool.generator_function().item[0]  # Generate a single new gene
+        insert_idx = random.randint(0, len(individual.item))
+
+        if self.device == "cpu":
+            individual.item = ARRAY_MANAGER.insert(individual.item, insert_idx, new_gene)
+        elif self.device == "gpu":
+            individual.item = ARRAY_MANAGER.concatenate([
+                individual.item[:insert_idx],
+                ARRAY_MANAGER.array([new_gene]),
+                individual.item[insert_idx:]
+            ])
+
+    def delete_item(self, individual: Individual):
+        if len(individual.item) > 1:
+            remove_idx = random.randint(0, len(individual.item) - 1)
+            if self.device == "cpu":
+                individual.item = ARRAY_MANAGER.delete(individual.item, remove_idx)
+            elif self.device == "gpu":
+                individual.item = ARRAY_MANAGER.concatenate([
+                    individual.item[:remove_idx],
+                    individual.item[remove_idx + 1:]
+                ])
+        else:
+            # If there's only one item, insert instead of delete
+            self.insert_item(individual)
