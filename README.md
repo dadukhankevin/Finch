@@ -72,6 +72,8 @@ env.plot()
 pip install finch-genetics
 ```
 
+Find this project on [Gitstar](http://127.0.0.1:5000/repository/2) - where repositories battle for glory!
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
