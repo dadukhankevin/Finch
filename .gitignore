@@ -1,0 +1,8 @@
+__pycache__/
+*.egg-info/
+build/
+dist/
+benchmarks/agentic/runs/
+benchmarks/agentic/tasks/*/.gpu_lock
+*.svg
+.DS_Store

@@ -1,83 +1,133 @@
-# Finch: Evolutionary Algorithm Framework
+# Finch 4
 
-Finch is a Python framework for implementing evolutionary algorithms. It provides a modular approach to building and experimenting with various evolutionary computation techniques.
+*Evolution as composable layers — three engines, one dashboard, and AI
+agents as first-class participants.*
 
-## Key Features
+Finch 4 is a complete rewrite of [Finch](https://github.com/dadukhankevin/Finch/tree/finch-3),
+unified with the engines and evidence of a months-long research
+campaign ([latentspace](https://github.com/dadukhankevin/latentspace) —
+its `FINDINGS.md` is the full falsification-heavy record behind every
+default here). Finch supplies the grammar: an **Environment** is a
+stack of **Layers** over a population of typed individuals. The
+campaign supplies the vetted sentences: engines whose mechanisms were
+measured, ablated, and kept only when they survived.
 
-- Modular design with customizable components
-- Support for different types of genes (float arrays, strings, arrays)
-- Various selection, crossover, and mutation operators
-- GPU acceleration support using CuPy
-- Visualization tools for monitoring evolution progress
+```bash
+pip install -e .
+```
 
-## Main Components
+## Three engines, one surface
 
-1. **GenePool**: Generates initial populations
-   - FloatPool, StringPool, ArrayPool, ImagePool
-
-2. **Individual**: Represents a single solution in the population
-
-3. **Layer**: Defines genetic operators
-   - Selection layers
-   - Crossover layers (e.g., N-Point, Uniform)
-   - Mutation layers (e.g., Gaussian, Uniform, Polynomial, Swap, Inversion, Scramble)
-
-4. **Environment**: Manages the evolution process
-
-5. **Competition**: Allows comparing multiple evolutionary strategies
-
-## Usage
-
-1. Define your fitness function
-2. Create a GenePool
-3. Set up Layers for selection, crossover, and mutation
-4. Initialize an Environment with your layers and individuals
-5. Run the evolution process
-
-## Example
+**1. The neural-decoder GA** — a universal engine that never mutates a
+solution directly. Every individual is a set of **genes** (input to one
+shared decoder network) plus **latents** (a small vector bending that
+network for this individual alone); evolution operates only on those
+numbers, so the same operators work for any modality. Multiple fitness
+functions become species sharing one population and one decoder, with
+fitness organized as **shares** (each species permanently owns an equal
+slice of the fitness mass — no objective can be outcompeted out of
+existence). On multi-function runs the decoder periodically
+**distills**: gradient-trains its base to reproduce each species'
+best-ever discovery, then decays every individual bending — evolution
+vets, gradients consolidate (measured: 10/10 paired seeds, −30% error
+on eight co-resident problems).
 
 ```python
+import finch4
 
-import Finch.layers as layers
-from Finch.selectors import *
-from Finch.generic import *
+def fitness(phenotypes):   # batched: tensor in, one score per row
+    return -((phenotypes - target) ** 2).flatten(1).mean(dim=1)
 
-def fitness_function(individual):
-    return sum(individual.item)
-
-gene_pool = layers.float_arrays.FloatPool(ranges=[[-5, 5]] * 10, length=10, fitness_function=fitness_function)
-mutation_selection = RandomSelection(percent_to_select=.1)
-crossover_selection = RandomSelection(amount_to_select=2)
-
-# Set up layers
-layers = [
-    layers.universal_layers.Populate(population=500, gene_pool=gene_pool),
-    layers.array_layers.ParentNPoint(selection_function=crossover_selection.select, families=4, children=4),
-    layers.float_arrays.GaussianMutation(mutation_rate=0.1, sigma=0.5, selection_function=mutation_selection.select),
-    layers.universal_layers.SortByFitness(),
-    layers.universal_layers.CapPopulation(1000),
-]
-
-env = Environment(layers)
-env.compile()
-env.evolve(generations=1000)
-
-print(env.best_ever.item)
-env.plot()
+result = finch4.solve(fitness, output_shape=(32, 32, 3), epochs=1_500)
+result.best_phenotype
 ```
 
-## Installation
+**2. Classic layers** — the traditional GA as a stack, over plain
+genomes (lists, permutations, strings, objects):
 
+```python
+from finch4 import (Environment, Populate, Breed, Mutate, Evaluate,
+                    SortByFitness, CapPopulation, order_crossover,
+                    inversion)
+
+env = Environment([
+    Populate(random_tour, 120),
+    Breed(order_crossover, children=80),
+    Mutate(inversion, rate=0.6),
+    Evaluate(lambda tour: -tour_length(tour)),
+    SortByFitness(),
+    CapPopulation(120),
+], seed=0)
+env.evolve(generations=300)
+env.best_ever
 ```
-pip install finch-genetics
+
+(`benchmarks/finch_tsp_demo.py`: 60-city TSP, ~24k evaluations in 1.4s,
+beats nearest-neighbor construction by 12%.)
+
+**3. The agentic substrate** — the decoder is an **AI agent**.
+Individuals are text *methodologies* (one shared base playbook plus a
+per-individual variation clause); an agent follows base+variation to
+produce an artifact; a canonical scorer script — which agents run but
+never edit — is the only source of truth for fitness. A small HTTP
+server (`python3 -m finch4.serve`) holds the population laws (shares,
+selection, capping, best-ever archives, consolidation cadence) while
+agents report their own results the moment they finish. Consolidation
+is distillation translated to text: a consolidator agent edits the
+playbook so that an agent following it with an *empty* variation would
+reproduce the audited wins, and every survivor then deepens its
+variation or stands pat.
+
+Two skills make agents native (in `.claude/skills/`): **agentic-ga**
+(operate inside a run — decode, mutate, consolidate, audit) and
+**evolution-author** (set up entirely new evolutionary problems:
+representation choice, scorer constitution, launch, discipline). First
+measured result: on a lossless-compression task with matched budgets
+(31 agent jobs per side, same model), the population with its learned
+playbook beat autoresearch-style solo keep/revert iteration on both the
+practice and held-out slices.
+
+## One dashboard for every run
+
+```python
+finch4.solve(fitness, output_shape=(64, 64), epochs=10_000,
+             progress=finch4.live_progress())
 ```
 
-Find this project on [Gitstar](http://127.0.0.1:5000/repository/2) - where repositories battle for glory!
+```bash
+python3 -m finch4.hub        # http://127.0.0.1:8800
+```
 
-## Contributing
+Every run — any engine — reports to the same live page: fitness over
+time, population state, event stream. The hub shows every run this
+machine has served, live and finished, as one board. Warm paper theme;
+no external assets; stdlib HTTP only.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## The trust layer (why agentic scores can be believed)
 
-## License
+Agents self-report scores, so the substrate ships an immune system,
+each part paid for by a real incident: canonical scorers with
+**practice/surprise data splits**; scored bytes perturbed in memory so
+answer-key embedding cannot round-trip; **audit-on-influence** (any
+would-be parent or champion is re-scored by the orchestrator, exactly
+for deterministic tasks, within a scorer-declared tolerance otherwise);
+falsified best-evers are evictable; work logs are read against claims;
+and lineage exhaustion lets an honest agent declare a dead end and
+found fresh rather than grind out token variations.
 
-This project is licensed under the MIT License.
+## Where the evidence lives
+
+This repository ships the engines; the research trail that produced
+them — ~40 rounds of paired-seed ablations, the claims ledger, the
+failures — lives in the
+[latentspace repository](https://github.com/dadukhankevin/latentspace).
+`tests/test_finch.py` here holds the seeded bit-identity tests proving
+these engines reproduce the vetted originals exactly; that identity is
+what lets the evidence transfer. Recompositions beyond the shipped
+presets are new mechanisms — measure before trusting.
+
+Finch 3 remains available at the
+[`finch-3` tag](https://github.com/dadukhankevin/Finch/releases/tag/finch-3).
+
+*By Daniel Losey, with Claude (Anthropic) as research and engineering
+partner.*

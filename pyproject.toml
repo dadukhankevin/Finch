@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finch4"
+version = "4.0.0"
+description = "Finch 4: evolution as composable layers - a vetted neural-decoder GA, classic layer stacks, and an agentic substrate where AI agents evolve methodologies - with one live dashboard over every run."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+dependencies = ["numpy>=1.23", "torch>=2.0.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["finch4*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
