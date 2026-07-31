@@ -167,6 +167,28 @@ def test_hub_shows_every_registered_run(tmp_path, monkeypatch):
     assert "drawChart" in hub.hub_html()
 
 
+def test_hub_reads_pre_rename_registry_fallback(tmp_path, monkeypatch):
+    """Runs registered by the campaign's pre-rename tooling live in
+    ~/.latentspace/registry.jsonl; at the default registry location the
+    hub must keep showing them (the fallback the Finch 4 port dropped —
+    every other test sets FINCH4_REGISTRY, which is exactly why the drop
+    was invisible)."""
+    from finch4 import hub
+
+    monkeypatch.delenv("FINCH4_REGISTRY", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    new_run = tmp_path / "new_run"
+    old_run = tmp_path / "old_run"
+    for d, reg in ((new_run, ".finch4"), (old_run, ".latentspace")):
+        d.mkdir()
+        (tmp_path / reg).mkdir(exist_ok=True)
+        with open(tmp_path / reg / "registry.jsonl", "a") as f:
+            f.write(json.dumps({"run_dir": str(d), "port": 1,
+                                "started": 1.0}) + "\n")
+    names = {c["name"] for c in hub.hub_data()["cards"]}
+    assert names == {"new_run", "old_run"}
+
+
 def test_serve_registers_in_global_registry(tmp_path, monkeypatch):
     monkeypatch.setenv("FINCH4_REGISTRY",
                        str(tmp_path / "reg.jsonl"))

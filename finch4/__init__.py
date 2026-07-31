@@ -7,6 +7,10 @@ dashboard.
     result = finch4.solve(fitness_fn, output_shape=(32, 32, 3),
                           epochs=1_500)
     result.best_phenotype
+    # ...or the same engine stage by stage through layers (bit-identical;
+    # solve() is sugar over TensorGA.STAGES):
+    finch4.tensor_environment(fitness_fn, output_shape=(32, 32, 3),
+                              epochs=1_500).evolve()
 
     # 2. Classic layers over plain genomes (permutations, strings, ...)
     from finch4.classic import (Populate, Breed, Mutate, Evaluate,
@@ -33,25 +37,33 @@ from .architectures import build_mlp, register_architecture, resolve
 from .classic import (Breed, CapPopulation, Evaluate, Mutate, Populate,
                       SortByFitness, individual, inversion,
                       order_crossover, swap)
-from .ga import (Distillation, GAResult, ProblemResult,
+from .ga import (Distillation, GAResult, ProblemResult, TensorGA, Wave,
                  coin_flip_latent_inheritance, fitness_shares,
                  make_gaussian_mutation, make_random_speciation,
                  make_species_selection, one_point_gene_crossover,
                  register_substrate, share_selection, solve,
                  uniform_selection)
-from .layers import (AskRun, Audit, Consolidate, Environment, Layer,
-                     SolveWhole, agentic_environment, tensor_environment)
-from .serve import live_progress
+from .layers import (AskRun, Audit, BreedWave, Consolidate, CullByShares,
+                     Distill, Environment, EvolveDirections, Immigrate,
+                     Layer, MutateWave, RecordProgress, ScoreWave,
+                     Speciate, TensorStage, TuneDials,
+                     agentic_environment, tensor_environment, tensor_stack)
+from .serve import live_progress, media_client, png_data_uri
 
 __all__ = [
-    "solve", "GAResult", "ProblemResult", "AgenticGA", "Distillation",
+    "solve", "GAResult", "ProblemResult", "AgenticGA", "TensorGA", "Wave",
+    "Distillation",
     "register_architecture", "register_substrate", "resolve", "build_mlp",
     "fitness_shares", "make_species_selection", "share_selection",
     "uniform_selection", "one_point_gene_crossover",
     "coin_flip_latent_inheritance", "make_gaussian_mutation",
-    "make_random_speciation", "live_progress",
+    "make_random_speciation", "live_progress", "media_client",
+    "png_data_uri",
     "Environment", "Layer", "AskRun", "Audit", "Consolidate",
-    "SolveWhole", "agentic_environment", "tensor_environment",
+    "agentic_environment", "tensor_environment", "tensor_stack",
+    "TensorStage", "Immigrate", "BreedWave", "MutateWave", "ScoreWave",
+    "TuneDials", "CullByShares", "Speciate", "Distill",
+    "EvolveDirections", "RecordProgress",
     "Populate", "Breed", "Mutate", "Evaluate", "SortByFitness",
     "CapPopulation", "individual", "order_crossover", "inversion", "swap",
 ]

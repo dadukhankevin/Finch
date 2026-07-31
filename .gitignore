@@ -5,8 +5,15 @@ dist/
 benchmarks/agentic/runs/
 benchmarks/agentic/tasks/*/.gpu_lock
 *.svg
+!docs/images/*.svg
 .DS_Store
+
+# generated example outputs (canonical copies live in docs/images)
+examples/decoders/species_grid.png
 
 # local research record + personal notes
 research/
 CLAUDE.local.md
+
+# Glance memory
+.glance/

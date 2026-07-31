@@ -28,25 +28,125 @@ into the run directory so agents can discover it. JSON in, JSON out:
     POST /rewrite               {id, variation, contradicts_base?}
     POST /rescore               {id, score, artifact?}
     POST /audit                 {id, passed}
+    POST /media                 {name, kind: image|svg|text, data,
+                                 epoch?, evaluations?} — see below
 
 An agent reports its own result with one line:
 
     curl -s -X POST localhost:PORT/tell -d '{"job_id": "j0004", ...}'
+
+MEDIA is the dashboard's second channel: alongside the fitness curves, a
+run may post what it is evolving — latest-wins per name, images as PNG
+data URIs (png_data_uri encodes any numpy image array with stdlib only),
+SVG and text inline. The latest item per name is mirrored to
+run_dir/media/, so finished runs keep their media and the hub shows it
+on the run's card. Producers: live_progress(images="auto") posts each
+function's best-ever phenotype automatically when it is image-shaped;
+progress.report_media / media_client(run_dir) post anything else.
+Media is telemetry for the eyes, NEVER evidence: a picture is not a
+score, and the canonical scorer and the audit path remain the only
+sources of truth.
 """
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import os
+import re
+import struct
 import threading
 import time
+import zlib
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+import numpy as np
 
 from .agentic import AgenticGA
 
 PALETTE = ["#7ac", "#c96", "#9c7", "#b8a", "#8cc", "#ca8"]
+
+
+# ----------------------------------------------------------------- media
+#
+# The dashboard's second channel: what a run is evolving, not just how
+# well. Latest-wins per name, bounded, mirrored to run_dir/media/ so
+# finished runs keep it. Telemetry for the eyes, never evidence.
+
+MEDIA_EXT = {"image": ".png", "svg": ".svg", "text": ".txt"}
+MEDIA_MAX_BYTES = 256 * 1024      # per item, encoded
+MEDIA_MAX_NAMES = 16              # per run
+FILMSTRIP_FRAMES = 10             # in-memory trajectory, images only
+
+
+def _as_rgb8(array) -> np.ndarray:
+    """Any image-ish numpy array -> (H, W, C) uint8. Accepts grayscale
+    (H, W), channels-last (H, W, C<=4), channels-first (C<=4, H, W);
+    floats are read in [0, 1], uint8 passes through."""
+    a = np.asarray(array)
+    if a.ndim == 3 and a.shape[0] <= 4 and a.shape[-1] > 4:
+        a = np.transpose(a, (1, 2, 0))
+    if a.dtype != np.uint8:
+        a = np.rint(np.clip(a.astype(np.float64), 0.0, 1.0)
+                    * 255).astype(np.uint8)
+    if a.ndim == 2:
+        a = a[..., None]
+    if a.ndim != 3 or a.shape[-1] not in (1, 3, 4):
+        raise ValueError(f"cannot render shape {np.asarray(array).shape} "
+                         "as an image")
+    return np.ascontiguousarray(a)
+
+
+def _png_bytes(rgb8: np.ndarray) -> bytes:
+    """Minimal PNG encoder, stdlib only (zlib + struct): 8-bit
+    grayscale/RGB/RGBA, no filtering — keeps the no-dependency rule
+    (PIL never enters the library)."""
+    h, w, c = rgb8.shape
+    color_type = {1: 0, 3: 2, 4: 6}[c]
+
+    def chunk(tag, data):
+        return (struct.pack(">I", len(data)) + tag + data
+                + struct.pack(">I", zlib.crc32(tag + data)))
+
+    header = struct.pack(">IIBBBBB", w, h, 8, color_type, 0, 0, 0)
+    raw = b"".join(b"\x00" + rgb8[y].tobytes() for y in range(h))
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header)
+            + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
+
+
+def png_data_uri(array) -> str:
+    """Encode a numpy image array as a PNG data URI (the wire format of
+    media kind "image"). Layouts and value ranges as _as_rgb8."""
+    return ("data:image/png;base64,"
+            + base64.b64encode(_png_bytes(_as_rgb8(array))).decode())
+
+
+def looks_like_image(shape) -> bool:
+    """The images="auto" test: could a phenotype of this shape be
+    rendered? 2-D grids and 3-D arrays with a small channel dim."""
+    if len(shape) == 2:
+        return min(shape) >= 2
+    if len(shape) == 3:
+        return shape[0] <= 4 or shape[-1] <= 4
+    return False
+
+
+def _media_body(name, image=None, svg=None, text=None, epoch=None,
+                evaluations=None):
+    """One media item as a /media request body; exactly one of image=
+    (numpy array), svg= (inline markup) or text= must be given."""
+    if image is not None:
+        kind, data = "image", png_data_uri(image)
+    elif svg is not None:
+        kind, data = "svg", str(svg)
+    elif text is not None:
+        kind, data = "text", str(text)
+    else:
+        raise ValueError("pass image=, svg= or text=")
+    return {"name": str(name), "kind": kind, "data": data,
+            "epoch": epoch, "evaluations": evaluations}
 
 
 def registry_path():
@@ -54,7 +154,6 @@ def registry_path():
     line per server start. The hub (hub.py) reads it to show ALL
     evolution jobs, live and finished, on one page."""
     return (os.environ.get("FINCH4_REGISTRY")
-            or os.environ.get("FINCH4_REGISTRY")
             or os.path.expanduser("~/.finch4/registry.jsonl"))
 
 
@@ -170,6 +269,8 @@ class GAService:
         self.lock = threading.Lock()
         self.events = deque(maxlen=300)
         self.telemetry = []
+        self.media = {}          # name -> latest item (kind, data, epoch)
+        self.filmstrips = {}     # name -> deque of recent image frames
         self.started = time.time()
 
     def event(self, text):
@@ -188,6 +289,8 @@ class GAService:
                                            "telemetry.jsonl"), "a") as f:
                         f.write(json.dumps(point) + "\n")
                 return {"ok": True}, False
+            if name == "media":
+                return self._store_media(body), False
             if name == "page.json":
                 return self._page_data(), False
             if ga is None:
@@ -259,6 +362,47 @@ class GAService:
                 self.event(f"abandon {body['job_id']}")
         return result
 
+    def _store_media(self, body):
+        """Latest-wins media telemetry: display only, never evidence — a
+        picture is not a score. Bounded: MEDIA_MAX_NAMES names,
+        MEDIA_MAX_BYTES per item; images also feed a short in-memory
+        filmstrip (the trajectory), and the latest item per name is
+        mirrored to run_dir/media/ (what finished runs and the hub
+        read)."""
+        name = str(body.get("name") or "media")
+        kind = body.get("kind")
+        data = body.get("data")
+        if kind not in MEDIA_EXT:
+            raise ValueError(f"unknown media kind {kind!r}; "
+                             f"kinds: {sorted(MEDIA_EXT)}")
+        if not isinstance(data, str):
+            raise ValueError("media data must be a string (image: a PNG "
+                             "data URI — see png_data_uri; svg/text: the "
+                             "content itself)")
+        if len(data) > MEDIA_MAX_BYTES:
+            raise ValueError(f"media item {name!r} over "
+                             f"{MEDIA_MAX_BYTES} bytes")
+        if name not in self.media and len(self.media) >= MEDIA_MAX_NAMES:
+            raise ValueError(f"over {MEDIA_MAX_NAMES} media names; "
+                             "reuse a name (latest wins)")
+        self.media[name] = {"kind": kind, "data": data,
+                            "epoch": body.get("epoch"),
+                            "evaluations": body.get("evaluations")}
+        if kind == "image":
+            strip = self.filmstrips.setdefault(
+                name, deque(maxlen=FILMSTRIP_FRAMES))
+            strip.append(data)
+        if self.run_dir:
+            media_dir = os.path.join(self.run_dir, "media")
+            os.makedirs(media_dir, exist_ok=True)
+            safe = re.sub(r"[^A-Za-z0-9._-]", "_", name)
+            content = (base64.b64decode(data.split(",", 1)[1])
+                       if kind == "image" else data.encode())
+            with open(os.path.join(media_dir, safe + MEDIA_EXT[kind]),
+                      "wb") as f:
+                f.write(content)
+        return {"ok": True}
+
     # ------------------------------------------------------ progress page
 
     def curve_svg(self, series, points=None, xlabel="evaluations"):
@@ -277,7 +421,10 @@ class GAService:
         data = {"name": os.path.basename((self.run_dir or "run")
                                          .rstrip("/")),
                 "up_min": round((time.time() - self.started) / 60, 1),
-                "events": [list(e) for e in self.events][-120:]}
+                "events": [list(e) for e in self.events][-120:],
+                "media": {k: dict(v) for k, v in self.media.items()},
+                "filmstrips": {k: list(v)
+                               for k, v in self.filmstrips.items()}}
         if ga is None:
             last = self.telemetry[-1] if self.telemetry else {}
             if not data["events"]:
@@ -327,6 +474,8 @@ PROGRESS_BODY = """
 <div class="tiles" id="tiles"></div>
 <div class="panel"><h2>fitness over time</h2>
 <div class="chartwrap"><div id="chart"></div><div class="tip"></div></div></div>
+<div class="panel" id="mediapanel" style="display:none"><h2>evolved media</h2>
+<div class="mediagrid" id="media"></div></div>
 <div class="panel" id="poppanel" style="display:none"><h2>living population</h2>
 <div style="overflow-x:auto"><table><thead><tr><th>id</th><th>task</th>
 <th>score</th><th>origin</th><th>flags</th><th>variation</th></tr></thead>
@@ -359,6 +508,23 @@ async function tick(){
     '</div><div class="k">'+esc(t[2])+'</div></div>').join('');
   drawChart(document.getElementById('chart'), d.series||{}, d.points||[],
     {xlabel: d.mode==='agentic'?'evaluation order':'evaluations'});
+  const media=d.media||{}, strips=d.filmstrips||{},
+        mkeys=Object.keys(media).sort();
+  if(mkeys.length){
+    document.getElementById('mediapanel').style.display='';
+    document.getElementById('media').innerHTML=mkeys.map(k=>{
+      const m=media[k]; let body;
+      if(m.kind==='image') body='<img class="pix big" src="'+m.data+'">';
+      else if(m.kind==='svg') body='<div class="svgwrap">'+m.data+'</div>';
+      else body='<pre class="mediatext">'+esc(m.data.slice(0,2000))+'</pre>';
+      const strip=(strips[k]||[]).slice(0,-1).map(s=>
+        '<img class="pix" src="'+s+'">').join('');
+      return '<figure class="mediacard">'+body+
+        (strip?'<div class="filmstrip">'+strip+'</div>':'')+
+        '<figcaption>'+esc(k)+
+        (m.epoch!=null?' · epoch '+m.epoch:'')+'</figcaption></figure>';
+    }).join('');
+  }
   if(d.mode==='agentic'&&(d.living||[]).length){
     document.getElementById('poppanel').style.display='';
     const max=Math.max(...d.living.map(i=>i.score));
@@ -385,7 +551,7 @@ tick(); setInterval(tick, 2000);
 GETS = {"summary", "due", "batch", "stale", "contradictions",
         "page.json"}
 POSTS = {"ask", "tell", "abandon", "consolidated", "rewrite", "rescore",
-         "audit", "telemetry"}
+         "audit", "telemetry", "media"}
 
 
 def make_handler(service):
@@ -458,7 +624,7 @@ def serve(run_dir, port=0, tasks=None, telemetry_only=False, **ga_kwargs):
     return server
 
 
-def live_progress(run_dir=None, port=0, names=None):
+def live_progress(run_dir=None, port=0, names=None, images="auto"):
     """One dashboard for every run: pass the result as solve()'s
     progress= callback and open the printed URL.
 
@@ -469,9 +635,18 @@ def live_progress(run_dir=None, port=0, names=None):
     Starts a telemetry-only reporting server (same /progress page the
     agentic substrate uses) in a daemon thread and returns a callback
     with solve()'s progress signature. names labels the fitness
-    functions on the chart (default fn0, fn1, ...)."""
-    import tempfile
-    run_dir = run_dir or tempfile.mkdtemp(prefix="finch4-live-")
+    functions on the chart (default fn0, fn1, ...). The default run
+    directory lives under ~/.finch4/runs/ — deliberately persistent, so
+    the hub keeps showing the run after it finishes.
+
+    images="auto" additionally posts each function's best-ever phenotype
+    to the dashboard as a PNG whenever it is image-shaped ((H, W),
+    (H, W, C<=4) or (C<=4, H, W)); "off" disables. Anything else goes
+    through progress.report_media(name, image=|svg=|text=) — or, from a
+    separate process, media_client(run_dir). Media is telemetry for the
+    eyes, never evidence."""
+    run_dir = run_dir or os.path.expanduser(
+        f"~/.finch4/runs/live-{os.getpid()}-{int(time.time())}")
     server = serve(run_dir, port=port, telemetry_only=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{server.server_address[1]}/progress"
@@ -489,10 +664,49 @@ def live_progress(run_dir=None, port=0, names=None):
             "best": best})
         server.service.event(f"epoch {epoch}/{epochs} "
                              f"evals={evaluations} best={best}")
+        if images == "auto":
+            for i, pheno in enumerate(best_pheno):
+                if pheno is None or not looks_like_image(pheno.shape):
+                    continue
+                label = names[i] if names and i < len(names) else f"fn{i}"
+                server.service.handle("media", {
+                    "name": f"best {label}", "kind": "image",
+                    "data": png_data_uri(pheno),
+                    "epoch": int(epoch),
+                    "evaluations": int(evaluations)})
+
+    def report_media(name, image=None, svg=None, text=None, epoch=None,
+                     evaluations=None):
+        return server.service.handle("media", _media_body(
+            name, image=image, svg=svg, text=text, epoch=epoch,
+            evaluations=evaluations))
 
     progress.url = url
     progress.server = server
+    progress.run_dir = run_dir
+    progress.report_media = report_media
     return progress
+
+
+def media_client(run_dir):
+    """Media POSTer for a separate process (an agent, a wrapper around a
+    scorer) — discovers the run's live server via server.json, the same
+    discovery agents already use to report scores. Returns
+    send(name, image=|svg=|text=, epoch=None, evaluations=None)."""
+    import urllib.request
+    port = json.load(open(os.path.join(run_dir, "server.json")))["port"]
+
+    def send(name, image=None, svg=None, text=None, epoch=None,
+             evaluations=None):
+        body = json.dumps(_media_body(
+            name, image=image, svg=svg, text=text, epoch=epoch,
+            evaluations=evaluations)).encode()
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/media", data=body, method="POST")
+        with urllib.request.urlopen(req) as r:
+            return json.loads(r.read())
+
+    return send
 
 
 def main():

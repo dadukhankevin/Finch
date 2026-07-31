@@ -85,6 +85,21 @@ tr:hover td{background:rgba(182,92,56,.035)}
   box-shadow:var(--shadow)}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-thumb{background:#ddd4c2;border-radius:4px}
+.mediagrid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.mediacard{background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px;padding:10px;margin:0}
+.mediacard figcaption{font-size:11px;color:var(--ink2);margin-top:6px}
+img.pix{image-rendering:pixelated}
+.mediacard img.big{width:192px;height:auto;display:block;
+  border-radius:4px}
+.filmstrip{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.filmstrip img{width:34px;height:auto;opacity:.75;border-radius:2px}
+.mediatext{font-size:11px;max-width:420px;max-height:220px;
+  overflow:auto;white-space:pre-wrap}
+.svgwrap{max-width:420px;overflow:auto}
+.card .thumbrow{display:flex;gap:6px;margin:2px 0 8px;flex-wrap:wrap}
+.card .thumbrow img{width:56px;height:auto;border:1px solid var(--line);
+  border-radius:6px}
 """
 
 CHART_JS = """

@@ -59,11 +59,30 @@ lives on disk with the run; the engine tracks only its version number.
 from __future__ import annotations
 
 import json
+import os
 import random
 
 import numpy as np
 
 from .ga import fitness_shares
+
+
+def _jsonable(value):
+    """state.json must stay loadable forever, so non-JSON values are
+    converted explicitly and anything unexpected fails LOUDLY here (the
+    old default=str silently stringified it, corrupting the round-trip
+    instead of reporting the bug that put it in a record)."""
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        return float(value)
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, os.PathLike):
+        return os.fspath(value)
+    raise TypeError(f"AgenticGA.save: {type(value).__name__} is not "
+                    "JSON-serializable; convert it before it enters a "
+                    "record")
 
 
 class AgenticGA:
@@ -309,6 +328,20 @@ class AgenticGA:
             "open_jobs": len(self._open_jobs),
         }
 
+    # ----------------------------------------------------- engine protocol
+    # The duck-typed surface Environment reads from any engine (see
+    # finch4.layers): best scores by name, and the single best-ever record.
+
+    def best_summary(self) -> dict:
+        return {t: b["score"] for t, b in self.best.items()
+                if b is not None}
+
+    def best_record(self):
+        best = [b for b in self.best.values() if b is not None]
+        if not best:
+            return None
+        return max(best, key=lambda b: b["score"])
+
     # -------------------------------------------------------- persistence
 
     def save(self, path):
@@ -317,7 +350,7 @@ class AgenticGA:
         state["rng_state"] = self.rng.getstate()
         state["_open_jobs"] = self._open_jobs
         with open(path, "w") as f:
-            json.dump(state, f, indent=1, default=str)
+            json.dump(state, f, indent=1, default=_jsonable)
 
     @classmethod
     def load(cls, path):

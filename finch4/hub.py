@@ -19,6 +19,7 @@ evolving at once, this is the one page to watch.
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import os
@@ -31,8 +32,14 @@ from .serve import agentic_curves, curve_svg, registry_path, \
 
 
 def load_registry():
-    """Latest entry per run directory, newest first."""
+    """Latest entry per run directory, newest first. At the default
+    location the pre-rename registry (~/.latentspace/registry.jsonl) is
+    read too — the campaign's runs registered there, and the board keeps
+    showing them (this fallback existed in the latentspace hub and was
+    dropped in the Finch 4 port; restored 2026-07-31)."""
     paths = [registry_path()]
+    if not os.environ.get("FINCH4_REGISTRY"):
+        paths.append(os.path.expanduser("~/.latentspace/registry.jsonl"))
     latest = {}
     for path in dict.fromkeys(p for p in paths if os.path.exists(p)):
         with open(path) as f:
@@ -51,7 +58,24 @@ def run_status(entry):
     run_dir = entry["run_dir"]
     info = {"run_dir": run_dir, "name": os.path.basename(run_dir.rstrip("/")),
             "port": entry.get("port"), "live": False, "kind": "solver",
-            "best": {}, "evaluations": 0, "series": {}, "points": []}
+            "best": {}, "evaluations": 0, "series": {}, "points": [],
+            "media": []}
+    media_dir = os.path.join(run_dir, "media")
+    if os.path.isdir(media_dir):
+        # card thumbnails: the run's evolved images, latest per name,
+        # straight from the persisted media mirror (works for live and
+        # finished runs alike)
+        for fname in sorted(os.listdir(media_dir))[:4]:
+            if not fname.endswith(".png"):
+                continue
+            try:
+                with open(os.path.join(media_dir, fname), "rb") as f:
+                    info["media"].append({
+                        "name": fname[:-4],
+                        "src": ("data:image/png;base64,"
+                                + base64.b64encode(f.read()).decode())})
+            except OSError:
+                continue
     try:
         with urllib.request.urlopen(
                 f"http://127.0.0.1:{entry['port']}/summary",
@@ -105,7 +129,7 @@ def hub_data():
             "name": info["name"], "live": info["live"],
             "port": info["port"], "kind": info["kind"],
             "evaluations": info["evaluations"],
-            "best": info["best"],
+            "best": info["best"], "media": info["media"],
             "series": {k: _downsample(v)
                        for k, v in info["series"].items()}})
     cards.sort(key=lambda c: (not c["live"]))
@@ -135,11 +159,14 @@ async function tick(){
     const best=Object.entries(c.best||{}).slice(0,3).map(([k,v])=>
       esc(k)+' <b style="color:var(--ink)">'+fmt(typeof v==='object'?v.score:v)+
       '</b>').join(' · ')||'—';
+    const thumbs=(c.media||[]).map(m=>
+      '<img class="pix" src="'+m.src+'" title="'+esc(m.name)+'">').join('');
     return '<div class="card">'+
       '<div style="display:flex;justify-content:space-between;'+
       'align-items:center"><span class="name">'+name+'</span>'+pill+'</div>'+
       '<div class="meta">'+esc(c.kind)+' · '+c.evaluations+' evaluations · '+
-      best+'</div><div id="mc'+idx+'"></div></div>';
+      best+'</div>'+(thumbs?'<div class="thumbrow">'+thumbs+'</div>':'')+
+      '<div id="mc'+idx+'"></div></div>';
   }).join('')||'<p class="dim">no runs registered yet</p>';
   d.cards.forEach((c,idx)=>{
     const el=document.getElementById('mc'+idx);
