@@ -6,3 +6,7 @@ benchmarks/agentic/runs/
 benchmarks/agentic/tasks/*/.gpu_lock
 *.svg
 .DS_Store
+
+# local research record + personal notes
+research/
+CLAUDE.local.md
