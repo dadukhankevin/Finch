@@ -13,11 +13,12 @@ Three decisions, in order.
 - **Tensor phenotype** (image, curve, vector, weights): use `solve()`.
   One call, cheap evaluations, proven defaults (FINDINGS ledger).
 - **Text/code/methodology** (heuristics, scripts, prompts, specs): use
-  the agentic substrate — individuals are methodology variations, an
-  agent is the decoder. Follow the `agentic-ga` skill to run it.
+  agent-mediated GAR — autonomous evolvers advance persistent lineages,
+  pairwise judge agents drive Elo selection, and `Decoder.md` carries cited
+  shared research. Follow the `agentic-ga` skill to run it.
 - **Anything else / custom composition**: `finch4.layers` —
   `Environment([...layers...])`, engine-backed presets
-  (`tensor_environment`, `agentic_environment`). New compositions are
+  (`tensor_environment`). New compositions are
   NEW mechanisms: they get a FINDINGS ledger row and earn defaults by
   measurement; the presets already have theirs.
 
@@ -44,9 +45,14 @@ Hard-won rules (each one paid for — see FINDINGS rounds 38-39):
 ## 3. Launch and watch
 
 - Tensor: `solve(fns, shape, epochs=..., progress=live_progress())`.
-- Agentic: start `python3 -m finch4.serve --run <dir>
-  --tasks ...`, then orchestrate per the `agentic-ga` skill (or
-  `python3 -m finch4.drive ...` unattended).
+- GAR: start `python3 -m finch4.serve --run <dir>
+  --tasks ...`, then start the population with `python3 -m finch4.evolver`
+  per the `agentic-ga` skill. Keep one Decoder.md. Do not write per-worker
+  denylist prompts; Finch injects fitness and shared research. Experiment
+  reports and distilled claims cite material source checkpoints inline as
+  `[L0003#2@8ddf8b41]`; Finch parses those Markdown files into the
+  dashboard's Tree of Life, so a task harness should not invent a second
+  influence schema.
 - Finch: `Environment(..., live=True).evolve(generations=N)`.
 
 Every server registers itself; `python3 -m finch4.hub`

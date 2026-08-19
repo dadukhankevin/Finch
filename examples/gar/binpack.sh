@@ -1,15 +1,13 @@
 #!/bin/sh
-# Genetic auto-research (GAR) on the binpack task, unattended: one
-# command renders prompts, spawns one agent per job, audits
-# mechanically, and pauses for consolidation review (add
-# --auto-consolidate to run overnight). Watch it live on the dashboard:
+# Genetic auto-research (GAR) on binpack: an allocator starts Finch and
+# parallel evolvers; separate judge agents compare exact pairs and drive Elo.
+# Evolvers read/report through Finch and exchange cited findings in Decoder.md.
+# Watch it live:
 #
 #     python3 -m finch4.hub        # http://127.0.0.1:8800
-#
-# An orchestrating agent session can run the same loop natively instead
-# (its own subagents as workers, the server API as the only contract):
-# see .claude/skills/agentic-ga.
-python3 -m finch4.drive --run benchmarks/agentic/runs/gar-binpack \
-    --tasks binpack --tasks-dir benchmarks/agentic/tasks \
-    --agent-cmd 'claude -p "$(cat {promptfile})"' \
-    --rounds 6 --founders 2 --children 4
+claude -p 'Use the agentic-ga skill: run an agent-mediated GAR campaign on
+the binpack task (tasks dir benchmarks/agentic/tasks) in
+benchmarks/agentic/runs/gar-binpack. Found 3 lineages with distinct
+angles, run their evolvers for 6 experiments each, freeze judge criteria,
+have separate judge agents compare exact checkpoints, use Elo for selection,
+and incorporate any verified finding into Decoder.md.'

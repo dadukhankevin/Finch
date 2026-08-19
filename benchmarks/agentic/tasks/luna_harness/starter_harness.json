@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "pre-gar-staged-corpus-research-baseline",
+  "hypothesis": "Separating corpus research from final generation helps Luna preserve evidence while avoiding premature translation.",
+  "activation_condition": "Use the research phase for every assigned language before producing any translation.",
+  "fallback": "When additional corpus evidence is inconclusive, retain the strongest attested wording from the supplied exact top-ten examples.",
+  "falsifier": "The staged workflow fails if it does not beat or reliably match the frozen exact-example harness on protected chrF++.",
+  "agent_instructions": "During research, build a concise evidence record for each verse. Separate directly attested target wording from inference, note conflicting evidence, and preserve every source proposition and semantic role. Do not draft final translations in the research turn.",
+  "research_prompt": "Use the supplied exact examples and masked corpus to research all three verses. Inspect immediate passage context, semantically related source verses, and target-side concordances. Write the required evidence file, identify uncertain choices, and end the turn without translating.",
+  "translation_prompt": "Use the completed evidence record to translate all three verses. Prefer attested target-language constructions, resolve conflicts explicitly in your reasoning, check semantic coverage, then return only the required structured JSON.",
+  "tools": {}
+}

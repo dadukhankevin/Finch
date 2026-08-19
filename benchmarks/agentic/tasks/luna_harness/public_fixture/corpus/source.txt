@@ -1,0 +1,4 @@
+The teacher entered the village.
+The teacher spoke to the people.
+The people left the village.
+The teacher did not leave the village.

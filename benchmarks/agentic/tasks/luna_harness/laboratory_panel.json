@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "visible-autoresearch-laboratory-v1",
+  "purpose": "Research-visible sentence-level feedback; never Finch fitness or confirmation evidence.",
+  "selection_seed": 20260803,
+  "target_indices": [24394, 24954, 28703],
+  "line_numbers": [24395, 24955, 28704],
+  "verse_references": ["MRK 4:3", "MRK 16:13", "1CO 12:2"],
+  "verse_length_bands": ["8-13 English tokens", "14-20 English tokens", "21-32 English tokens"],
+  "languages": ["aii", "gaq", "mpj", "tzo"],
+  "selection_rule": "Using Python random.Random(20260803), choose one previously unevaluated New Testament row in each length band from rows with nonempty source and target text in all four laboratory languages. Exclude every protected task index and every recorded historical benchmark index.",
+  "visibility": "The source, candidate prediction, frozen laboratory-baseline prediction, reference, per-example metrics, commands, and .runner outputs become visible to every research lineage after the attempt completes.",
+  "boundary": "Laboratory results are diagnostic training data. Development-1, development-2, and confirmation references remain sealed and are the only panels used for selection, audit, and final claims."
+}

@@ -21,35 +21,36 @@ engine's records. Recompositions beyond the presets are NEW mechanisms
 and get new ledger rows; the presets are the defaults that earned
 theirs.
 
-Finch 3 -> Finch 4 correspondence:
+Finch 3 -> Finch 4 correspondence (tensor wing):
 
-    Populate            founding (founders per task; assigned angles
-                        in agent-space) — engine-owned
+    Populate            founding (founders per function) — engine-owned
     ParentNPoint        the gene_crossover slot (one_point_gene_
-                        crossover default) / smart crossover (agentic)
-    GaussianMutation    make_gaussian_mutation + win-rate dials /
-                        one-change, telephone, masked (agentic)
-    SortByFitness       fitness_shares (rank within task, equal slice
-                        per task) — engine-owned law
+                        crossover default)
+    GaussianMutation    make_gaussian_mutation + win-rate dials
+    SortByFitness       fitness_shares (rank within function, equal
+                        slice per function) — engine-owned law
     CapPopulation       population_cap culling, extinction allowed —
                         engine-owned law
-    (new in 4)          Consolidate: distillation (tensor) / playbook
-                        absorption + rewrite (agentic)
-    (new in 4)          the reporting server, the hub, audits, and the
-                        two skill tiers (agents inside the loop;
-                        agents authoring whole problems)
+    (new in 4)          Distill: decoder absorption on the
+                        consolidation cadence
+    (new in 4)          the reporting server, the hub, and media
 
-BOTH engines now have the same shape: an engine object owns the state
-and the laws (selection, fitness shares, capping, archives — this
-campaign's history says invariants drift when they leave enforced code;
-the one-decoder rule drifted repeatedly even inside code), and layers
-drive the engine one stage at a time. The tensor epoch's stages are the
-engine methods in TensorGA.STAGES; each TensorStage layer runs one of
-them, and the default stack (tensor_stack) runs them in the canonical
-order — the same order solve() runs directly, one source of truth, so
-the two paths are bit-identical by construction. Reordering, omitting,
-or interleaving stages is expressible and runs fine; per the ledger
-rule it is a NEW mechanism and inherits no evidence.
+The TENSOR engine owns its laws (selection, fitness shares, capping,
+archives — this campaign's history says invariants drift when they
+leave enforced code; the one-decoder rule drifted repeatedly even
+inside code), and layers drive the engine one stage at a time. The
+epoch's stages are the engine methods in TensorGA.STAGES; each
+TensorStage layer runs one of them, and the default stack
+(tensor_stack) runs them in the canonical order — the same order
+solve() runs directly, one source of truth, so the two paths are
+bit-identical by construction. Reordering, omitting, or interleaving
+stages is expressible and runs fine; per the ledger rule it is a NEW
+mechanism and inherits no evidence.
+
+The AGENTIC wing has no layer adapter. Autonomous evolvers communicate through
+finch4.agentic.Campaign, and named judge agents decide exact pairwise matches;
+Finch records their verdicts and updates Elo mechanically. It is driven over
+HTTP (finch4.serve), not by layers.
 
 Engines plug into Environment through a small duck-typed protocol —
 any object in state["engine"] may provide:
@@ -65,7 +66,6 @@ from __future__ import annotations
 import os
 import time
 
-from .agentic import AgenticGA
 from .ga import TensorGA
 
 
@@ -191,94 +191,6 @@ class Environment:
         return path
 
 
-# ------------------------------------------------------- agentic layers
-
-
-class AskRun(Layer):
-    """One breeding wave: ask the engine for jobs and run each through
-    the provided runner — any callable(job) -> {variation, score,
-    artifact?, contradicts_base?, log?} or None to abandon. The runner
-    is where agents live (spawn a CLI, call the Agent tool, or a
-    scripted fake in tests); the engine stays the law."""
-
-    def __init__(self, runner):
-        self.runner = runner
-
-    def __call__(self, env):
-        engine = env.state["engine"]
-        for job in engine.ask():
-            result = self.runner(job)
-            if result is None:
-                engine.abandon(job["job_id"])
-                continue
-            engine.tell(job["job_id"], result["variation"],
-                        result["score"],
-                        artifact=result.get("artifact"),
-                        contradicts_base=result.get(
-                            "contradicts_base", False),
-                        log=result.get("log"))
-            env.state["evaluations"] += 1
-
-
-class Audit(Layer):
-    """Audit-on-influence: run the auditor over each task's unaudited
-    best-ever. auditor(record) -> bool (passed)."""
-
-    def __init__(self, auditor=None):
-        self.auditor = auditor
-
-    def __call__(self, env):
-        if self.auditor is None:
-            return
-        engine = env.state["engine"]
-        for record in engine.consolidation_batch().values():
-            full = engine.individuals[record["id"]]
-            if not full["audited"]:
-                engine.mark_audited(record["id"],
-                                    bool(self.auditor(record)))
-
-
-class Consolidate(Layer):
-    """The consolidation event on the engine's cadence: consolidator
-    (batch, env) edits the base playbook and returns True to proceed;
-    rewriter(survivor, env) -> new variation text or None to stand
-    pat."""
-
-    def __init__(self, consolidator, rewriter=None):
-        self.consolidator = consolidator
-        self.rewriter = rewriter
-
-    def __call__(self, env):
-        engine = env.state["engine"]
-        if not engine.consolidation_due():
-            return
-        batch = engine.consolidation_batch()
-        if not self.consolidator(batch, env):
-            return
-        for survivor in engine.record_consolidation():
-            if self.rewriter is None:
-                continue
-            new = self.rewriter(survivor, env)
-            if new:
-                engine.tell_rewrite(survivor["id"], new)
-
-
-def agentic_environment(tasks, runner, consolidator=None, rewriter=None,
-                        auditor=None, name="agentic", live=False,
-                        **engine_kwargs):
-    """The agentic substrate as a Finch environment — the exact
-    AgenticGA engine driven by layers instead of a bespoke loop
-    (bit-identity with the direct drive is tested)."""
-    layers = [AskRun(runner)]
-    if auditor is not None:
-        layers.append(Audit(auditor))
-    if consolidator is not None:
-        layers.append(Consolidate(consolidator, rewriter))
-    env = Environment(layers, name=name, live=live)
-    env.state["engine"] = AgenticGA(tasks=tasks, **engine_kwargs)
-    return env
-
-
 # -------------------------------------------------------- tensor layers
 
 
@@ -397,8 +309,7 @@ def tensor_environment(fitness_fns, output_shape, name="tensor",
     return env
 
 
-__all__ = ["Layer", "Environment", "AskRun", "Audit", "Consolidate",
-           "agentic_environment", "tensor_environment", "TensorStage",
+__all__ = ["Layer", "Environment", "tensor_environment", "TensorStage",
            "tensor_stack", "Immigrate", "BreedWave", "MutateWave",
            "ScoreWave", "TuneDials", "CullByShares", "Speciate",
            "Distill", "EvolveDirections", "RecordProgress"]

@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "proposal": "luna-harness-founders-v2",
+  "population_size": 12,
+  "shared_constraints": [
+    "same supplied masked corpus, tasks, and ordered top-ten examples",
+    "no pretrained models, dictionaries, tokenizers, embeddings, or language resources",
+    "no network, external files, plugins, or cross-episode memory",
+    "deterministic Python standard-library tools only",
+    "all generated state under .runner/",
+    "protected evaluator is the only fitness source"
+  ],
+  "founders": [
+    {
+      "id": "SA1",
+      "family": "speech_act",
+      "name": "force-first clause planner",
+      "hypothesis": "Choosing clause force before wording prevents lexical retrieval from flattening commands, questions, assertions, wishes, and commitments into the same target pattern.",
+      "decision_changed": "Select a target clause-frame candidate using induced force, polarity, modality, speaker, addressee, and proposition slots before lexical filling.",
+      "activation": "At least two supplied rows support distinct target frames for English clauses with the same induced force signature and the query has a non-assertive or marked-polarity signature.",
+      "fallback": "Exact pre-GAR staged-harness candidate when force evidence is ambiguous or has fewer than two independent origins.",
+      "falsifier": "No clause-frame choice differs from disabled mode, semantic-role coverage worsens, or protected fitness loses.",
+      "genome": {
+        "prompt": "Research turn induces a small payload-local force inventory; translation turn realizes the chosen force plan then fills supported wording.",
+        "skill_md": "A six-step clause segmentation, force induction, alternative construction, realization, coverage audit, and fallback workflow.",
+        "tools": ["induce_force_frames.py", "trace_force_choice.py"],
+        "evidence": "force_plan.json with clause spans, participants, polarity, modality, alternatives, and support rows",
+        "phase_policy": "plan -> realize -> coverage check",
+        "fallback_policy": "per-clause fallback, then whole-verse pre-GAR fallback"
+      }
+    },
+    {
+      "id": "SA2",
+      "family": "speech_act",
+      "name": "illocutionary minimal-pair critic",
+      "hypothesis": "Payload-local minimal pairs can detect when a draft preserves proposition words but realizes the wrong interpersonal force.",
+      "decision_changed": "Accept, repair, or reject a complete draft based on force-feature contrasts with matched corpus pairs.",
+      "activation": "Draft and source disagree on at least one force feature and an independently supported repair changes only its realization span.",
+      "fallback": "Unchanged first draft; never rewrite content spans without a supported force repair.",
+      "falsifier": "Critic only produces commentary, repairs are not span-local, or disabled and enabled outputs are identical across all activations.",
+      "genome": {
+        "prompt": "Generate once, run a force audit, permit one localized repair pass.",
+        "skill_md": "Minimal-pair search and force-only repair rules.",
+        "tools": ["find_force_minimal_pairs.py", "diff_draft_force.py"],
+        "evidence": "before/after force vector plus exact changed target span",
+        "phase_policy": "draft -> critic -> at most one repair",
+        "fallback_policy": "freeze draft if no two-origin repair"
+      }
+    },
+    {
+      "id": "RG1",
+      "family": "sfl_register",
+      "name": "field-tenor-mode candidate router",
+      "hypothesis": "A payload-induced register signature selects better attested realizations than semantic similarity alone.",
+      "decision_changed": "Rerank already-supported target bundles by field activity, tenor relation, and mode channel similarity.",
+      "activation": "Two or more eligible bundles tie on bilingual support but differ in register-neighborhood support.",
+      "fallback": "Original bilingual/retrieval ranking on ties, weak clusters, or missing dimensions.",
+      "falsifier": "Register labels do not break a real candidate tie or act as an unrestricted target language model.",
+      "genome": {
+        "prompt": "Infer three compact feature partitions from recurrent source contrasts, then use them only for eligible-candidate routing.",
+        "skill_md": "Operational field/tenor/mode induction with neutral cluster IDs and no imported language rules.",
+        "tools": ["induce_register_signatures.py", "rank_register_candidates.py"],
+        "evidence": "register_signature.json and candidate-by-dimension support table",
+        "phase_policy": "eligibility first, register tie-break second",
+        "fallback_policy": "byte-identical pre-register winner"
+      }
+    },
+    {
+      "id": "RG2",
+      "family": "sfl_register",
+      "name": "register-conditioned evidence neighborhoods",
+      "hypothesis": "Conditioning corpus research neighborhoods on register reduces misleading lexical neighbors without allowing register to emit text.",
+      "decision_changed": "Choose which supplied rows contribute target concordance and construction counts.",
+      "activation": "Global retrieval mixes at least two stable register clusters and the query has a confident cluster assignment.",
+      "fallback": "Global exact-example plus corpus neighborhood.",
+      "falsifier": "Neighborhood changes no downstream candidate, removes all useful evidence, or direct register gating repeats the harmful broad-authority pattern contrasted in [L0034#0@464849d2].",
+      "genome": {
+        "prompt": "Research both global and register-conditioned neighborhoods; translate only if their evidence leads to different supported choices.",
+        "skill_md": "Neighborhood construction and uncertainty rules.",
+        "tools": ["build_register_neighborhoods.py"],
+        "evidence": "paired global/conditioned row lists and affected candidate counts",
+        "phase_policy": "cheap global scan -> gated conditioned scan",
+        "fallback_policy": "global neighborhood"
+      }
+    },
+    {
+      "id": "GN1",
+      "family": "sfl_genre",
+      "name": "recurrent-stage sequence inducer",
+      "hypothesis": "Local passage order reveals recurrent stages such as orientation, demand, reason, response, and closure that constrain a verse's realization.",
+      "decision_changed": "Choose among supported clause constructions using the induced previous/current/next stage triple.",
+      "activation": "A stage pattern recurs in at least two disjoint passages and stage conditioning changes a candidate ranking.",
+      "fallback": "Stage-agnostic winner when recurrence, boundary, or candidate difference is absent.",
+      "falsifier": "Stages are one-off labels, do not alter a choice, or rely on external genre knowledge.",
+      "genome": {
+        "prompt": "Induce recurrent passage stages from ordered vref/source/target evidence before translating assigned verses.",
+        "skill_md": "Stage segmentation, recurrence test, and stage-conditioned selection workflow.",
+        "tools": ["induce_stage_sequences.py", "score_stage_transition.py"],
+        "evidence": "stage_graph.json with passage origins, boundaries, transitions, and candidate effects",
+        "phase_policy": "stage induction -> candidate generation -> transition-aware choice",
+        "fallback_policy": "stage-agnostic exact candidate"
+      }
+    },
+    {
+      "id": "GN2",
+      "family": "sfl_genre",
+      "name": "boundary-surprise discourse checker",
+      "hypothesis": "A draft that introduces an unattested stage transition is riskier than one matching payload-local transition patterns even when both cover the same propositions.",
+      "decision_changed": "Reject or locally revise a draft whose discourse connective or clause ordering creates high transition surprise.",
+      "activation": "Two complete supported drafts differ in stage transition and one transition has repeated payload support.",
+      "fallback": "Coverage-best draft; never invent a connective solely to satisfy a stage label.",
+      "falsifier": "Checker cannot point to the exact ordering/connective decision or merely adds discourse commentary.",
+      "genome": {
+        "prompt": "Construct two candidates only at a detected boundary, then compare transition support.",
+        "skill_md": "Boundary detection and conservative discourse revision.",
+        "tools": ["trace_boundary_surprise.py"],
+        "evidence": "candidate transition paths and supporting passage origins",
+        "phase_policy": "boundary opportunity gate -> two-candidate check",
+        "fallback_policy": "coverage-best unchanged"
+      }
+    },
+    {
+      "id": "CS1",
+      "family": "constraint_solver",
+      "name": "provenance-weighted factor graph",
+      "hypothesis": "Explicit global constraints can prevent locally attractive bundles from duplicating roles, dropping negation, or producing inconsistent morphology.",
+      "decision_changed": "Select a globally consistent set of attested bundles under coverage, non-overlap, polarity, participant, and ordering constraints.",
+      "activation": "At least two locally eligible bundle sets differ in a hard constraint or independently supported soft constraint.",
+      "fallback": "Deterministic greedy supported-bundle selection, then pre-GAR harness if infeasible.",
+      "falsifier": "Solver returns the same set in all conflicts, uses opaque weights selected from fitness, or emits unsupported material.",
+      "genome": {
+        "prompt": "Luna supplies variables and support; deterministic tool enumerates bounded solutions and returns violations.",
+        "skill_md": "Constraint declaration and no-solution handling.",
+        "tools": ["solve_bundle_constraints.py"],
+        "evidence": "variables, constraints, provenance, top solutions, and violation deltas",
+        "phase_policy": "candidate enumeration -> bounded exact solve -> verbal realization",
+        "fallback_policy": "greedy then pre-GAR baseline"
+      }
+    },
+    {
+      "id": "MD1",
+      "family": "program_induction",
+      "name": "held-origin rewrite grammar",
+      "hypothesis": "Small source-to-target rewrite programs selected by held-origin description length can capture recurring reorderings without a pretrained grammar.",
+      "decision_changed": "Apply an induced slot permutation and affix/bundle rewrite instead of monotone assembly.",
+      "activation": "The same rewrite compresses at least two independent origins, survives held-origin MDL, and covers every query slot with supported material.",
+      "fallback": "Monotone supported assembly.",
+      "falsifier": "Programs memorize rows, lack held-origin compression, or exact skeleton matching makes them unreachable.",
+      "genome": {
+        "prompt": "Induce tiny rewrite programs, prove support, then apply only complete matches.",
+        "skill_md": "Program language, MDL accounting, and provenance rules.",
+        "tools": ["induce_rewrite_programs.py", "apply_rewrite_program.py"],
+        "evidence": "program text, code lengths, origins, slot coverage, and output diff",
+        "phase_policy": "cheap pattern opportunity -> held-origin induction -> apply",
+        "fallback_policy": "monotone assembly"
+      }
+    },
+    {
+      "id": "CT1",
+      "family": "contrastive_testing",
+      "name": "counterexample-driven choice eliminator",
+      "hypothesis": "Actively searching the supplied corpus for a near-matched contradiction can eliminate seductive but unsupported lexical or structural choices.",
+      "decision_changed": "Remove a candidate only when a minimal contrast predicts its failure while preserving a supported alternative.",
+      "activation": "Two candidates remain and a corpus row matches their shared context while contrasting the disputed feature.",
+      "fallback": "Keep original ranking if no minimal counterexample exists.",
+      "falsifier": "Uses majority consensus rather than a feature-specific contrast, echoing the regressed broad consensus gene [L0014#1@5a0254f5], or changes no choice.",
+      "genome": {
+        "prompt": "For each high-impact uncertainty, state what row would falsify each candidate and search for it.",
+        "skill_md": "Minimal-contrast protocol and elimination standard.",
+        "tools": ["find_minimal_contrasts.py"],
+        "evidence": "candidate, disputed feature, counterexample row, elimination decision",
+        "phase_policy": "only top uncertainty receives contrast search",
+        "fallback_policy": "original ranking"
+      }
+    },
+    {
+      "id": "ED1",
+      "family": "edit_script",
+      "name": "retrieval donor with typed source edits",
+      "hypothesis": "Typing source changes as insert, delete, replace, reorder, polarity, or participant edits enables safer target-side donor surgery than undifferentiated similarity.",
+      "decision_changed": "Choose a donor and apply only target operations independently licensed for each typed source edit.",
+      "activation": "A close donor exists, changed source spans have independent target support, and at least one sparse edit changes the donor target.",
+      "fallback": "Unedited donor or pre-GAR result when any edit lacks independent support.",
+      "falsifier": "Requires exact cover, rewrites untouched context, or cannot reproduce donor when disabled.",
+      "lineage_basis": "Extends sparse provenance-gated surgery [L0018#0@b63b70c1] and retains its lesson that exact-cover activation was unreachable.",
+      "genome": {
+        "prompt": "Research typed diffs and independent licenses before drafting; translation executes the minimal supported script.",
+        "skill_md": "Typed-edit authority table and unchanged-context invariant.",
+        "tools": ["align_and_type_edits.py", "validate_edit_script.py"],
+        "evidence": "donor, source edit ops, target ownership, licenses, final diff",
+        "phase_policy": "donor -> typed diff -> license -> execute",
+        "fallback_policy": "unedited donor then pre-GAR baseline"
+      }
+    },
+    {
+      "id": "LT1",
+      "family": "construction_lattice",
+      "name": "source-coverage construction lattice",
+      "hypothesis": "A compact lattice of attested target bundles exposes ordering and boundary alternatives that a single early draft hides.",
+      "decision_changed": "Select a complete path jointly over source coverage, target boundaries, order, and provenance breadth.",
+      "activation": "There are at least two complete paths with different bundle boundaries or order and no repeated source coverage.",
+      "fallback": "Frozen structural winner; residual repair can run only after path selection.",
+      "falsifier": "Lattice is only a list of drafts, permits overlap, or character repair replaces a covered winner span.",
+      "lineage_basis": "Extends structural-first conditional repair [L0024#0@4d5a4e2d] by making the structural alternatives explicit before any repair.",
+      "genome": {
+        "prompt": "Research builds lattice nodes and edges; translation chooses one path then optionally repairs uncovered positions.",
+        "skill_md": "Coverage lattice construction and path audit.",
+        "tools": ["build_construction_lattice.py", "select_lattice_path.py"],
+        "evidence": "nodes, edges, source masks, path scores, selected path, disabled winner",
+        "phase_policy": "lattice -> path -> residual-only repair",
+        "fallback_policy": "frozen structural winner"
+      }
+    },
+    {
+      "id": "OR1",
+      "family": "orchestration",
+      "name": "sequential uncertainty budgeter",
+      "hypothesis": "Allocating expensive research only to uncertainties that can still change a translation yields better decisions within the fixed two-turn budget.",
+      "decision_changed": "Choose the next research operation, stop research, or route to fallback using pre-compute opportunity and expected decision impact.",
+      "activation": "A cheap ledger reports at least two viable candidates and names a missing evidence item capable of flipping the choice.",
+      "fallback": "Stop and use the strongest currently supported candidate when no decision-changing query remains.",
+      "falsifier": "Runs every tool eagerly, spends effort on evidence with no candidate consequence, or timeouts rise.",
+      "lineage_basis": "Generalizes the successful pre-compute opportunity gate [L0048#1@e644f21b], contrasts the eager timeout [L0048#0@e9dda937], and treats causal inertness [L0049#0@e63fdac5] as a stop signal.",
+      "genome": {
+        "prompt": "Maintain candidate entropy, unresolved high-impact features, and a queue of evidence actions with explicit flip conditions.",
+        "skill_md": "Sequential research policy with hard phase exits.",
+        "tools": ["prioritize_evidence_actions.py", "audit_phase_budget.py"],
+        "evidence": "action queue, opportunity signals, expected decision, elapsed budget, exit reason",
+        "phase_policy": "cheap ledger -> gated action loop -> hard stop -> translate",
+        "fallback_policy": "best supported current candidate"
+      }
+    }
+  ]
+}

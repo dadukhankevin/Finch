@@ -18,10 +18,13 @@ dashboard.
     env = finch4.Environment([...layers...], seed=0)
     env.evolve(generations=300)
 
-    # 3. The agentic substrate: AI agents are the decoder; individuals
-    # are text methodologies; a server holds the laws
-    ga = finch4.AgenticGA(tasks=["compress"], seed=0)
-    # (see the agentic-ga skill and `python3 -m finch4.serve`)
+    # 3. Agent-mediated GAR: evolvers run parallel autoresearch trajectories;
+    # judge agents decide pairs; Finch communicates, records, updates Elo,
+    # and can launch allocator-supplied native jobs concurrently
+    campaign = finch4.Campaign(tasks=["compress"])
+    # from finch4.workers import JobQueue
+    # pool = JobQueue("runs/compress")
+    # (see docs/high-agent.md, the agentic-ga skill, finch4.serve)
 
     # Every run on one live dashboard:
     finch4.solve(..., progress=finch4.live_progress())
@@ -32,7 +35,7 @@ The engines carry the evidence of the research campaign they grew from
 falsification-heavy record); tests/test_finch.py holds the seeded
 bit-identity tests that let that evidence transfer."""
 
-from .agentic import AgenticGA
+from .agentic import Campaign
 from .architectures import build_mlp, register_architecture, resolve
 from .classic import (Breed, CapPopulation, Evaluate, Mutate, Populate,
                       SortByFitness, individual, inversion,
@@ -43,15 +46,15 @@ from .ga import (Distillation, GAResult, ProblemResult, TensorGA, Wave,
                  make_species_selection, one_point_gene_crossover,
                  register_substrate, share_selection, solve,
                  uniform_selection)
-from .layers import (AskRun, Audit, BreedWave, Consolidate, CullByShares,
+from .layers import (BreedWave, CullByShares,
                      Distill, Environment, EvolveDirections, Immigrate,
                      Layer, MutateWave, RecordProgress, ScoreWave,
                      Speciate, TensorStage, TuneDials,
-                     agentic_environment, tensor_environment, tensor_stack)
+                     tensor_environment, tensor_stack)
 from .serve import live_progress, media_client, png_data_uri
 
 __all__ = [
-    "solve", "GAResult", "ProblemResult", "AgenticGA", "TensorGA", "Wave",
+    "solve", "GAResult", "ProblemResult", "Campaign", "TensorGA", "Wave",
     "Distillation",
     "register_architecture", "register_substrate", "resolve", "build_mlp",
     "fitness_shares", "make_species_selection", "share_selection",
@@ -59,8 +62,8 @@ __all__ = [
     "coin_flip_latent_inheritance", "make_gaussian_mutation",
     "make_random_speciation", "live_progress", "media_client",
     "png_data_uri",
-    "Environment", "Layer", "AskRun", "Audit", "Consolidate",
-    "agentic_environment", "tensor_environment", "tensor_stack",
+    "Environment", "Layer",
+    "tensor_environment", "tensor_stack",
     "TensorStage", "Immigrate", "BreedWave", "MutateWave", "ScoreWave",
     "TuneDials", "CullByShares", "Speciate", "Distill",
     "EvolveDirections", "RecordProgress",

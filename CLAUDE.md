@@ -16,14 +16,23 @@ library only.
   identity, not to slot names — a swapped implementation inherits
   nothing (tests/test_finch.py's bit-identity tests are how ports
   carry their records).
-- **One shared substrate per run, ever** (decoder weights or base
-  playbook); individuals are small bendings of it. Selection, fitness
-  shares, capping, and archives are ENGINE-owned laws — layers drive
-  the engine, never reimplement it.
-- **Canonical scorers are constitutions**: agents run them, never edit
-  them; practice/surprise splits; budgets and purity enforced in the
-  scorer, not in prompts; audit-on-influence before anything breeds or
-  consolidates.
+- **One shared substrate per run, ever** (decoder weights, or
+  Decoder.md in GAR); individuals are small bendings of it. On the
+  tensor wing, selection, fitness shares, capping, and archives are
+  ENGINE-owned laws — layers drive the engine, never reimplement it.
+  On the agentic wing (docs/high-agent.md), `finch4.evolver` owns a
+  population of auto-research workers that share one Decoder.md. Named
+  judge agents select exact pairs. Finch owns the record and mechanical
+  Elo updates, never semantic judgment: trusted fitness with provenance,
+  pairings, verdicts, the decision log, and cited Decoder.md versions.
+  Sealed evaluation stays out of the worker workspace; do not encode it
+  in prompts. A general coding session on the Finch checkout is not a
+  GAR worker — launch researchers only through `finch4.evolver`.
+- **Canonical scorers are constitutions**: the driver runs them; workers
+  do not edit them. Practice/surprise splits and purity are enforced in
+  the scorer and the workspace membrane, not in denylist prompts.
+  Audit-on-influence before anything breeds, consolidates, or is
+  incorporated into Decoder.md.
 - **Comparisons or it didn't happen**: single runs are suggestive;
   success rates over repeats are evidence (agent decoding is
   nondeterministic — paired seeds don't exist there).
@@ -36,8 +45,9 @@ library only.
 - Dashboards: `python3 -m finch4.hub` (port 8800); any run joins via
   `finch4.live_progress()` or the agentic server. Light, earthy theme
   — no dark mode.
-- Skills: `.claude/skills/agentic-ga` (operate inside an agentic run),
-  `.claude/skills/evolution-author` (author new evolutionary problems).
+- Skills: `.claude/skills/agentic-ga` (operate an agent-mediated GAR
+  campaign), `.claude/skills/evolution-author` (author new evolutionary
+  problems).
 - Write results in plain words: define every measurement term at first
   use (practice/surprise passage, not canonical/holdout), no invented
   shorthand, every back-reference self-contained.

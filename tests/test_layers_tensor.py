@@ -75,26 +75,25 @@ def test_stack_covers_canonical_order():
     assert tuple(layer.stage for layer in tensor_stack()) == TensorGA.STAGES
 
 
-def test_engine_protocol_tensor_and_agentic():
+def test_engine_protocol_tensor_campaign_and_classic():
     """Environment reads engines through best_summary/best_record only —
     no isinstance special-casing — and falls back to plain state for
-    engineless (classic) stacks."""
+    engineless (classic) stacks. The Campaign recorder speaks the same
+    protocol so agentic runs share the dashboards."""
     env = tensor_environment(_fitness, **ARGS)
     env.evolve()
     assert set(env.best_scores()) == {"fn0"}
     assert env.best_ever.best_fitness == env.state["result"].best_fitness
 
-    from finch4 import agentic_environment
+    from finch4 import Campaign
 
-    def runner(job):
-        return {"variation": f"v-{job['job_id']}",
-                "score": float(len(job["job_id"])), "artifact": None}
-
-    ag = agentic_environment(tasks=["alpha"], runner=runner, founders=2,
-                             children=2, consolidate_every=1000, seed=0)
-    ag.evolve(generations=2)
-    assert set(ag.best_scores()) == {"alpha"}
-    assert ag.best_ever["score"] == ag.best_scores()["alpha"]
+    campaign = Campaign(["alpha"])
+    line = campaign.found("alpha", "seed")
+    campaign.report(line["id"], "gain", score=4.0, source="evaluator")
+    holder = Environment([], name="campaign-holder")
+    holder.state["engine"] = campaign
+    assert holder.best_scores() == {"alpha": 4.0}
+    assert holder.best_ever["lineage"] == line["id"]
 
     bare = Environment([], name="classic")
     bare.state["best"] = {"tsp": -1.0}

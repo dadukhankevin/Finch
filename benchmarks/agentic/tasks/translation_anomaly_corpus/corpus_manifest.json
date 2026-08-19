@@ -1,0 +1,9 @@
+{
+  "source_file": "/Users/daniellosey/Frontier/EBibleBenchmarks/corpus/eng-engULB.txt",
+  "vref_file": "/Users/daniellosey/Frontier/EBibleBenchmarks/corpus/vref.txt",
+  "targets": {
+    "aii": "/Users/daniellosey/Frontier/EBibleBenchmarks/corpus/aii-aii.txt",
+    "sus": "/Users/daniellosey/Frontier/EBibleBenchmarks/corpus/sus-susa.txt",
+    "gun": "/Users/daniellosey/Frontier/EBibleBenchmarks/corpus/gun-gun.txt"
+  }
+}

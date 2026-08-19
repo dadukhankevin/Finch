@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "neutral-two-turn-luna-control",
+  "hypothesis": "A minimally directed Luna session provides the appropriate control for measuring whether a specialized translation workflow adds value.",
+  "activation_condition": "Use this neutral method for every assigned language and all three tasks.",
+  "fallback": "When the supplied evidence is inconclusive, use ordinary translation judgment grounded in the exact examples.",
+  "falsifier": "This control is unsuitable if it receives different data, model access, task items, turns, or output requirements from the experimental harness.",
+  "agent_instructions": "Use only the supplied project files and examples. Complete the required research phase economically, then translate in the continuation turn. Do not adopt a prescribed linguistic framework, verifier panel, special tool, or multi-draft procedure.",
+  "research_prompt": "Read the three task sources and the supplied exact examples. Inspect other supplied corpus rows only when naturally useful. Write the required .runner/evidence.json as concise free-form notes, without drafting the final translations and without imposing a specialized analysis scheme.",
+  "translation_prompt": "Translate all three assigned verses using the supplied evidence and ordinary judgment. Return only the controller-required structured JSON.",
+  "tools": {}
+}

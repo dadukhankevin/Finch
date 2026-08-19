@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "name": "aquilla-contextual-agent-ethos",
+  "hypothesis": "Aquilla's analyzer-performer-verifier ethos helps Luna preserve discourse force, ambiguity, natural target phrasing, and semantic coverage better than neutral or generic staged research.",
+  "causal_prediction": "The largest gains should occur where a verse's wording depends on participant roles, discourse moves, conflicting corpus evidence, or ambiguity that a wording-level draft would flatten.",
+  "activation_condition": "Apply the contextual method to every task, but keep each stage brief when added context does not change the construal or expose a concrete risk.",
+  "fallback": "When contextual or corpus evidence cannot resolve a choice, preserve the strongest coherent construction directly attested by the exact examples; do not splice target fragments or force an inferred distinction.",
+  "falsifier": "The ethos is falsified if it does not improve paired chrF++, if its extra analysis changes translations without cited evidence, or if it harms simple verses through unnecessary reinterpretation.",
+  "agent_instructions": "Act as Aquilla's contextual translation agent within one persistent Luna session. In research, analyze before drafting and record a compact scene dossier with evidence provenance. In final generation, perform the translation from that dossier, audit concrete failure modes, and revise at most once. The workflow is a decision aid, not paperwork: abstain from speculative changes.",
+  "research_prompt": "Use the Aquilla contextual-translation skill. For each task, write a compact entry in .runner/evidence.json covering the scene, participants and roles, tenor, speech-act sequence, source propositions and semantic roles, directly attested target patterns with row identifiers, inferences kept separate from attestations, material conflicts, and ambiguities that must remain open. Read immediate passage context and expand corpus inspection only while it changes a material decision. Do not draft the final translations in this turn.",
+  "translation_prompt": "Use the scene dossiers as the performer. Privately draft all three translations as a coherent passage. Resolve conflicting evidence explicitly by preferring exact and repeated attestation over inference; never concatenate incompatible fragments. Then audit the draft for altered speech-act force, improperly resolved ambiguity, unnatural or unattested wording, and missing or added propositions, participants, relations, polarity, quantities, or names. Make at most one evidence-justified revision and return only the controller-required structured JSON.",
+  "tools": {},
+  "skills": {
+    ".agents/skills/aquilla-contextual-translation/SKILL.md": "# Aquilla contextual translation\n\nUse a compact analyzer → performer → verifier workflow.\n\n## Analyzer\n\nFor each task, construe the situation, participants and semantic roles, tenor, and sequence of speech-act moves. Read immediate passage context first. Expand into other supplied corpus evidence only while it changes a material choice; stop when another inspection no longer changes the construal. Record genuine unresolved ambiguity instead of filling it with a guess.\n\nSeparate evidence into two classes:\n\n- Attested: exact target wording or construction actually visible in a supplied aligned row. Cite its row identifier.\n- Inferred: a linguistic or discourse conclusion not directly demonstrated by a supplied target. Label it and do not let it override contrary attestation.\n\nWhen evidence conflicts, state the competing readings and choose one coherent supported construction. Prefer exact examples, repeated compatible attestations, and immediate discourse context in that order of relevance. Never assemble a translation by joining unrelated target fragments.\n\n## Performer\n\nDraft the three tasks together from the scene dossier. Preserve the source's propositions, participants, relations, polarity, quantities, names, speech-act force, and deliberately open ambiguities. Target-language idioms are welcome only when supplied evidence supports the same move and meaning.\n\n## Verifier\n\nAfter a complete private draft exists, inspect the source, dossier, and draft afresh under four narrow stances:\n\n1. Force: did a command, question, rebuke, plea, promise, or statement change social force?\n2. Ambiguity: did the draft resolve a distinction the evidence left open?\n3. Naturalness and attestation: is a suspicious construction unsupported or assembled from incompatible fragments?\n4. Coverage: is any proposition, semantic role, participant, relation, polarity, quantity, or name missing or added?\n\nRevise once only when a verifier identifies a concrete failure and the supplied evidence supports a repair. Otherwise preserve the original draft."
+  },
+  "orchestration": {
+    "topology": "single_session_two_turn",
+    "research_phase_prompt": "Finish a compact scene dossier for all three tasks before the turn ends. Spend additional inspection only on open questions capable of changing a translation decision.",
+    "final_phase_prompt": "Treat the scene dossier as evidence rather than authority. Draft once, perform the four narrow checks, make no more than one supported repair pass, and emit only the required JSON.",
+    "compute_envelope": {
+      "model": "gpt-5.6-luna",
+      "sessions_per_language": 1,
+      "turns_per_session": 2,
+      "tasks_per_language": 3
+    }
+  }
+}

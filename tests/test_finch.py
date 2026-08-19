@@ -1,76 +1,15 @@
 """Finch 4's acceptance rule: a preset carries the research campaign's evidence
 only if it reproduces the vetted engines' behavior EXACTLY. These tests are
 that rule, executable — the same standard the fold-removal rewrite had
-to meet before inheriting the old engine's records."""
+to meet before inheriting the old engine's records. (The agentic wing
+has no such test anymore by design: named judge agents make semantic
+pairwise selections, so there is no deterministic drive to be bit-identical
+to — the communication and Elo laws are pinned in test_agentic.py instead.)"""
 import numpy as np
 import torch
 
-from finch4.layers import (Environment, agentic_environment,
-                               tensor_environment)
-from finch4 import AgenticGA, solve
-
-
-def fake_score(task, variation):
-    scale = 1.0 if task == "alpha" else 1000.0
-    return scale * (len(variation) % 17)
-
-
-def fake_result(job):
-    parents = job["parents"]
-    if job["kind"] == "found":
-        var = f"found-{job['job_id']}"
-    elif job["kind"] == "mutate":
-        var = parents[0]["variation"] + "-m"
-    else:
-        var = parents[0]["variation"] + "+" + parents[1]["variation"]
-    return {"variation": var, "score": fake_score(job["task"], var),
-            "artifact": f"/tmp/{job['job_id']}.py"}
-
-
-def drive_direct(seed, rounds):
-    """The pre-Finch loop, verbatim from the engine's own tests."""
-    ga = AgenticGA(tasks=["alpha", "beta"], founders=2, children=4,
-                   population_cap=6, consolidate_every=2, seed=seed)
-    for _ in range(rounds):
-        for job in ga.ask():
-            r = fake_result(job)
-            ga.tell(job["job_id"], r["variation"], r["score"],
-                    artifact=r["artifact"])
-        if ga.consolidation_due():
-            ga.consolidation_batch()
-            for ind in ga.record_consolidation():
-                ga.tell_rewrite(ind["id"], ind["variation"] + "!")
-    return ga
-
-
-def drive_layered(seed, rounds):
-    """The same run expressed as Finch layers over the same engine."""
-    env = agentic_environment(
-        tasks=["alpha", "beta"], runner=fake_result,
-        consolidator=lambda batch, env: True,
-        rewriter=lambda survivor, env: survivor["variation"] + "!",
-        founders=2, children=4, population_cap=6,
-        consolidate_every=2, seed=seed)
-    env.evolve(generations=rounds)
-    return env.state["engine"]
-
-
-def test_agentic_layers_are_bit_identical_to_direct_drive():
-    a = drive_direct(seed=11, rounds=5)
-    b = drive_layered(seed=11, rounds=5)
-    assert a.summary() == b.summary()
-    assert set(a.individuals) == set(b.individuals)
-    for ind_id, ind in a.individuals.items():
-        other = b.individuals[ind_id]
-        for key in ("task", "variation", "score", "origin", "parents",
-                    "alive", "scored_on_base"):
-            assert ind[key] == other[key], (ind_id, key)
-    # and the RNG consumed identically: the next ask matches too
-    ja = [(j["kind"], j["task"], [p["id"] for p in j["parents"]])
-          for j in a.ask()]
-    jb = [(j["kind"], j["task"], [p["id"] for p in j["parents"]])
-          for j in b.ask()]
-    assert ja == jb
+from finch4 import solve
+from finch4.layers import Environment, tensor_environment
 
 
 def _fitness(phenotypes: torch.Tensor):
@@ -93,12 +32,12 @@ def test_tensor_preset_is_bit_identical_to_solve():
 
 
 def test_environment_history_and_plot(tmp_path):
-    env = agentic_environment(
-        tasks=["alpha"], runner=fake_result, founders=2, children=3,
-        consolidate_every=1000, seed=0, name="t")
-    env.evolve(generations=4)
+    env = tensor_environment(_fitness, output_shape=(8,), epochs=4,
+                             children=4, population_cap=8, founders=2,
+                             device="cpu", seed=0, name="t")
+    env.evolve()
     assert len(env.state["history"]) == 4
-    assert env.state["history"][-1]["best"]["alpha"] > 0
+    assert env.state["history"][-1]["best"]["fn0"] < 0
     path = env.plot(str(tmp_path / "curve.svg"))
     assert "svg" in open(path).read()
 

@@ -1,145 +1,150 @@
 ---
 name: agentic-ga
-description: Run the Finch 4 agentic substrate — a genetic algorithm whose decoder is an agent. Use when asked to evolve methodologies/specs with agent subagents, run the agentic GA, or continue an agentic run in benchmarks/agentic/runs/.
+description: Run a Finch genetic auto-research campaign with autonomous evolver agents, pairwise judge agents, Elo selection, direct cited shared research, and lightweight orchestration. Use when asked to start, continue, or inspect GAR.
 ---
 
-# Agentic GA — orchestration manual
+# Agent-mediated GAR
 
-The agentic substrate of Finch 4: individuals are text
-**methodologies** (one shared **base playbook** + a per-individual
-**variation** clause, "the base BUT <difference>"); the **decoder** is
-an agent that follows base+variation to produce an **artifact**; fitness
-comes from a **canonical scorer script**. Selection, fitness shares, the
-population cap, best-ever archives, and consolidation cadence are owned
-by `finch4.AgenticGA` (ask/tell, deterministic, seeded) —
-never improvised by any agent.
+You are the allocator and campaign operator, not the population's shared
+brain. Spawn diverse evolver agents, keep the experiment machinery running,
+request useful comparisons, and allocate compute. Evolvers read and report
+through Finch directly. Separate judge agents make pairwise selection
+decisions. Finch records communication and performs Elo arithmetic; Finch
+never judges.
 
-## Invariants (fixed — these are NOT part of the evolvable playbook)
+The organism is a **research trajectory**, not its founding idea or most recent
+experiment. A lineage may begin poorly and make a conceptual advance several
+experiments later. A losing candidate is reverted; the lineage may continue.
+Killing a lineage remains possible when its direction is falsified, redundant,
+stagnant, or no longer worth compute.
 
-1. **One base playbook per run.** Individuals carry variations only
-   (≤150 words). Content moves from variation to base only through
-   consolidation.
-2. **Never edit a canonical `score.py`.** Every reported score is the
-   number the canonical scorer printed for the shipped artifact — the
-   artifact is the evidence and must be saved. Audits re-run the scorer.
-3. **Variations must not contradict the base**, except a mutation may
-   deliberately contradict it and must say so (`contradicts_base=True`).
-   Watch `ga.contradiction_report()`: contradictors consistently beating
-   compliants means a past consolidation hurt the base — revert it.
-4. **Audit on influence, not on score.** Before consolidation (and for
-   any would-be record), re-run the canonical scorer AND `--holdout` on
-   the artifact yourself, and read the subagent's log against its
-   variation — quality that didn't come from the methodology must not be
-   distilled into the base.
-5. **Consolidation absorbs vetted winners only**: the engine's
-   `consolidation_batch()` (per-task best-evers). Never "the top N
-   ideas" — that is the arithmetic fold's failure mode (see FINDINGS.md).
-6. **After consolidation**, every survivor is rewritten — push the
-   absorbed part of its idea further, or keep it unchanged if it wasn't
-   absorbed. No automatic re-score: the engine tracks staleness
-   (`ga.stale()`); re-score individuals only as needed.
+## Invariants
 
-## Run layout
+1. **External evidence remains ground truth.** A trusted score names its
+   evaluator. Worker claims use `claimed_score`. For translation, chrF belongs
+   in the judge evidence even though Elo is the population rating.
+2. **Agents judge; Finch does not.** A match contains exactly two immutable
+   checkpoints, their trajectories to that point, plus frozen criteria and
+   evidence. The named judge returns the winner or tie and rationale. Finch
+   only validates and updates Elo.
+3. **Evolvers communicate directly.** They read `GET /research` and publish
+   `POST /report`. Finch appends each trusted scored report to `Decoder.md`.
+   Do not continuously funnel their research through your own summaries.
+   Periodic allocation is useful. Constant interpretive steering reduces
+   diversity.
+4. **Material influence is cited inline.** Use `[L0003#2@8ddf8b41]` when an
+   experiment adopts, extends, contrasts, or combines that checkpoint. The
+   prose is the lineage record; do not add a parallel influences object or
+   ceremonial citations.
+5. **One shared `Decoder.md`.** `share` records trusted findings, including
+   failures. `incorporate` promotes only audit-passed methodology. `compact`
+   can remove bloat but introduce no new source.
+6. **Record reasons at decision time.** Found, pair, verdict, kill, revive,
+   audit, and shared-memory changes all need honest rationales.
 
-    benchmarks/agentic/runs/<run>/
-      state.json           # AgenticGA.save / .load
-      base_playbook.md     # copied from benchmarks/agentic/base_playbook.md
-      individuals/<id>/    # variation.md, artifact.py, score.json, log.md
+## Start a campaign
 
-## The loop
+    python3 -m finch4.serve --run <run-dir> --tasks <task...>
 
-PRIMARY MODE — orchestrator-run (Daniel's ruling, 2026-07-30): a live
-agent session runs the GA with judgment, using the engine server for
-the laws. Start the server (below), then: POST /ask for jobs, render
-each job's prompt from finch4/agentic_prompts/ (reuse
-`_template` and `FOUNDER_ANGLES` from finch4.drive),
-and spawn one worker per job **with your runtime's NATIVE subagent
-mechanism** — a Claude session uses its Agent tool, a Codex session
-uses its own spawning. The server API is the only contract: any
-process that can POST /tell is a valid worker; no cross-CLI plumbing
-is needed when the orchestrator and workers share a runtime.
-Cross-CLI shell-out is the exception, for unattended drive.py runs or
-deliberately mixed fleets (verified codex string: `codex exec -m
-gpt-5.6-luna --sandbox workspace-write -c
-sandbox_workspace_write.network_access=true`).
-Agents report themselves via POST /tell — including
-`"fresh_start": true` when a breeding job's agent judged its parent
-lineage exhausted and founded fresh instead (the engine marks the
-parent non-breeding; its archive record survives). The orchestrator's judgment
-calls: how many jobs run in parallel (measurement-locked tasks like lm
-starve under contention — stagger or serialize; lock-free tasks like
-compress parallelize fully), when to audit and what smells illegitimate,
-when consolidation is worth its cost, retrying dead jobs, and reading
-every consolidation proposal before applying it.
+Read `<run-dir>/server.json` for the port. Before tournament play, freeze the
+criteria a judge should apply:
 
-Self-driving (unattended/overnight): one command renders prompts,
-spawns agents via any CLI, audits mechanically, and pauses for
-consolidation review (--auto-consolidate to run overnight):
+    curl -X POST http://127.0.0.1:$PORT/criteria -d '{
+      "task":"translation",
+      "criteria":{"primary":"paired chrF","also_consider":["cross-language robustness","feasibility","trajectory potential"]},
+      "rationale":"use one explicit contract across judge agents"
+    }'
 
-    python3 -m finch4.drive --run <run_dir> \
-        --tasks ... --tasks-dir benchmarks/agentic/tasks \
-        --agent-cmd 'claude -p "$(cat {promptfile})"' --rounds 6
+Start the population with `python3 -m finch4.evolver`. Each member is an
+auto-research worker (`finch4.solo`) on the same artifact. All of them
+share the same `Decoder.md` and may cite each other. Finch
+injects fitness and shared research. You may kill or insert a member;
+you do not write their experiment prompts, file denylists, or a running
+interpretation of the search.
 
-Prompt templates live in finch4/agentic_prompts/
-(SCRISPR-style operator rotation: one-change / telephone / masked
-mutation, smart crossover, assigned founder angles). When orchestrating
-manually instead, the same templates are the reference prompts.
+Workers already have:
 
-Semi-manual: start the reporting server and let agents report themselves —
+- their current fitness;
+- the current `Decoder.md` (updated when a scored report lands);
+- `GET /research?lineage=L####` and `POST /report`.
 
-    python3 -m finch4.serve --run <run_dir> --tasks ... &
+Do not add a second prompt that tells them which files not to open.
+Those files are not in the worker workspace.
 
-One process holds the engine; every request is lock-serialized and
-state.json is saved after each mutation, so concurrent agents can POST
-the moment they finish. The port is in the run's `server.json`. The
-orchestrator drives rounds via `POST /ask`, `GET /due`, `GET /batch`,
-`POST /consolidated`, `POST /rewrite`; each decoder-child ends its work
-with `curl -s -X POST localhost:PORT/tell -d '{"job_id": ..., 
-"variation": ..., "score": ..., "artifact": ...}'` (its final JSON
-message then just confirms what it already reported). Routes are in the
-serve.py docstring.
+A general coding session on the Finch checkout or a task tree is not a
+worker. That bypasses the workspace membrane. Launch researchers only
+through `finch4.evolver` / `finch4.solo`, whose working directory is the
+lineage folder Finch prepares.
 
-Fallback (no server): drive the engine from short python3 snippets —
-`ask()` → spawn one subagent per job **in parallel** via the Agent tool
-→ `tell()` each result (or `abandon()` failures) → `save()`. When
-`consolidation_due()`: audit the batch, spawn the consolidator, apply
-its edit to the run's `base_playbook.md`, `record_consolidation()`,
-spawn rewrite jobs, `tell_rewrite()` each. Keep budgets honest:
-founders 2–4 per task, children 4–8 per round, `consolidate_every` 2–4
-— every job is a full agent run.
+## Run selection
 
-## Subagent prompts (each must be self-contained: absolute paths, no
-references to this conversation)
+Request a comparison between exact checkpoints:
 
-**Decoder-child** (kinds found/mutate/crossover): give it the run's
-`base_playbook.md` path, the canonical `score.py` path, its output
-directory, and its job — *found*: "invent ONE distinct variation on the
-base methodology, then follow base+variation"; *mutate*: parent's
-variation + "produce a variation that differs in ONE deliberate way
-(you may contradict the base, but flag it)"; *crossover*: both parents'
-variations + scores + "merge their ideas into one variation". Require:
-follow the methodology honestly; write `variation.md`, `artifact.py`,
-`log.md` (what you actually did, plus the one-line structure-you-exploit
-statement); run the canonical scorer; write its output verbatim to
-`score.json`; final message = JSON `{"variation": ..., "score": ...,
-"contradicts_base": ...}`.
+    curl -X POST http://127.0.0.1:$PORT/pair -d '{
+      "individuals":[["L0003",2],["L0007",1]],
+      "requested_by":"allocator-1",
+      "judge":"judge-4",
+      "rationale":"compare two viable approaches for the next allocation"
+    }'
 
-**Consolidator**: give it the current `base_playbook.md`, the audited
-`consolidation_batch()` (each task's best variation + score + log), and:
-"edit the base so that an agent following the base with an EMPTY
-variation would reproduce these wins — absorb what the winners actually
-did, not a summary of every idea present; bump the version header;
-change as little else as possible." Apply its edit only after reading it.
+Give only `GET /match?id=M####` to the assigned judge. Do not prime it with
+the population leaderboard or your preferred theory. The judge inspects the
+two artifacts, evaluator metrics and evidence under the supplied criteria,
+then posts:
 
-**Rewrite** (per survivor, after consolidation): give it old base
-version, new base, its variation, and Daniel's rule: "if the new base
-absorbed part of your idea, take that idea to the next level; if it
-didn't, return your variation unchanged." Cheap job — batch several per
-subagent if the population is large.
+    curl -X POST http://127.0.0.1:$PORT/verdict -d '{
+      "match":"M0002","winner":"L0007","judge":"judge-4",
+      "rationale":"wins the primary metric and transfers across more cells",
+      "evidence":{"paired_delta":1.7,"cells_won":"6/8"}
+    }'
 
-## What lives where
+Use several judge agents by assigning different matches concurrently. Each
+verdict is one named selection event, not a vote that Finch silently
+aggregates. Read `GET /ratings` for Elo standings and `GET /matches` for the
+auditable history. If a comparison was invalid, use `POST /void-match`; Finch
+replays later valid Elo updates.
 
-- Engine + laws: `finch4/agentic.py` (docstring = spec)
-- Testbed tasks + evolvable playbook v0: `benchmarks/agentic/`
-- The evolvable playbook must never absorb these invariants — if a
-  consolidator's edit restates or overrides conduct rules, reject it.
+Pair near competitors often enough to learn ordering, but preserve novelty
+and structurally different trajectories rather than turning every allocation
+into exploitation of the current leader. Elo informs allocation; it does not
+forbid a promising low-rated trajectory from receiving more experiments.
+
+## Natural crossover and shared research
+
+The usual crossover happens when evolvers read cited shared findings and
+combine them naturally. When a report uses multiple source tokens, the Tree of
+Life reconstructs that intellectual descent automatically. Use explicit
+`parents=[[lineage, report], ...]` only when a new worker needs a deliberately
+directed merge of exact artifacts. Create as many children as there are
+meaningfully different promising combinations.
+
+A trusted scored report appends itself to `Decoder.md`. Do not republish
+those lines by hand. Use `POST /finding` only for extra cited prose, and
+`POST /share` only when an agent is deliberately rewriting the full shared
+Markdown.
+After exact-artifact replication and audit, publish methods with
+`POST /incorporate`. Always put the source token beside the claim it supports.
+Do not turn a lucky screen into the population's default.
+
+## Allocation guidance
+
+- Maintain structural diversity; do not use your own feedback as a shared
+  mutation prompt for every evolver.
+- Reserve capacity for unrelated founders and eureka injections, especially
+  when verified fitness plateaus.
+- Prefer matched distributions over singleton stochastic scores.
+- Keep local candidate acceptance separate from lineage survival: revert a
+  losing experiment, then decide whether the trajectory deserves another.
+- Read what an artifact actually does before recombining it; prose can be
+  wrong.
+- Tell the user plainly when verified progress stops. Activity and better
+  measurement are not translation improvement.
+
+## Where it lives
+
+- Protocol and rationale: `docs/high-agent.md`
+- Finch-owned prompts: `finch4/prompts.py`
+- Record, match assignments, Elo: `finch4/agentic.py`
+- HTTP communication layer and dashboard: `finch4/serve.py`
+- Population evolver: `finch4/evolver.py`
+- One auto-research worker: `finch4/solo.py`

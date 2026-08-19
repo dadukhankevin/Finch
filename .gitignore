@@ -15,5 +15,8 @@ examples/decoders/species_grid.png
 research/
 CLAUDE.local.md
 
+# local campaign runs (run evidence stays local; see CLAUDE.md)
+runs/
+
 # Glance memory
 .glance/

@@ -27,8 +27,25 @@ import time
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from .serve import agentic_curves, curve_svg, registry_path, \
+from .serve import curve_svg, lineage_curves, registry_path, \
     telemetry_curves
+
+
+def _legacy_curves(individuals):
+    """Best-so-far curves for ARCHIVED pre-high-agent runs (state.json
+    schemas 1 and 2, individuals with a single score each) — read-only
+    rendering so old campaigns stay on the board."""
+    series, points, best, n = {}, [], {}, 0
+    for ind in sorted(individuals, key=lambda i: i["id"]):
+        n += 1
+        if ind.get("score") is None or ind["score"] <= -90:
+            continue
+        task = ind["task"]
+        points.append((n, ind["score"], ind["id"]))
+        if task not in best or ind["score"] > best[task]:
+            best[task] = ind["score"]
+        series.setdefault(task, []).append((n, best[task]))
+    return series, points
 
 
 def load_registry():
@@ -90,9 +107,15 @@ def run_status(entry):
         if os.path.exists(state_path):
             state = json.load(open(state_path))
             info["kind"] = "agentic"
-            inds = list(state.get("individuals", {}).values())
-            info["evaluations"] = len(inds)
-            info["series"], info["points"] = agentic_curves(inds)
+            if "lineages" in state:            # agentic GAR
+                lineages = list(state["lineages"].values())
+                info["evaluations"] = state.get("_next_report",
+                                                len(lineages))
+                info["series"], info["points"] = lineage_curves(lineages)
+            else:                              # archived older schemas
+                inds = list(state.get("individuals", {}).values())
+                info["evaluations"] = len(inds)
+                info["series"], info["points"] = _legacy_curves(inds)
             info["best"] = {t: (None if b is None else round(b["score"], 5))
                             for t, b in state.get("best", {}).items()}
         if os.path.exists(telem_path):

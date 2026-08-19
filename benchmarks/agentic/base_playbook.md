@@ -9,16 +9,17 @@ evolved away.
 
 ## Methodology
 
-1. Read the task's canonical `score.py` end to end before writing any
-   code: the exact interface your function must expose, how instances
-   are generated, and what the score rewards.
+1. Read `TASK.md` and the current champion. Finch injects your fitness
+   and the shared `Decoder.md`.
 2. State, in one or two sentences in your work log, what structure of
    the problem your heuristic will exploit and why.
 3. Write the simplest version of that heuristic first. Pure function,
    numpy only, no I/O, no randomness, fast enough to run hundreds of
    times.
-4. Run the canonical scorer on your artifact. Iterate: change one thing
-   at a time, keep whichever artifact scored highest, and stop when two
-   consecutive changes fail to improve.
-5. Ship your best-scoring artifact and report its exact canonical score.
-   Never report a number the scorer did not print.
+4. Write the candidate. The driver scores it and keeps it when fitness
+   rises.
+5. Change one general predicate at a time, but the artifact you ship
+   must already include working instruments you adopted from shared
+   research.
+6. Ship the artifact. Report only a number you actually produced. The
+   driver owns campaign fitness.

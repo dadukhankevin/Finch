@@ -1,47 +1,39 @@
-"""A scripted stand-in for the solo agent CLI (tests/test_solo.py).
+"""Scripted stand-in for the solo agent CLI (tests/test_solo.py).
 
-Receives the experiment prompt file as argv[1] and performs exactly the
-autoresearch protocol the prompt describes — copy the champion to the
-candidate, apply ONE change (best-fit instead of worst-fit bin priority),
-score with the canonical scorer, keep only if strictly better, log
-honestly — without any model. On a champion that already has the change
-the candidate ties, so experiment one is KEPT and experiment two
-REVERTED, exercising both verdicts."""
+Runs in the lineage working directory. Copies champion.py to candidate.py,
+applies best-fit instead of worst-fit, and leaves keep/revert to the driver.
+"""
 import json
 import re
-import shutil
-import subprocess
 import sys
+from pathlib import Path
 
-prompt = open(sys.argv[1]).read()
-
-worklog = re.search(r"result\): (\S+)", prompt).group(1)
-champion, champ_score = re.search(
-    r"champion script: (\S+) \(canonical score (\S+)\)", prompt).groups()
-scorer = re.search(r"NEVER edit it\): (\S+)", prompt).group(1)
-candidate = re.search(r"Copy the champion to (\S+) and", prompt).group(1)
-results = re.search(r"JSON line to (\S+):", prompt).group(1)
+prompt = Path(sys.argv[1]).read_text(encoding="utf-8")
 number = int(re.search(r"experiment (\d+) of", prompt).group(1))
-champ_score = float(champ_score)
+champ_score = float(re.search(r"Your fitness is ([0-9eE.+-]+)", prompt).group(1))
 
 hypothesis = "best-fit (fullest feasible bin) beats worst-fit priority"
-source = open(champion).read()
-with open(candidate, "w") as f:
-    f.write(source.replace("return capacities", "return -capacities"))
+source = Path("champion.py").read_text(encoding="utf-8")
+Path("candidate.py").write_text(
+    source.replace("return capacities", "return -capacities"),
+    encoding="utf-8")
 
-score = json.loads(subprocess.run(
-    [sys.executable, scorer, candidate],
-    capture_output=True, text=True).stdout)["score"]
+claimed = champ_score
+try:
+    import subprocess
+    claimed = json.loads(subprocess.run(
+        [sys.executable, "score.py", "candidate.py"],
+        capture_output=True, text=True, check=True).stdout)["score"]
+except Exception:
+    pass
 
-kept = score > champ_score
-if kept:
-    shutil.copy(candidate, champion)
-
-with open(worklog, "a") as f:
-    f.write(f"## Experiment {number}\nHypothesis: {hypothesis}\n"
-            f"Canonical score: {score} vs champion {champ_score} — "
-            f"{'KEPT' if kept else 'REVERTED'}\n\n")
-with open(results, "a") as f:
-    f.write(json.dumps({"experiment": number, "hypothesis": hypothesis,
-                        "score": score, "kept": kept}) + "\n")
-print("KEPT" if kept else "REVERTED", score)
+with open("WORKLOG.md", "a", encoding="utf-8") as handle:
+    handle.write(f"## Experiment {number}\nHypothesis: {hypothesis}\n"
+                 f"Proposed: {claimed} vs champion {champ_score}\n\n")
+with open("results.jsonl", "a", encoding="utf-8") as handle:
+    handle.write(json.dumps({
+        "experiment": number,
+        "hypothesis": hypothesis,
+        "claimed_score": claimed,
+    }) + "\n")
+print("PROPOSED", claimed)
